@@ -3,18 +3,27 @@ import java.rmi.RemoteException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import classes.User;
+
 
 public class AdminConsole extends RMIClient {
     private static final long serialVersionUID = 1L;
-    //private static AdminConsole admin;
-	public AdminConsole() throws RemoteException { super(); }
+    private static Inputs input_manage= new Inputs();
+    private static AdminConsole admin;
 
-    public static void main(String[] args) {
-		//admin = new AdminConsole();
-		adminMenu();
+    public AdminConsole() throws RemoteException { super(); }
+
+    public static void main(String[] args) throws RemoteException {
+        System.getProperties().put("java.security.policy","RMIServer.policy");
+        if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
+
+		admin = new AdminConsole();
+        admin.connect2Servers();
+        //System.out.println(admin.getServer1().registUser(new User("Estudante", "Rodrigo Sobral", "put4s3v1nh0V3rd3_69-69", "Toca do coelho - Apartado um", "926180923", "faculdade_da_bida_IRMAO", "departamento dos cuidados intensivos", "17518751", "09-14")));
+		admin.adminMenu();
     }
 
-    private static void adminMenu() {
+    private void adminMenu() {
         int option=0;
         Scanner keyboard= new Scanner(System.in);
         while (true) {
@@ -30,8 +39,7 @@ public class AdminConsole extends RMIClient {
             System.out.println("|  0: Sair                           |");
             System.out.println("|====================================|");
             System.out.print("| Opcao: ");
-            option= checkIntegerOption(keyboard.nextLine(), option, 4);
-            if (option!=-1) break;
+            option= input_manage.checkIntegerOption(keyboard.nextLine(), option, 4);
             
             if (option==1) {
                 managePeople(keyboard, option);
@@ -49,10 +57,9 @@ public class AdminConsole extends RMIClient {
                 return;
             }
         }
-        keyboard.close();
     }
 
-    private static boolean managePeople(Scanner keyboard, int option) {
+    private void managePeople(Scanner keyboard, int option) {
         while (true) {
             System.out.println("|====================================|");
             System.out.println("|           Gerir Pessoas            |");
@@ -64,25 +71,20 @@ public class AdminConsole extends RMIClient {
             System.out.println("|====================================|");
             System.out.print("| Opcao: ");
             String str_option = keyboard.nextLine();
-            option= checkIntegerOption(str_option, option, 3);
+            option= input_manage.checkIntegerOption(str_option, option, 3);
             if (option!=-1) break;
         }
         if (option==1) {
             addPerson(keyboard);
-            return true;
         } else if (option==2) {
-            return true;
         } else if (option==3){
-            return true;
         } else {
             System.out.println("Voltando para o Menu Admin...");
             try { TimeUnit.SECONDS.sleep(3); }
             catch (Exception e1) { }
-            keyboard.close();
-            return false;
         }
     }
-    private static boolean manageElections(Scanner keyboard, int option) {
+    private boolean manageElections(Scanner keyboard, int option) {
         while (true) {
             System.out.println("|====================================|");
             System.out.println("|           Gerir Eleicoes           |");
@@ -94,7 +96,7 @@ public class AdminConsole extends RMIClient {
             System.out.println("|====================================|");
             System.out.print("| Opcao: ");
             String str_option = keyboard.nextLine();
-            option= checkIntegerOption(str_option, option, 3);
+            option= input_manage.checkIntegerOption(str_option, option, 3);
             if (option!=-1) break;
         }
         if (option==1) {
@@ -111,7 +113,7 @@ public class AdminConsole extends RMIClient {
             return false;
         }
     }
-    private static boolean manageCandidatures(Scanner keyboard, int option) {
+    private boolean manageCandidatures(Scanner keyboard, int option) {
         while (true) {
             System.out.println("|====================================|");
             System.out.println("|         Gerir Candidaturas         |");
@@ -123,7 +125,7 @@ public class AdminConsole extends RMIClient {
             System.out.println("|====================================|");
             System.out.print("| Opcao: ");
             String str_option = keyboard.nextLine();
-            option= checkIntegerOption(str_option, option, 3);
+            option= input_manage.checkIntegerOption(str_option, option, 3);
             if (option!=-1) break;
         }
         if (option==1) {
@@ -140,7 +142,7 @@ public class AdminConsole extends RMIClient {
             return false;
         }
     }
-    private static boolean manageVoteTables(Scanner keyboard, int option) {
+    private boolean manageVoteTables(Scanner keyboard, int option) {
         while (true) {
             System.out.println("|====================================|");
             System.out.println("|        Gerir Mesas de Voto         |");
@@ -152,7 +154,7 @@ public class AdminConsole extends RMIClient {
             System.out.println("|====================================|");
             System.out.print("| Opcao: ");
             String str_option = keyboard.nextLine();
-            option= checkIntegerOption(str_option, option, 3);
+            option= input_manage.checkIntegerOption(str_option, option, 3);
             if (option!=-1) break;
         }
         if (option==1) {
@@ -170,14 +172,56 @@ public class AdminConsole extends RMIClient {
         }
     }
 
-    private static void addPerson(Scanner keyboard) {
-        System.out.print("Nome: ");
-        //String str_option = keyboard.nextLine();
-        
+    private void addPerson(Scanner keyboard) {
+        User new_user= new User();
+        while(!new_user.setUser_type(input_manage.askVariable(keyboard, "Funcao [Funcionario/Professor/Estudante]: ", 0)));
+        new_user.setName(input_manage.askVariable(keyboard, "Nome: ", 0));
+        new_user.setPassword(input_manage.askVariable(keyboard, "Password: ", 1));
+        new_user.setAddress(input_manage.askVariable(keyboard, "Morada: ", 0));
+        new_user.setPhone_number(input_manage.askVariable(keyboard, "Contacto Telefonico: ", 4));
+        new_user.setCollege(input_manage.askVariable(keyboard, "Faculdade: ",0));
+        new_user.setDepartment(input_manage.askVariable(keyboard, "Departamento: ", 0));
+        new_user.setCc_number(input_manage.askVariable(keyboard, "Numero Cartao Cidadao: ", 2));
+        new_user.setCc_shelflife(input_manage.askVariable(keyboard, "Validade: ", 3));
+        try { admin.getServer1().registUser(new_user); } 
+        catch (Exception e1) {
+            try { admin.getServer2().registUser(new_user); } 
+            catch (Exception e2) { System.out.println("Nao ha servers.\n"+e2); }
+        }
+    }
+}
+
+
+/**
+ * Inputs
+ */
+class Inputs {
+
+    /**
+     * 
+     * @param keyboard
+     * @param message
+     * @param input_type 0 to strings with no numbers
+     * 1 to strings passwords
+     * 2 to numbers with no hifen
+     * 3 to validity
+     * 4 to phone numbers
+     * @return inputed string well formated
+     */
+    public String askVariable(Scanner keyboard, String message, int input_type) {
+        String str;
+        while (true) {
+            System.out.print(message);
+            str= keyboard.nextLine();
+            if (input_type==0 && this.checkString(str)) return str;
+            if (input_type==1 && this.checkPassword(str)) return str;
+            if (input_type==2 && this.checkStringInteger(str)) return str;
+            if (input_type==3 && this.checkValidity(str)) return str;
+            if (input_type==4 && this.checkPhoneNumber(str)) return str;
+        } 
     }
 
-
-    private static int checkIntegerOption(String str_option, int option, int option_limit) {
+    public int checkIntegerOption(String str_option, int option, int option_limit) {
         try {
             option= Integer.parseInt(str_option);
             if (option>=0 && option<=option_limit) return option;
@@ -189,4 +233,45 @@ public class AdminConsole extends RMIClient {
             return -1;
         }
     }
+    
+    public boolean checkString(String s) {
+        if (s.isEmpty()) return false;
+        if (!Character.isJavaIdentifierStart(s.charAt(0))) return false;
+        for (int i = 1; i < s.length(); i++) {
+            if (Character.isDigit(s.charAt(i))) return false;
+        } return true;
+    }
+    public boolean checkPassword(String s) {
+        if (s.isEmpty()) return false;
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isSpaceChar(s.charAt(i))) return false;
+        } return true;
+    }
+    public boolean checkPhoneNumber(String s) {
+        if (s.isEmpty() || s.length()!=9) return false;
+        if (Character.compare(s.charAt(0), '9')!=0 || (Character.compare(s.charAt(1), '1')!=0 && Character.compare(s.charAt(1), '2')!=0 && Character.compare(s.charAt(1), '3')!=0 && Character.compare(s.charAt(1), '6')!=0)) 
+            return false;
+        for (int i = 0; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) return false;
+        } return true;
+    }
+    public boolean checkStringInteger(String s) {
+        if (s.isEmpty()) return false;
+        if (!Character.isJavaIdentifierStart(s.charAt(0)) && !Character.isDigit(s.charAt(0))) return false;
+        for (int i = 1; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) return false;
+        } return true;
+    }
+    public boolean checkValidity(String s) {
+        if (s.isEmpty() || s.length()!=5) return false;
+        for (int i = 0; i < s.length(); i++) {
+            if (i==2 && Character.compare(s.charAt(2),'-')!=0) return false;
+            else if (i!=2 && !Character.isDigit(s.charAt(i))) return false;
+        } 
+        String aux= s.split("-")[0];
+        if (aux.compareTo("01")>0 || aux.compareTo("12")<0) return true;
+        else return false;
+    }
+    
 }
+

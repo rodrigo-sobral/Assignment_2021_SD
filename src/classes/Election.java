@@ -2,7 +2,7 @@ package classes;
 
 import java.util.Date;
 
-public class Election implements ElectionInterface {
+public class Election {
     
     private String election_type;
     private String title, description;
@@ -26,7 +26,7 @@ public class Election implements ElectionInterface {
      * @return true if election_type is correct, false otherwise
      */
     public boolean setElection_type(String election_type) { 
-        if (election_type=="Estudante" || election_type=="Professor" || election_type=="Funcionario" || election_type=="Geral") {
+        if (election_type=="Estudante" || election_type=="Professor" || election_type=="Funcionario") {
             this.election_type = election_type; 
             return true;
         } else return false;

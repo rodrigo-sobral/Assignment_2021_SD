@@ -1,7 +1,10 @@
 package classes;
 
-public class User implements UserInterface {
-    
+import java.io.*;
+
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String user_type;    //  Professor, Estudante ou Funcionario
     private String name, password, address, phone_number;
     private String department, college;
@@ -31,6 +34,7 @@ public class User implements UserInterface {
         if (cc_number!=null) setCc_number(cc_number);
         if (cc_shelflife!=null) setCc_shelflife(cc_shelflife);
     }
+    public User() { }
     
     public String getUser_type() { return user_type; }
     public String getName() { return name; }
@@ -43,7 +47,7 @@ public class User implements UserInterface {
     public String getCc_shelflife() { return cc_shelflife; }
     
     public boolean setUser_type(String user_type) { 
-        if (user_type=="Funcionario" || user_type=="Estudante" || user_type=="Professor") {
+        if (user_type.compareTo("Funcionario")==0 || user_type.compareTo("Estudante")==0 || user_type.compareTo("Professor")==0) {
             this.user_type = user_type; 
             return true;
         } else return false;
@@ -56,6 +60,13 @@ public class User implements UserInterface {
     public void setCollege(String college) { this.college = college; }
     public void setCc_number(String cc_number) { this.cc_number = cc_number; }
     public void setCc_shelflife(String cc_shelflife) { this.cc_shelflife = cc_shelflife; }
+
+    @Override
+    public String toString() {
+        return "User [address=" + address + ", cc_number=" + cc_number + ", cc_shelflife=" + cc_shelflife + ", college="
+                + college + ", department=" + department + ", name=" + name + ", password=" + password
+                + ", phone_number=" + phone_number + ", user_type=" + user_type + "]";
+    }
     
         
 }
