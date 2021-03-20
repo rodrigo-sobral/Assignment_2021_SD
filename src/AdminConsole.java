@@ -1,8 +1,14 @@
 //	Default
 import java.rmi.RemoteException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+//import classes.Candidature;
+import classes.Election;
 import classes.User;
 
 
@@ -16,10 +22,9 @@ public class AdminConsole extends RMIClient {
     public static void main(String[] args) throws RemoteException {
         System.getProperties().put("java.security.policy","RMIServer.policy");
         if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
-
+                
 		admin = new AdminConsole();
         admin.connect2Servers();
-        //System.out.println(admin.getServer1().registUser(new User("Estudante", "Rodrigo Sobral", "put4s3v1nh0V3rd3_69-69", "Toca do coelho - Apartado um", "926180923", "faculdade_da_bida_IRMAO", "departamento dos cuidados intensivos", "17518751", "09-14")));
 		admin.adminMenu();
     }
 
@@ -81,7 +86,8 @@ public class AdminConsole extends RMIClient {
         } else {
             System.out.println("Voltando para o Menu Admin...");
             try { TimeUnit.SECONDS.sleep(3); }
-            catch (Exception e1) { }
+            catch (Exception e1) {
+            }
         }
     }
     private boolean manageElections(Scanner keyboard, int option) {
@@ -100,6 +106,7 @@ public class AdminConsole extends RMIClient {
             if (option!=-1) break;
         }
         if (option==1) {
+            addElection(keyboard);
             return true;
         } else if (option==2) {
             return true;
@@ -129,6 +136,7 @@ public class AdminConsole extends RMIClient {
             if (option!=-1) break;
         }
         if (option==1) {
+            addCandidature(keyboard);
             return true;
         } else if (option==2) {
             return true;
@@ -173,22 +181,65 @@ public class AdminConsole extends RMIClient {
     }
 
     private void addPerson(Scanner keyboard) {
+        String new_college, new_department;
         User new_user= new User();
         while(!new_user.setUser_type(input_manage.askVariable(keyboard, "Funcao [Funcionario/Professor/Estudante]: ", 0)));
         new_user.setName(input_manage.askVariable(keyboard, "Nome: ", 0));
         new_user.setPassword(input_manage.askVariable(keyboard, "Password: ", 1));
         new_user.setAddress(input_manage.askVariable(keyboard, "Morada: ", 0));
         new_user.setPhone_number(input_manage.askVariable(keyboard, "Contacto Telefonico: ", 4));
-        new_user.setCollege(input_manage.askVariable(keyboard, "Faculdade: ",0));
-        new_user.setDepartment(input_manage.askVariable(keyboard, "Departamento: ", 0));
+        new_college= input_manage.askVariable(keyboard, "Faculdade: ",0);
+        new_department= input_manage.askVariable(keyboard, "Departamento: ", 0);
         new_user.setCc_number(input_manage.askVariable(keyboard, "Numero Cartao Cidadao: ", 2));
         new_user.setCc_shelflife(input_manage.askVariable(keyboard, "Validade: ", 3));
-        try { admin.getServer1().registUser(new_user); } 
+        try { 
+            System.out.println(admin.getServer1().registUser(new_college, new_department, new_user)); 
+        } 
         catch (Exception e1) {
-            try { admin.getServer2().registUser(new_user); } 
+            try { 
+                System.out.println(admin.getServer2().registUser(new_college, new_department, new_user));
+            } 
             catch (Exception e2) { System.out.println("Nao ha servers.\n"+e2); }
         }
     }
+    private void addElection(Scanner keyboard) {
+        Election new_election= new Election();
+        
+        while(!new_election.setElection_type(input_manage.askVariable(keyboard, "Tipo Eleicao [Funcionario/Professor/Estudante]: ", 0)));
+        new_election.setTitle(input_manage.askVariable(keyboard, "Titulo: ", 0));
+        new_election.setDescription(input_manage.askVariable(keyboard, "Descricao: ", 5));
+        
+        LocalDate temp_date1= input_manage.askDate(keyboard, "Data de Inicio da Eleicao [dd/mm/aaaa]: ");
+        while (LocalDate.now().compareTo(temp_date1)>=0) {
+            System.out.println("400: A Data de Inicio tem de ser posterior ao dia de hoje!");
+            temp_date1= input_manage.askDate(keyboard, "Data de Inicio da Eleicao [dd/mm/aaaa]: ");
+        } 
+        LocalTime temp_hour1= input_manage.askHour(keyboard, "Hora de Inicio da Eleicao [hh:mm]: ");        
+        new_election.setStarting(LocalDateTime.of(temp_date1, temp_hour1));
+
+
+        LocalDate temp_date2= input_manage.askDate(keyboard, "Data de Fim da Eleicao [dd/mm/aaaa]: ");
+        while (temp_date1.compareTo(temp_date2)>=0) {
+            System.out.println("400: A Data de Fim tem de ser posterior ao dia "+temp_date1.toString()+"!");
+            temp_date2= input_manage.askDate(keyboard, "Data de Fim da Eleicao [dd/mm/aaaa]: ");
+        } 
+        LocalTime temp_hour2= input_manage.askHour(keyboard, "Hora de Fim da Eleicao [hh:mm]: ");        
+        new_election.setEnding(LocalDateTime.of(temp_date2, temp_hour2));
+
+        try { 
+            System.out.println(admin.getServer1().registElection(new_election));
+        } 
+        catch (Exception e1) {
+            try { 
+                System.out.println(admin.getServer2().registElection(new_election));
+            } 
+            catch (Exception e2) { System.out.println("Nao ha servers.\n"+e2); }
+        }
+    }
+    private void addCandidature(Scanner keyboard) {
+
+    }
+
 }
 
 
@@ -206,6 +257,7 @@ class Inputs {
      * 2 to numbers with no hifen
      * 3 to validity
      * 4 to phone numbers
+     * 5 string with no rules
      * @return inputed string well formated
      */
     public String askVariable(Scanner keyboard, String message, int input_type) {
@@ -218,7 +270,29 @@ class Inputs {
             if (input_type==2 && this.checkStringInteger(str)) return str;
             if (input_type==3 && this.checkValidity(str)) return str;
             if (input_type==4 && this.checkPhoneNumber(str)) return str;
+            if (input_type==5) return str;
         } 
+    }
+    
+    public LocalDate askDate(Scanner keyboard, String message) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        while (true) {
+            try {
+                System.out.print(message);
+                LocalDate converted_date = LocalDate.parse(keyboard.nextLine(), formatter);
+                return converted_date;
+            } catch (Exception e) { 
+                System.out.println("400: Data Invalida.");
+            }
+        }
+    }
+    public LocalTime askHour(Scanner keyboard, String message) {
+        while (true) {
+            try { 
+                System.out.print(message);
+                return LocalTime.parse(keyboard.nextLine()); } 
+            catch (Exception e) { System.out.println("400: Hora Invalida."); }
+        }
     }
 
     public int checkIntegerOption(String str_option, int option, int option_limit) {
@@ -233,7 +307,6 @@ class Inputs {
             return -1;
         }
     }
-    
     public boolean checkString(String s) {
         if (s.isEmpty()) return false;
         if (!Character.isJavaIdentifierStart(s.charAt(0))) return false;
@@ -274,4 +347,3 @@ class Inputs {
     }
     
 }
-
