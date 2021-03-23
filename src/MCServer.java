@@ -1,6 +1,9 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class MCServer {
+public class MCServer implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private ArrayList<MCClient> vote_terminals= new ArrayList<>();
 
     public ArrayList<MCClient> getVote_terminals() { return vote_terminals; }
