@@ -9,6 +9,7 @@ import java.rmi.server.*;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 
+//  CUSTOM 
 import classes.Election;
 import classes.User;
 
@@ -24,7 +25,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
     private Registry regist = LocateRegistry.createRegistry(port);
 
     //  Threads
-    //private static Thread connection;
+    private static IsClientAlive client_checker;
     //private static Thread heartbeat_checking;
 
     //  Storage Data
@@ -32,6 +33,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
     
     //  Data to Store
     private ArrayList<College> colleges= new ArrayList<>();
+    //private ArrayList<Election> unstarted_elections= new ArrayList<>();
     private ArrayList<Election> elections= new ArrayList<>();
     //private ArrayList<Election> finished_elections= new ArrayList<>();
 
@@ -41,12 +43,17 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         System.getProperties().put("java.security.policy","RMIServer.policy");
         if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
         
-        //new Thread(this, name);
-        //connection= new Thread(connection, getClientHost());
         initServers();
-                
 
         server1.file_manage.loadElectionsFile(server1.elections);
+        server1.file_manage.loadCollegesFile(server1.colleges);
+        client_checker= new IsClientAlive("clients_checker", server1.clients_list, server1.admins_list);
+        
+        try {
+			client_checker.thread.join();
+            System.out.println("Verificacao de ativacao dos clientes: Desativa");
+		} catch (InterruptedException e) { System.out.println("Interrupted"); }
+
         if (!server1.elections.isEmpty()) for (String  name: server1.getElectionNames()) System.out.println(name);
         if (!server1.colleges.isEmpty()) for (String  name: server1.getCollegesNames()) System.out.println(name);
     }
@@ -70,14 +77,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
     }
 
     synchronized public String subscribeNewClient(RMIClient_I new_client) throws RemoteException {
-        if (new_client.getIsAdmin()) { admins_list.add(new_client); System.out.println("Novo Administrador Ligado"); }
-		else { clients_list.add(new_client); System.out.println("Novo Cliente Ligado"); }
+        if (new_client.getIsAdmin()) { admins_list.add(new_client); System.out.println("Novo Administrador Conectado ["+(admins_list.size()-1)+"]"); }
+		else { clients_list.add(new_client); System.out.println("Novo Cliente Conectado ["+(clients_list.size()-1)+"]"); }
         return "200: Adicionado ao Servidor com Sucesso";
-	}
-    synchronized public String unsubscribeNewClient(RMIClient_I new_client) throws RemoteException {
-        if (new_client.getIsAdmin()) { admins_list.remove(new_client); System.out.println("Administrador Desligado"); }
-		else { clients_list.remove(new_client); System.out.println("Cliente Desligado"); }
-        return "200: Removido ao Servidor com Sucesso";
 	}
 
     public static void heartbeatServer(RMIServer active_server, RMIServer secundary_server) throws RemoteException, NotBoundException, InterruptedException{
@@ -206,7 +208,6 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
     }
 
     synchronized public String ping() throws RemoteException { return "ACK"; }
-    
 }
 
 
@@ -295,26 +296,101 @@ class FilesManagement {
     
 }
 
-class NewThread implements Runnable {
-    String name;
-    Thread t;
-    NewThread(String threadname) {
-        name = threadname;
-        t = new Thread(this, name);
-        System.out.println("New thread: " + t);
-        t.start(); // Start the thread
+/**
+ * IsClientAlive is a Thread that iterates all the Clients (includind Admins) and checks if they're alive
+ */
+class IsClientAlive implements Runnable {
+    public Thread thread;
+    private ArrayList<RMIClient_I> clients, admins;
+
+    /**
+     * @param threadname Name of the Thread
+     * @param clients ArrayList of Clients subscribed running
+     * @param admins ArrayList of Admin Consoles subscribed running
+     */
+    public IsClientAlive(String threadname, ArrayList<RMIClient_I> clients, ArrayList<RMIClient_I> admins) {
+        this.clients = clients;
+        this.admins = admins;
+        thread = new Thread(this, threadname);
+        System.out.println("Verificacao de ativacao dos clientes: Ativa");
+        thread.start();
     }
 
-    public void run() {      // entry point
-        try {
-            for(int i = 5; i > 0; i--) {
-                System.out.println(name + ": " + i);
-                Thread.sleep(1000);
+    public void run() {
+        int client_id=0, admin_id=0;
+        while (true) {
+            try { Thread.sleep(100); }
+            catch (Exception e) { }
+            
+            //  PING CLIENTS
+            if (!clients.isEmpty()) {
+                //  RESET ARRAY
+                if (client_id<0 || client_id>=admins.size()) client_id=0;
+                try { 
+                    if (clients.get(client_id)!=null) { clients.get(client_id).ping(); client_id++; }
+                    else client_id++;
+                } catch (Exception e) {
+                    clients.set(client_id, null);
+                    System.out.println("O Cliente ["+(client_id++)+"] desconectou-se!");
+                }
             }
-        } 
-        catch (InterruptedException e) {
-            System.out.println(name + "Interrupted");
+
+            //  PING ADMINS
+            if (!admins.isEmpty()) {
+                //  RESET ARRAY
+                if (admin_id<0 || admin_id>=admins.size()) admin_id=0;
+                try { 
+                    if (admins.get(admin_id)!=null) { admins.get(admin_id).ping(); admin_id++; } 
+                    else admin_id++;
+                } catch (Exception e) {
+                    admins.set(admin_id, null);
+                    System.out.println("O Administrador ["+(admin_id++)+"] desconectou-se!");
+                }
+            }
         }
-        System.out.println(name + " exiting.");
     }
-  }
+}
+
+/**
+ * ElectionsState is a Thread that iterates all the Elections (including Unstarted, Running and Finished ones) and manage them according to their defined Starting and Ending Dates
+*/
+class ElectionsState implements Runnable {
+    public Thread thread;
+    ArrayList<Election> unstarted_elections, running_elections, finished_elections;
+
+    /**
+     * @param threadname Name of the Thread
+     * @param unstarted_elections ArrayList of Unstarted Elections
+     * @param running_elections ArrayList of Running Elections
+     * @param finished_elections ArrayList of Finished Elections
+    */
+    ElectionsState(String threadname, ArrayList<Election> unstarted_elections, ArrayList<Election> running_elections, ArrayList<Election> finished_elections) {
+        this.unstarted_elections = unstarted_elections;
+        this.running_elections = running_elections;
+        this.finished_elections = finished_elections;
+        thread = new Thread(this, threadname);
+        thread.start();
+    }
+
+    public void run() {
+        int unstarted_id=0, running_id=0;
+        while (true) {
+            try { Thread.sleep(100); }
+            catch (Exception e) { }
+
+            //  CHECK UNSTARTED ELECTIONS
+            if (!unstarted_elections.isEmpty()) {
+                //  RESET ARRAY
+                if (unstarted_id<0 || unstarted_id>=unstarted_elections.size()) unstarted_id=0;
+                try { 
+                    if (unstarted_elections.get(unstarted_id)!=null) { //unstarted_elections.get(unstarted_id).ping(); unstarted_id++; 
+                    }
+                    else unstarted_id++;
+                } catch (Exception e) {
+                    unstarted_elections.set(unstarted_id, null);
+                    System.out.println("O Cliente ["+(unstarted_id++)+"] desconectou-se!");
+                }
+            }
+        }
+    }
+}

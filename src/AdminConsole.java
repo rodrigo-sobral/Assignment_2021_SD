@@ -30,13 +30,6 @@ public class AdminConsole extends RMIClient {
 		admin = new AdminConsole();
         admin.connect2Servers(admin);
 		admin.adminMenu();
-        try {
-            System.out.println(admin.getServer1().unsubscribeNewClient(admin));
-        } 
-        catch (Exception e1) {
-            try { System.out.println(admin.getServer2().unsubscribeNewClient(admin)); }
-            catch (Exception e2) { System.out.println("500: Nao ha servers.\n");}
-        }
         System.exit(0);
     }
 
@@ -187,6 +180,8 @@ public class AdminConsole extends RMIClient {
     private void addPerson(Scanner keyboard) {
         String new_college, new_department;
         User new_user= new User();
+
+        //  GET DEFAULT USER DATA
         while(!new_user.setUser_type(input_manage.askVariable(keyboard, "Funcao [Funcionario/Professor/Estudante]: ", 0)));
         new_user.setName(input_manage.askVariable(keyboard, "Nome: ", 0));
         new_user.setPassword(input_manage.askVariable(keyboard, "Password: ", 1));
@@ -199,13 +194,11 @@ public class AdminConsole extends RMIClient {
 
         new_user.setCollege(new_college);
         new_user.setDepartment(new_department);
-        try { 
-            System.out.println(admin.getServer1().registUser(new_college, new_department, new_user)); 
-        } 
+
+        //  SEND NEW USER TO RMI SERVER
+        try { System.out.println(admin.getServer1().registUser(new_college, new_department, new_user)); } 
         catch (Exception e1) {
-            try { 
-                System.out.println(admin.getServer2().registUser(new_college, new_department, new_user));
-            } 
+            try { System.out.println(admin.getServer2().registUser(new_college, new_department, new_user)); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers.\n"); }
         }
     }
@@ -213,6 +206,8 @@ public class AdminConsole extends RMIClient {
         int option;
         Election new_election= new Election();
 
+
+        //  GET DEFAULT ELECTION DATA
         while(!new_election.setElection_type(input_manage.askVariable(keyboard, "Tipo Eleicao [Funcionario/Professor/Estudante]: ", 0)));
 
         new_election.setTitle(input_manage.askVariable(keyboard, "Titulo: ", 0));
@@ -235,7 +230,9 @@ public class AdminConsole extends RMIClient {
         LocalTime temp_hour2= input_manage.askHour(keyboard, "Hora de Fim da Eleicao [hh:mm]: ");        
 
         new_election.setEnding(LocalDateTime.of(temp_date2, temp_hour2));
-        
+    
+        //  --------------------------------------------------------------------------------------------------------
+        //  RESTRICT ELECTION
         while (true) {
             option = input_manage.checkIntegerOption(keyboard, "Pretende restringir a eleicao?\n[0-Nao | 1-Sim]: ", 0, 1);
             if (option==-1) { System.out.println("Erro: Insira uma opcao valida!"); continue; }
@@ -244,31 +241,47 @@ public class AdminConsole extends RMIClient {
                 while (true) {
                     option = input_manage.checkIntegerOption(keyboard, "Pretende aplicar a restricao a Faculdades ou Departamentos?\n[0-Voltar | 1-Faculdades | 2-Departamentos]: ", 0, 2);
                     if (option==-1) { System.out.println("Erro: Insira uma opcao valida!"); continue; }
-                    else if (option==1) new_election.getCollege_restrictions().add(input_manage.askCollege(admin, keyboard, new_election.getCollege_restrictions()));
-                    else if (option==2) new_election.getDepartment_restrictions().add(input_manage.askDepartment(admin, keyboard, new_election.getDepartment_restrictions()));
+                    else if (option==1) {
+                        String result=input_manage.askCollege(admin, keyboard, new_election.getCollege_restrictions());
+                        if (!result.isEmpty()) {
+                            new_election.getCollege_restrictions().add(result);
+                            System.out.println("Restricao aplicada com Sucesso!\n");
+                        }
+                    } else if (option==2) {
+                        String result= input_manage.askDepartment(admin, keyboard, new_election.getDepartment_restrictions());
+                        if (!result.isEmpty()) {
+                            new_election.getDepartment_restrictions().add(result);
+                            System.out.println("Restricao aplicada com Sucesso!\n");
+                        }
+                    } 
                     break;
                 }
             }
         }
-
+        //  SEND NEW ELECTION TO RMI SERVER
         try { System.out.println(admin.getServer1().registElection(new_election)); } 
         catch (Exception e1) {
             try { System.out.println(admin.getServer2().registElection(new_election)); } 
-            catch (Exception e2) { System.out.println("500: Nao ha servers\n"+e2); }
+            catch (Exception e2) { System.out.println("500: Nao ha servers\n"); }
         }
     }
     private void addCandidature(Scanner keyboard) {
         ArrayList<Election> available_elections= new ArrayList<>();
+        Candidature new_candidature= new Candidature();
         int option;
-        Candidature new_candidature= new Candidature(input_manage.askVariable(keyboard, "Titulo: ", 0));
 
-        //  Get Election to the new Candidature
+        //  GET ELECTION TO THE NEW CANDIDATURE
         try { available_elections= admin.getServer1().getElections(); } 
         catch (Exception e1) {
             try { available_elections= admin.getServer2().getElections(); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers"); }
         }
         if (available_elections.isEmpty()) { System.out.println("Erro: Ainda nao ha Eleicoes registadas!"); return; }
+
+        //  ASK CANDIDATURE NAME
+        new_candidature.setCandidature_name(input_manage.askVariable(keyboard, "Titulo: ", 0));
+        
+        //  ASK ELECTION TO THE CANDIDATURE 
         System.out.println("----------------------------------------");
         System.out.println("Eleicoes Disponiveis");
         System.out.println("----------------------------------------");
@@ -277,14 +290,14 @@ public class AdminConsole extends RMIClient {
         System.out.println("----------------------------------------");
         option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 1, available_elections.size())-1;
 
-        //  Get Users who can Candidate to this Election
+        //  GET USERS WHO CAN CANDIDATE TO THIS ELECTION
         ArrayList<String> collegs_restricts= available_elections.get(option).getCollege_restrictions();
         ArrayList<String> deps_restricts= available_elections.get(option).getDepartment_restrictions();
         String user_type_restrics= available_elections.get(option).getElection_type();
 
         ArrayList<User> users_restricts= new ArrayList<>();
 
-        //  Get Users available from specific Colleges
+        //  GET USERS AVAILABLE FROM SPECIFIC COLLEGES
         for (String college : collegs_restricts) {
             try { 
                 for (Department department : admin.getServer1().getUniqueCollege(college).getDepartments()) 
@@ -304,18 +317,20 @@ public class AdminConsole extends RMIClient {
                 catch (Exception e2) { System.out.println("500: Nao ha servers"); }
             }
         }
+    
+        //  CHECK IF THERE'S USERS TO THE ELECTION
+        if (users_restricts.isEmpty()) { System.out.println("Erro: Ainda nao ha Candidatos abrangidos pelas restricoes aplicadas durante a submissao da Eleicao!"); return; }
 
-        if (users_restricts.isEmpty()) { System.out.println("Erro: Ainda nao ha Candidatos abrangidos pelas restricoes aplicadas!"); return; }
-        //  ASK CANDIDATES TO ADMIN
+        //  ASK CANDIDATES
         System.out.println("----------------------------------------");
         System.out.println("Candidatos Disponiveis");
         System.out.println("----------------------------------------");
-        for (User user : users_restricts) System.out.println(user);
+        for (int i = 0; i < users_restricts.size(); i++) System.out.println(i+1+":\t"+users_restricts.get(i));
         System.out.println("----------------------------------------");
         ArrayList<Integer> options= input_manage.checkSeveralIntegerOptions(keyboard, "Opcao [n1,n2,n3]: ", 1, users_restricts.size());
         for (Integer integer : options) new_candidature.getCandidates().add(users_restricts.get(integer-1));
         
-        //  SEND ELECTION SELECTED UPDATED TO RMI SERVER
+        //  SEND SELECTED UPDATED ELECTION TO RMI SERVER
         available_elections.get(option).getCandidatures_to_election().add(new_candidature);
         try { System.out.println(admin.getServer1().setUpdatedElection(available_elections.get(option))); } 
         catch (Exception e1) {
@@ -379,7 +394,7 @@ class Inputs {
     }
 
     public String askCollege(AdminConsole admin, Scanner keyboard, ArrayList<String> college_restrictions) {
-        ArrayList<String> available_colleges;
+        ArrayList<String> available_colleges= new ArrayList<>();
         int option;
         
         //  Get College Names from RMI Server
@@ -399,11 +414,11 @@ class Inputs {
         System.out.println("----------------------------------------");
         for (int i = 0; i < available_colleges.size(); i++) System.out.println(i+1+": "+available_colleges.get(i));
         System.out.println("----------------------------------------");
-        option= checkIntegerOption(keyboard, "Opcao: ", 1, available_colleges.size());
+        option= checkIntegerOption(keyboard, "Opcao: ", 1, available_colleges.size())-1;
         return available_colleges.get(option);
     }
     public String askDepartment(AdminConsole admin, Scanner keyboard, ArrayList<String> department_restrictions) {
-        ArrayList<String> available_departments;
+        ArrayList<String> available_departments= new ArrayList<>();
         int option;
 
         //  Get Department Names from RMI Server
@@ -423,7 +438,7 @@ class Inputs {
         System.out.println("----------------------------------------");
         for (int i = 0; i < available_departments.size(); i++) System.out.println(i+1+": "+available_departments.get(i));
         System.out.println("----------------------------------------");
-        option= checkIntegerOption(keyboard, "Opcao: ", 1, available_departments.size());
+        option= checkIntegerOption(keyboard, "Opcao: ", 1, available_departments.size())-1;
         return available_departments.get(option);
     }
 
@@ -461,20 +476,20 @@ class Inputs {
         }
     }
     public boolean checkString(String s) {
-        if (s.isEmpty()) return false;
+        if (s.isBlank()) return false;
         if (!Character.isJavaIdentifierStart(s.charAt(0))) return false;
         for (int i = 1; i < s.length(); i++) {
             if (Character.isDigit(s.charAt(i))) return false;
         } return true;
     }
     public boolean checkPassword(String s) {
-        if (s.isEmpty()) return false;
+        if (s.isBlank()) return false;
         for (int i = 0; i < s.length(); i++) {
             if (Character.isSpaceChar(s.charAt(i))) return false;
         } return true;
     }
     public boolean checkPhoneNumber(String s) {
-        if (s.isEmpty() || s.length()!=9) return false;
+        if (s.isBlank() || s.length()!=9) return false;
         if (Character.compare(s.charAt(0), '9')!=0 || (Character.compare(s.charAt(1), '1')!=0 && Character.compare(s.charAt(1), '2')!=0 && Character.compare(s.charAt(1), '3')!=0 && Character.compare(s.charAt(1), '6')!=0)) 
             return false;
         for (int i = 0; i < s.length(); i++) {
@@ -482,14 +497,14 @@ class Inputs {
         } return true;
     }
     public boolean checkStringInteger(String s) {
-        if (s.isEmpty()) return false;
+        if (s.isBlank()) return false;
         if (!Character.isJavaIdentifierStart(s.charAt(0)) && !Character.isDigit(s.charAt(0))) return false;
         for (int i = 1; i < s.length(); i++) {
             if (!Character.isDigit(s.charAt(i))) return false;
         } return true;
     }
     public boolean checkValidity(String s) {
-        if (s.isEmpty() || s.length()!=5) return false;
+        if (s.isBlank() || s.length()!=5) return false;
         for (int i = 0; i < s.length(); i++) {
             if (i==2 && Character.compare(s.charAt(2),'-')!=0) return false;
             else if (i!=2 && !Character.isDigit(s.charAt(i))) return false;
