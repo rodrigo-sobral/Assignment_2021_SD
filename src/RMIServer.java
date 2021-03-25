@@ -9,7 +9,6 @@ import java.rmi.server.*;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 
-import classes.Candidature;
 //  CUSTOM 
 import classes.Election;
 import classes.User;
