@@ -8,7 +8,7 @@ public class Candidature implements Serializable {
 
     private String candidature_name;
     private ArrayList<User> candidates = new ArrayList<>();
-
+    
 
     public String getCandidature_name() { return candidature_name; }
     public ArrayList<User> getCandidates() { return candidates; }

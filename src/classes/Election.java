@@ -10,25 +10,26 @@ public class Election implements Serializable {
     private String election_type;
     private String title, description;
     private LocalDateTime starting, ending;
-    private ArrayList<Candidature> candidatures_to_election= new ArrayList<>();
-    private boolean running=false, finished=false;
+    private int total_votes=0, blank_votes=0, null_votes=0;
+    
     private ArrayList<String> college_restrictions= new ArrayList<>();
     private ArrayList<String> department_restrictions= new ArrayList<>();
+    
+    private ArrayList<Candidature> candidatures_to_election= new ArrayList<>();
 
+    public String getElection_type() { return election_type; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
     public LocalDateTime getStarting() { return starting; }
-    public String getStartingString() { 
-        return this.getStarting().getDayOfMonth()+"/"+this.getStarting().getMonthValue()+"/"+this.getStarting().getYear();
-    }
+    public String getStartingString() { return this.getStarting().getDayOfMonth()+"/"+this.getStarting().getMonthValue()+"/"+this.getStarting().getYear(); }
     public LocalDateTime getEnding() { return ending; }
-    public String getEndingString() { 
-        return this.getEnding().getDayOfMonth()+"/"+this.getEnding().getMonthValue()+"/"+this.getEnding().getYear();
-    }
-    public String getElection_type() { return election_type; }
+    public String getEndingString() {  return this.getEnding().getDayOfMonth()+"/"+this.getEnding().getMonthValue()+"/"+this.getEnding().getYear(); }
+    public int getBlankVotes() { return blank_votes; }
+    public int getNullVotes() { return null_votes; }
+    public int getTotalVotes() { return total_votes; }
+    
     public ArrayList<Candidature> getCandidatures_to_election() { return candidatures_to_election; }
-    public boolean isRunning() { return running; }
-    public boolean isFinished() { return finished; }
+    
     public ArrayList<String> getCollege_restrictions() { return college_restrictions; }
     public ArrayList<String> getDepartment_restrictions() { return department_restrictions; }
     
@@ -47,8 +48,10 @@ public class Election implements Serializable {
     public void setStarting(LocalDateTime starting) { this.starting = starting; }
     public void setEnding(LocalDateTime ending) { this.ending = ending; }
     public void setCandidatures_to_election(ArrayList<Candidature> candidatures_to_election) { this.candidatures_to_election = candidatures_to_election; }
-    public void setRunning(boolean running) { this.running = running; }
-    public void setFinished(boolean finished) { this.finished = finished; }
     public void setCollege_restrictions(ArrayList<String> college_restrictions) { this.college_restrictions = college_restrictions; }
     public void setDepartment_restrictions(ArrayList<String> department_restrictions) { this.department_restrictions = department_restrictions; }
+
+    public void incrementBlankVotes() { this.blank_votes++; this.total_votes++; }
+    public void incrementNullVotes() { this.null_votes++; this.total_votes++; }
+    public void incrementTotalVotes() { this.total_votes++; }
 }

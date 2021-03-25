@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import classes.Candidature;
 //import classes.Candidature;
@@ -50,18 +51,12 @@ public class AdminConsole extends RMIClient {
             System.out.println("|====================================|");
             option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 4);
             
-            if (option==1) {
-                managePeople(keyboard);
-            } else if (option==2) {
-                manageElections(keyboard);
-            } else if (option==3) {
-                manageCandidatures(keyboard);
-            } else if (option==4) {
-                manageVoteTables(keyboard);
-            } else {
-                System.out.println("A encerrar...");
-                try { TimeUnit.SECONDS.sleep(3); }
-                catch (Exception e1) { }
+            if (option==1) managePeople(keyboard);
+            else if (option==2) manageElections(keyboard);
+            else if (option==3) manageCandidatures(keyboard);
+            else if (option==4) manageVoteTables(keyboard);
+            else {
+                input_manage.messageToWait("A encerrar...");
                 keyboard.close();
                 return;
             }
@@ -75,81 +70,51 @@ public class AdminConsole extends RMIClient {
             System.out.println("|           Gerir Pessoas            |");
             System.out.println("|====================================|");
             System.out.println("|  1: Registar Pessoa                |");
-            System.out.println("|  2: Eliminar Pessoa                |");
-            System.out.println("|  3: Editar Pessoa                  |");
             System.out.println("|  0: Voltar                         |");
             System.out.println("|====================================|");
-            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 3);
+            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 1);
             if (option!=-1) break;
         }
         if (option==1) {
             addPerson(keyboard);
-        } else if (option==2) {
-        } else if (option==3){
-        } else {
-            System.out.println("Voltando para o Menu Admin...");
-            try { TimeUnit.SECONDS.sleep(3); }
-            catch (Exception e1) {
-            }
-        }
+        } else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
     }
-    private boolean manageElections(Scanner keyboard) {
+    private void manageElections(Scanner keyboard) {
         int option;
         while (true) {
             System.out.println("|====================================|");
             System.out.println("|           Gerir Eleicoes           |");
             System.out.println("|====================================|");
             System.out.println("|  1: Registar Eleicao               |");
-            System.out.println("|  2: Eliminar Eleicao               |");
-            System.out.println("|  3: Editar Eleicao                 |");
+            System.out.println("|  2: Editar Eleicao                 |");
             System.out.println("|  0: Voltar                         |");
             System.out.println("|====================================|");
-            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 3);
+            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 2);
             if (option!=-1) break;
         }
         if (option==1) {
             addElection(keyboard);
-            return true;
         } else if (option==2) {
-            return true;
-        } else if (option==3){
-            return true;
-        } else {
-            System.out.println("Voltando para o Menu Admin...");
-            try { TimeUnit.SECONDS.sleep(3); }
-            catch (Exception e1) { }
-            return false;
-        }
+            editElection(keyboard);
+        } else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
     }
-    private boolean manageCandidatures(Scanner keyboard) {
+    private void manageCandidatures(Scanner keyboard) {
         int option;
         while (true) {
             System.out.println("|====================================|");
             System.out.println("|         Gerir Candidaturas         |");
             System.out.println("|====================================|");
             System.out.println("|  1: Registar Candidatura           |");
-            System.out.println("|  2: Eliminar Candidatura           |");
-            System.out.println("|  3: Editar Candidatura             |");
             System.out.println("|  0: Voltar                         |");
             System.out.println("|====================================|");
-            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 3);
+            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 1);
             if (option!=-1) break;
         }
         if (option==1) {
             addCandidature(keyboard);
-            return true;
-        } else if (option==2) {
-            return true;
-        } else if (option==3){
-            return true;
-        } else {
-            System.out.println("Voltando para o Menu Admin...");
-            try { TimeUnit.SECONDS.sleep(3); }
-            catch (Exception e1) { }
-            return false;
-        }
+        } else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
     }
-    private boolean manageVoteTables(Scanner keyboard) {
+    private void manageVoteTables(Scanner keyboard) {
         int option;
         while (true) {
             System.out.println("|====================================|");
@@ -157,24 +122,15 @@ public class AdminConsole extends RMIClient {
             System.out.println("|====================================|");
             System.out.println("|  1: Registar Mesa de Voto          |");
             System.out.println("|  2: Eliminar Mesa de Voto          |");
-            System.out.println("|  3: Editar Mesa de Voto            |");
             System.out.println("|  0: Voltar                         |");
             System.out.println("|====================================|");
-            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 3);
+            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 2);
             if (option!=-1) break;
         }
         if (option==1) {
-            return true;
+            addVoteTable(keyboard);
         } else if (option==2) {
-            return true;
-        } else if (option==3){
-            return true;
-        } else {
-            System.out.println("Voltando para o Menu Admin...");
-            try { TimeUnit.SECONDS.sleep(3); }
-            catch (Exception e1) { }
-            return false;
-        }
+        } else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
     }
 
     private void addPerson(Scanner keyboard) {
@@ -271,31 +227,48 @@ public class AdminConsole extends RMIClient {
         int option;
 
         //  GET ELECTION TO THE NEW CANDIDATURE
-        try { available_elections= admin.getServer1().getElections(); } 
+        try { available_elections = admin.getServer1().getUnstartedElections(); } 
         catch (Exception e1) {
-            try { available_elections= admin.getServer2().getElections(); } 
+            try { available_elections = admin.getServer2().getUnstartedElections(); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers"); }
         }
-        if (available_elections.isEmpty()) { System.out.println("Erro: Ainda nao ha Eleicoes registadas!"); return; }
+        if (available_elections.isEmpty()) { input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); return; }
+        
+        for (Election election : available_elections) {
+            for (Candidature cand : election.getCandidatures_to_election()) {
+                System.out.println(cand.getCandidature_name());
+                for (User us : cand.getCandidates()) System.out.println(us.getCc_number());
+            }
+        }
+
+        //  ASK ELECTION TO THE CANDIDATURE 
+        System.out.println("----------------------------------------");
+        System.out.println("Eleicoes Disponiveis [0 Para Voltar]");
+        System.out.println("----------------------------------------");
+        for (int i = 0; i < available_elections.size(); i++) {
+            Election aux= available_elections.get(i);
+            System.out.println(i+1+": "+aux.getTitle()+"\t"+aux.getStartingString()+"\t"+aux.getEndingString()+aux.getCandidatures_to_election().size()+"\t"+aux.getDescription());
+        }
+        System.out.println("----------------------------------------");
+        option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 0, available_elections.size())-1;
+        if (option==-1) { input_manage.messageToWait("Voltando para o Menu Admin..."); return; }
+        
+        //  GET SELECTED ELECTION AND ITS RESTRICTIONS
+        Election selected_election= available_elections.get(option);
+        ArrayList<String> collegs_restricts= selected_election.getCollege_restrictions();
+        ArrayList<String> deps_restricts= selected_election.getDepartment_restrictions();
+        String user_type_restrics= selected_election.getElection_type();
+        ArrayList<User> users_restricts= new ArrayList<>();
 
         //  ASK CANDIDATURE NAME
         new_candidature.setCandidature_name(input_manage.askVariable(keyboard, "Titulo: ", 0));
-        
-        //  ASK ELECTION TO THE CANDIDATURE 
-        System.out.println("----------------------------------------");
-        System.out.println("Eleicoes Disponiveis");
-        System.out.println("----------------------------------------");
-        for (int i = 0; i < available_elections.size(); i++) 
-            System.out.println(i+1+": "+available_elections.get(i).getTitle()+"\t"+available_elections.get(i).getStartingString()+"\t"+available_elections.get(i).getEndingString()+"\t"+available_elections.get(i).getDescription());
-        System.out.println("----------------------------------------");
-        option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 1, available_elections.size())-1;
 
-        //  GET USERS WHO CAN CANDIDATE TO THIS ELECTION
-        ArrayList<String> collegs_restricts= available_elections.get(option).getCollege_restrictions();
-        ArrayList<String> deps_restricts= available_elections.get(option).getDepartment_restrictions();
-        String user_type_restrics= available_elections.get(option).getElection_type();
-
-        ArrayList<User> users_restricts= new ArrayList<>();
+        //  CHECK IF THAT CANDIDATURE NAME ALREADY EXIST
+        for (Candidature candidature : selected_election.getCandidatures_to_election()) {
+            System.out.println(candidature.getCandidature_name());
+            if (candidature.getCandidature_name().equals(new_candidature.getCandidature_name())) { input_manage.messageToWait("Erro: Ja existe uma Eleicao com o nome "+candidature.getCandidature_name()+"!"); return; }
+            
+        }
 
         //  GET USERS AVAILABLE FROM SPECIFIC COLLEGES
         for (String college : collegs_restricts) {
@@ -309,7 +282,8 @@ public class AdminConsole extends RMIClient {
                 } catch (Exception e2) { System.out.println("500: Nao ha servers"); }
             }
         }
-        //  Get Users available from specific Departments
+
+        //  GET USERS AVAILABLE FROM SPECIFIC DEPARTMENTS
         for (String department : deps_restricts) {
             try { users_restricts.addAll(admin.getServer1().getUniqueDepartment(department).getUsersWithType(user_type_restrics)); } 
             catch (Exception e1) {
@@ -317,9 +291,20 @@ public class AdminConsole extends RMIClient {
                 catch (Exception e2) { System.out.println("500: Nao ha servers"); }
             }
         }
+
+        //  TAKE OFF USERS ALREADY CANDIDATED
+        for (Candidature candidature : selected_election.getCandidatures_to_election()) {
+            for (User user : candidature.getCandidates()) {
+                int user_index = IntStream.range(0, users_restricts.size()).filter(i -> users_restricts.get(i).getCc_number().equals(user.getCc_number())).findFirst().orElse(-1);
+                if (user_index!=-1) users_restricts.remove(user_index);
+            }
+        }
     
         //  CHECK IF THERE'S USERS TO THE ELECTION
-        if (users_restricts.isEmpty()) { System.out.println("Erro: Ainda nao ha Candidatos abrangidos pelas restricoes aplicadas durante a submissao da Eleicao!"); return; }
+        if (users_restricts.isEmpty()) { 
+            input_manage.messageToWait("Erro: Nao ha Candidatos Disponiveis");
+            return; 
+        }
 
         //  ASK CANDIDATES
         System.out.println("----------------------------------------");
@@ -331,13 +316,79 @@ public class AdminConsole extends RMIClient {
         for (Integer integer : options) new_candidature.getCandidates().add(users_restricts.get(integer-1));
         
         //  SEND SELECTED UPDATED ELECTION TO RMI SERVER
-        available_elections.get(option).getCandidatures_to_election().add(new_candidature);
-        try { System.out.println(admin.getServer1().setUpdatedElection(available_elections.get(option))); } 
+        selected_election.getCandidatures_to_election().add(new_candidature);
+        try { System.out.println(admin.getServer1().setUpdatedElection(selected_election, true)); } 
         catch (Exception e1) {
-            try { System.out.println(admin.getServer1().setUpdatedElection(available_elections.get(option))); } 
+            try { System.out.println(admin.getServer1().setUpdatedElection(selected_election, true)); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers"); }
         }
     }
+    private void addVoteTable(Scanner keyboard) {
+        
+    }
+
+    private void editElection(Scanner keyboard) { 
+        ArrayList<Election> available_elections= new ArrayList<>();
+        int option;
+
+        //  GET ELECTION TO THE NEW CANDIDATURE
+        try { available_elections = admin.getServer1().getUnstartedElections(); 
+        } catch (Exception e1) {
+            try { available_elections = admin.getServer2().getUnstartedElections(); 
+            } catch (Exception e2) { System.out.println("500: Nao ha servers"); }
+        }
+        if (available_elections.isEmpty()) { System.out.println("Erro: Nao ha Eleicoes registadas!"); return; }
+
+        //  ASK ELECTION TO THE CANDIDATURE 
+        System.out.println("----------------------------------------");
+        System.out.println("Eleicoes Disponiveis");
+        System.out.println("----------------------------------------");
+        for (int i = 0; i < available_elections.size(); i++) 
+            System.out.println(i+1+": "+available_elections.get(i).getTitle()+"\t"+available_elections.get(i).getStartingString()+"\t"+available_elections.get(i).getEndingString()+"\t"+available_elections.get(i).getDescription());
+        System.out.println("----------------------------------------");
+        option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 1, available_elections.size())-1;
+        
+        //  ASK TO CHANGE A VARIABLE
+        Election updated_election= available_elections.get(option);
+        System.out.println("\nQue atributo pretende Alterar?");
+        System.out.println("----------------------------------------");
+        System.out.println("1: Titulo: "+updated_election.getTitle());
+        System.out.println("2: Descricao: "+updated_election.getDescription());
+        System.out.println("3: Data e Hora de Inicio: "+updated_election.getStartingString());
+        System.out.println("4: Data e Hora de Fim: "+updated_election.getEndingString());
+        System.out.println("0: Voltar");
+        option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 0, 4);
+        
+        System.out.println("----------------------------------------");
+        if (option==0) { input_manage.messageToWait("Voltando para o Menu Amin..."); return ; } 
+        else if (option==1) updated_election.setTitle(input_manage.askVariable(keyboard, "Novo Titulo: ", 0));
+        else if (option==2) updated_election.setDescription(input_manage.askVariable(keyboard, "Nova Descricao: ", 5));
+        else if (option==3) {
+            LocalDate temp_date1= input_manage.askDate(keyboard, "Nova Data de Inicio da Eleicao [dd/mm/aaaa]: ");
+            while (LocalDate.now().compareTo(temp_date1)>=0) {
+                System.out.println("Erro: A Data de Inicio tem de ser posterior ao dia de hoje!");
+                temp_date1= input_manage.askDate(keyboard, "Nova Data de Inicio da Eleicao [dd/mm/aaaa]: ");
+            }
+            LocalTime temp_hour1= input_manage.askHour(keyboard, "Nova Hora de Inicio da Eleicao [hh:mm]: ");        
+            updated_election.setStarting(LocalDateTime.of(temp_date1, temp_hour1));
+        } else if (option==4) {
+            LocalDate temp_date2= input_manage.askDate(keyboard, "Nova Data de Fim da Eleicao [dd/mm/aaaa]: ");
+            LocalTime temp_hour2= input_manage.askHour(keyboard, "Nova Hora de Fim da Eleicao [hh:mm]: ");        
+            if (updated_election.getStarting().compareTo(LocalDateTime.of(temp_date2, temp_hour2))>=0) {
+                System.out.println("Erro: A Nova Data de Fim tem de ser posterior ao dia "+updated_election.getStartingString()+"!");
+                input_manage.messageToWait("Voltando para o Menu Admin..."); return ;
+            } else { updated_election.setEnding(LocalDateTime.of(temp_date2, temp_hour2)); }
+        } 
+
+        //  SEND NEW ELECTION TO RMI SERVER
+        try { System.out.println(admin.getServer1().setUpdatedElection(updated_election, false)); } 
+        catch (Exception e1) {
+            try { System.out.println(admin.getServer2().setUpdatedElection(updated_election, false)); } 
+            catch (Exception e2) { System.out.println("500: Nao ha servers\n"); }
+        }
+    }
+
+    
 }
 
 
@@ -405,7 +456,7 @@ class Inputs {
         }
         
         //  There's no registed Colleges
-        if (available_colleges.isEmpty()) { System.out.println("Erro: Ainda nao existem Faculdades registadas!\n"); return ""; }
+        if (available_colleges.isEmpty()) { System.out.println("Erro: Nao existem Faculdades registadas!\n"); return ""; }
         
         //  Removing Colleges already registed
         for (String temp_college : college_restrictions) available_colleges.remove(temp_college);
@@ -429,7 +480,10 @@ class Inputs {
         }
 
         //  There's no registed Departments
-        if (available_departments.isEmpty()) { System.out.println("Erro: Ainda nao existem Departamentos registados!\n"); return ""; }
+        if (available_departments.isEmpty()) { 
+            messageToWait("Erro: Nao existem Departamentos registados!\n");
+            return ""; 
+        }
         
         //  Removing Departments already registed
         for (String temp_depart : department_restrictions) available_departments.remove(temp_depart);
@@ -448,12 +502,8 @@ class Inputs {
             try {
                 int option= Integer.parseInt(keyboard.nextLine());
                 if (option>=min_limit && option<=max_limit) return option;
-                else throw new Exception("Erro: Opcao Invalida!");
-            } catch (Exception e) {
-                System.out.println(e);
-                try { TimeUnit.SECONDS.sleep(3); }
-                catch (Exception e1) { }
-            }
+                else throw new Exception();
+            } catch (Exception e) { messageToWait("Erro: Opcao Invalida!"); }
         }
     }
     public ArrayList<Integer> checkSeveralIntegerOptions(Scanner keyboard, String message, int min_limit, int max_limit) {
@@ -468,11 +518,7 @@ class Inputs {
                     if (option>=min_limit && option<=max_limit && !options.contains(option)) options.add(option);
                     else throw new Exception();
                 } return options;
-            } catch (Exception e) {
-                System.out.println("Erro: Opcao Invalida!");
-                try { TimeUnit.SECONDS.sleep(3); }
-                catch (Exception e1) { }
-            }
+            } catch (Exception e) { messageToWait("Erro: Opcao Invalida!"); }
         }
     }
     public boolean checkString(String s) {
@@ -509,9 +555,14 @@ class Inputs {
             if (i==2 && Character.compare(s.charAt(2),'-')!=0) return false;
             else if (i!=2 && !Character.isDigit(s.charAt(i))) return false;
         } 
-        String aux= s.split("-")[0];
-        if (aux.compareTo("01")>0 || aux.compareTo("12")<0) return true;
+        int aux= Integer.parseInt(s.split("-")[0]);
+        if (aux>0 && aux<=12) return true;
         else return false;
     }
-    
+
+    public void messageToWait(String message) {
+        System.out.println(message);
+        try { TimeUnit.SECONDS.sleep(2); }
+        catch (Exception e1) { }
+    }
 }
