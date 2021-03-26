@@ -6,6 +6,7 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 
@@ -18,14 +19,15 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
 
     //  Connection Data
 	private int port=1099;
-	private String rmiregistry1="rmiconnection1", rmiregistry2="rmiconnection2";
-    private static RMIServer server1, server2; 
-    private ArrayList<RMIClient_I> clients_list= new ArrayList<>();
-    private ArrayList<RMIClient_I> admins_list= new ArrayList<>();
-    private Registry regist = LocateRegistry.createRegistry(port);
+	public String rmiregistry1="rmiconnection1", rmiregistry2="rmiconnection2";
+    public Registry regist = LocateRegistry.createRegistry(port);
+    private static RMIServer server1, server2;
+    private ArrayList<RMIClient_I> clients_list= new ArrayList<>(), admins_list= new ArrayList<>();
 
     //  Threads
     private static IsClientAlive client_checker;
+    private static ElectionsState election_state;
+    private static ServersManagement servers_manager;
 
     //  Storage Data
     private FilesManagement file_manage= new FilesManagement();
@@ -35,46 +37,59 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
     private ArrayList<Election> unstarted_elections= new ArrayList<>(), running_elections= new ArrayList<>(), finished_elections= new ArrayList<>();
 
     public RMIServer() throws RemoteException { super(); }
+    public void run() { }
 
     public static void main(String[] args) throws Exception {
         System.getProperties().put("java.security.policy","RMIServer.policy");
         if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
         
-        initServers();
-
-        server1.file_manage.loadElectionsFile(server1.unstarted_elections, "unstarted");
-        server1.file_manage.loadElectionsFile(server1.running_elections, "running");
-        server1.file_manage.loadElectionsFile(server1.finished_elections, "finished");
-        server1.file_manage.loadCollegesFile(server1.colleges);
+        boolean server1_running= initServers();
+        servers_manager= new ServersManagement("servers_manager", server1, server2, server1_running);
         client_checker= new IsClientAlive("clients_checker", server1.clients_list, server1.admins_list);
-        
-        try {
-			client_checker.thread.join();
-            System.out.println("Verificacao de ativacao dos clientes: Desativa");
-		} catch (InterruptedException e) { System.out.println("Interrupted"); }
+        election_state= new ElectionsState("election_state", server1.unstarted_elections, server1.running_elections, server1.finished_elections);
 
         if (!server1.running_elections.isEmpty()) {
             for (String  name: server1.getElectionNames("unstarted")) System.out.println(name);
             for (String  name: server1.getElectionNames("running")) System.out.println(name);
         }
         if (!server1.colleges.isEmpty()) for (String  name: server1.getCollegesNames()) System.out.println(name);
+
+        try {
+			client_checker.thread.join();
+            System.out.println("Verificacao de ativacao dos Clientes: Desativa");
+			election_state.thread.join();
+            System.out.println("Verificacao de estado de Eleicoes: Desativa");
+			servers_manager.manager_thread.join();
+            System.out.println("Verificacao de estado dos Servidores: Desativa");
+		} catch (InterruptedException e) { System.out.println("Interrupted"); }
+    }
+   
+
+    public void readAllFiles(RMIServer active_server) {
+        active_server.file_manage.loadElectionsFile(active_server.unstarted_elections, "unstarted");
+        active_server.file_manage.loadElectionsFile(active_server.running_elections, "running");
+        active_server.file_manage.loadElectionsFile(active_server.finished_elections, "finished");
+        active_server.file_manage.loadCollegesFile(active_server.colleges);
     }
 
-    public void run() { 
-        initServers();
-    }
-    
     private static boolean initServers() {
-        try {
-            server1 = new RMIServer();  // this would firstly be the main rmi server
-            server1.regist.rebind(server1.rmiregistry1, server1);
-            System.out.println("Servidor Primario Ativo");
-            return true;
-        } catch (Exception e1) { 
+        while (true) {
             try {
-                heartbeatServer(server1, server2);
-            } catch (Exception e2) { System.out.println("Erro a ligar os servers no porto "+server1.port);} 
-            return false; 
+                server1 = new RMIServer();  // this would firstly be the main rmi server
+                server1.regist.rebind(server1.rmiregistry1, server1);
+                server1.readAllFiles(server1);
+                System.out.println("Servidor 1 Ativo");
+                return true;
+            } catch (Exception e1) { 
+                try {
+                    System.out.println("Problemas com o arranque do Servidor 1");
+                    server2 = new RMIServer();  // this would firstly be the main rmi server
+                    server2.regist.rebind(server2.rmiregistry2, server2);
+                    server2.readAllFiles(server2);
+                    System.out.println("Servidor 2 Ativo");
+                    return false;
+                } catch (Exception e2) { System.out.println("Erro a ligar os servidores!"); } 
+            }
         }
     }
 
@@ -83,24 +98,6 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
 		else { clients_list.add(new_client); System.out.println("Novo Cliente Conectado ["+(clients_list.size()-1)+"]"); }
         return "200: Adicionado ao Servidor com Sucesso";
 	}
-
-    public static void heartbeatServer(RMIServer active_server, RMIServer secundary_server) throws RemoteException, NotBoundException, InterruptedException{
-        int error_response = 0;
-                          
-        while(error_response!=5){
-            try { active_server.ping(); System.out.println("Ping "+error_response+": Recebido"); }
-            catch(Exception e){ error_response++; System.out.println("Ping "+error_response+": Falhado"); }
-            
-            if(error_response==5) {
-                try { 
-                    secundary_server= new RMIServer();
-                    secundary_server.regist.rebind(secundary_server.rmiregistry2, secundary_server); 
-                    System.out.println("Servidor Activo Alterado para o Secundario"); 
-                } 
-                catch(Exception e){ e.printStackTrace(); }   
-            }
-        }
-    }
 
     //  ===========================================================================================================
 
@@ -114,10 +111,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         if (verifyUserExistence(new_user)) return "400: Uma pessoa com esse Numero de CC ja foi registada!\n";
         int college_index = IntStream.range(0, colleges.size()).filter(i -> colleges.get(i).getName().equals(new_college)).findFirst().orElse(-1);
         if (college_index==-1) {
-            colleges.add(new College(new_college, new Department(new_department, new_user)));
+            colleges.add(new College(new_college, new Department(new_department, new_college, new_user)));
         } else {
             int department_index = IntStream.range(0, colleges.get(college_index).getDepartments().size()).filter(i -> colleges.get(college_index).getDepartments().get(i).getName().equals(new_department)).findFirst().orElse(-1);
-            if (department_index==-1) colleges.get(college_index).getDepartments().add(new Department(new_department, new_user));
+            if (department_index==-1) colleges.get(college_index).getDepartments().add(new Department(new_department, new_college, new_user));
             else colleges.get(college_index).getDepartments().get(department_index).getUsersWithType(new_user.getUser_type()).add(new_user);
         }
         
@@ -125,7 +122,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         file_manage.saveCollegesFile(colleges);
         return "200: Pessoa registada com sucesso!\n";
 	}
-    public boolean verifyUserExistence(User comparing_user) {
+    synchronized public boolean verifyUserExistence(User comparing_user) {
         for (College college : colleges) {
             for (Department department : college.getDepartments()) {
                 for (User user : department.getStudents()) {
@@ -195,9 +192,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         }
     }
     
-    synchronized public ArrayList<Election> getUnstartedElections() throws RemoteException { return this.unstarted_elections; }
-    synchronized public ArrayList<Election> getRunningElections() throws RemoteException { return this.running_elections; }
-    synchronized public ArrayList<Election> getFinishedElections() throws RemoteException { return this.finished_elections; }
+    synchronized public ArrayList<Election> getUnstartedElections() throws RemoteException { return unstarted_elections; }
+    synchronized public ArrayList<Election> getRunningElections() throws RemoteException { return running_elections; }
+    synchronized public ArrayList<Election> getFinishedElections() throws RemoteException { return finished_elections; }
     synchronized public ArrayList<String> getElectionNames(String election_state) throws RemoteException { 
         ArrayList<String> names= new ArrayList<>();
         if (election_state=="running") for (Election election : running_elections) names.add(election.getTitle());
@@ -207,13 +204,30 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
     }
     
     synchronized public String setUpdatedElection(Election updated_election, boolean is_candidature) throws RemoteException { 
-        for (Election election : unstarted_elections) {
+        for (Election election : unstarted_elections)
             if (election.getTitle().compareTo(updated_election.getTitle())==0) {
                 unstarted_elections.set(unstarted_elections.indexOf(election), updated_election);
                 if (is_candidature) { System.out.println("Nova Candidatura Submetida pela Consola de Administrador"); return "200: Candidatura Submetida com Sucesso"; }
                 else { System.out.println("Eleicao "+election.getTitle()+" alterada pela Consola de Administrador"); return "200: Eleicao Editada com Sucesso"; }
             }
-        } return "400: Essa Eleicao nao foi encontrada";
+        return "400: Essa Eleicao nao foi encontrada";
+    }
+    synchronized public String setUpdatedDepartment(Department updated_department) throws RemoteException { 
+        for (College college : colleges) {
+            ArrayList<Department> colleg_deps= college.getDepartments();
+            int dep_index = IntStream.range(0, colleg_deps.size()).filter(i -> colleg_deps.get(i).getName().equals(updated_department.getName())).findFirst().orElse(-1);
+            if (dep_index==-1) continue;
+            college.getDepartments().set(dep_index, updated_department);
+            return "200: Mesa de Voto Registada com Sucesso";
+        } return "400: Departamento nao encontrado";
+    }
+
+    synchronized public ArrayList<Department> getDepartmentsWithNoVoteTable() throws RemoteException {
+        ArrayList<Department> available_departments= new ArrayList<>();
+        for (College college : colleges)
+            for (Department department : college.getDepartments())
+                if (department.getVote_table()==null) available_departments.add(department);
+        return available_departments;
     }
 
     synchronized public String ping() throws RemoteException { return "ACK"; }
@@ -317,20 +331,56 @@ class FilesManagement {
     
 }
 
-class ServersManagement implements Runnable {
-    public RMIServer server1, server2; 
-    public Thread manager_thread;
 
-    ServersManagement(String threadname, RMIServer server1, RMIServer server2) {
+class ServersManagement implements Runnable {
+    public Thread manager_thread;
+    public RMIServer server1, server2; 
+    public boolean server1_running;
+
+    ServersManagement(String threadname, RMIServer server1, RMIServer server2, boolean server1_running) {
         this.server1 = server1;
         this.server2 = server2;
+        this.server1_running = server1_running;
         manager_thread = new Thread(this, threadname);
+        System.out.println("Verificacao de estado dos Servidores: Ativa");
         manager_thread.start();
     }
 
     public void run() {
+        int error_response= 0;
         while (true) {
+            try { Thread.sleep(100); }
+            catch (Exception e) { }
+
+            try { 
+                if (server1_running) server1.ping(); 
+                else server2.ping();
+            } catch(Exception e){ 
+                if (server1_running) System.out.println("Ping "+error_response+" ao Servidor 1: Falhado"); 
+                else System.out.println("Ping "+error_response+" ao Servidor 2: Falhado"); 
+                error_response++;  
+            }
             
+            if(error_response==5) {
+                try { 
+                    if (server1_running) {
+                        server2= new RMIServer();
+                        server2.regist.rebind(server2.rmiregistry2, server2); 
+                        server2.readAllFiles(server2);
+                        error_response=0;
+                        server1_running=!server1_running;
+                        System.out.println("Servidor Ativo: 2"); 
+                    } else {
+                        server1= new RMIServer();
+                        server1.regist.rebind(server1.rmiregistry1, server1); 
+                        server1.readAllFiles(server1);
+                        error_response=0;
+                        server1_running=!server1_running;
+                        System.out.println("Servidor Ativo: 1");
+                    }
+                } 
+                catch(Exception e){ e.printStackTrace(); }   
+            }
         }
     }
 }
@@ -352,7 +402,7 @@ class IsClientAlive implements Runnable {
         this.clients = clients;
         this.admins = admins;
         thread = new Thread(this, threadname);
-        System.out.println("Verificacao de ativacao dos clientes: Ativa");
+        System.out.println("Verificacao de ativacao dos Clientes: Ativa");
         thread.start();
     }
 
@@ -392,7 +442,6 @@ class IsClientAlive implements Runnable {
 }
 
 
-
 /**
  * ElectionsState is a Thread that iterates all the Elections (including Unstarted, Running and Finished ones) and manage them according to their defined Starting and Ending Dates
 */
@@ -411,27 +460,46 @@ class ElectionsState implements Runnable {
         this.running_elections = running_elections;
         this.finished_elections = finished_elections;
         thread = new Thread(this, threadname);
+        System.out.println("Verificacao de estado das Eleicoes: Ativa");
         thread.start();
     }
 
     public void run() {
         int unstarted_id=0, running_id=0;
+        Election temp_elec;
         while (true) {
             try { Thread.sleep(100); }
             catch (Exception e) { }
+            LocalDateTime now= LocalDateTime.now();
 
             //  CHECK UNSTARTED ELECTIONS
             if (!unstarted_elections.isEmpty()) {
+                temp_elec= unstarted_elections.get(unstarted_id);
+                
                 //  RESET ARRAY
                 if (unstarted_id<0 || unstarted_id>=unstarted_elections.size()) unstarted_id=0;
                 try { 
-                    if (unstarted_elections.get(unstarted_id)!=null) { //unstarted_elections.get(unstarted_id).ping(); unstarted_id++; 
-                    }
-                    else unstarted_id++;
-                } catch (Exception e) {
-                    unstarted_elections.set(unstarted_id, null);
-                    System.out.println("O Cliente ["+(unstarted_id++)+"] desconectou-se!");
-                }
+                    if (temp_elec.getStarting().compareTo(now)<=0) {
+                        running_elections.add(temp_elec);
+                        unstarted_elections.remove(unstarted_id); 
+                        System.out.println("A Eleicao "+temp_elec.getTitle()+" comecou!"); 
+                    } else unstarted_id++;
+                } catch (Exception e) { }
+            }
+
+            //  CHECK RUNNING ELECTIONS
+            if (!running_elections.isEmpty()) {
+                temp_elec= running_elections.get(running_id);
+                
+                //  RESET ARRAY
+                if (running_id<0 || running_id>=running_elections.size()) running_id=0;
+                try { 
+                    if (temp_elec.getEnding().compareTo(now)<0) { 
+                        finished_elections.add(temp_elec);
+                        running_elections.remove(running_id); 
+                        System.out.println("A Eleicao "+temp_elec.getTitle()+" acabou!"); 
+                    } else running_id++;
+                } catch (Exception e) { }
             }
         }
     }

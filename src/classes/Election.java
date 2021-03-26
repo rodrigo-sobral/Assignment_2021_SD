@@ -20,10 +20,15 @@ public class Election implements Serializable {
     public String getElection_type() { return election_type; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
+    
     public LocalDateTime getStarting() { return starting; }
-    public String getStartingString() { return this.getStarting().getDayOfMonth()+"/"+this.getStarting().getMonthValue()+"/"+this.getStarting().getYear(); }
+    public String getStartingDateString() { return this.getStarting().getDayOfMonth()+"/"+this.getStarting().getMonthValue()+"/"+this.getStarting().getYear(); }
+    public String getStartingHourString() { return this.getStarting().getHour()+":"+this.getStarting().getMinute(); }
+    
     public LocalDateTime getEnding() { return ending; }
-    public String getEndingString() {  return this.getEnding().getDayOfMonth()+"/"+this.getEnding().getMonthValue()+"/"+this.getEnding().getYear(); }
+    public String getEndingDateString() { return this.getEnding().getDayOfMonth()+"/"+this.getEnding().getMonthValue()+"/"+this.getEnding().getYear(); }
+    public String getEndingHourString() { return this.getEnding().getHour()+":"+this.getEnding().getMinute(); }
+    
     public int getBlankVotes() { return blank_votes; }
     public int getNullVotes() { return null_votes; }
     public int getTotalVotes() { return total_votes; }

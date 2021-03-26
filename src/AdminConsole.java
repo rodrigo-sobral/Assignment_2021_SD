@@ -166,24 +166,32 @@ public class AdminConsole extends RMIClient {
         //  GET DEFAULT ELECTION DATA
         while(!new_election.setElection_type(input_manage.askVariable(keyboard, "Tipo Eleicao [Funcionario/Professor/Estudante]: ", 0)));
 
-        new_election.setTitle(input_manage.askVariable(keyboard, "Titulo: ", 0));
+        new_election.setTitle(input_manage.askVariable(keyboard, "Titulo: ", 5));
         new_election.setDescription(input_manage.askVariable(keyboard, "Descricao: ", 5));
         
         LocalDate temp_date1= input_manage.askDate(keyboard, "Data de Inicio da Eleicao [dd/mm/aaaa]: ");
-        while (LocalDate.now().compareTo(temp_date1)>=0) {
-            System.out.println("400: A Data de Inicio tem de ser posterior ao dia de hoje!");
+        while (LocalDate.now().compareTo(temp_date1)>0) {
+            System.out.println("Erro: A Data de Inicio tem de ser posterior ao dia de hoje!");
             temp_date1= input_manage.askDate(keyboard, "Data de Inicio da Eleicao [dd/mm/aaaa]: ");
         }
         LocalTime temp_hour1= input_manage.askHour(keyboard, "Hora de Inicio da Eleicao [hh:mm]: ");        
+        while (LocalDate.now().compareTo(temp_date1)==0 && LocalTime.now().compareTo(temp_hour1)>0) {
+            System.out.println("Erro: A Hora de Inicio tem de ser posterior a Hora atual!");
+            temp_hour1= input_manage.askHour(keyboard, "Hora de Inicio da Eleicao [hh:mm]: ");        
+        }
         
         new_election.setStarting(LocalDateTime.of(temp_date1, temp_hour1));
 
         LocalDate temp_date2= input_manage.askDate(keyboard, "Data de Fim da Eleicao [dd/mm/aaaa]: ");
-        while (temp_date1.compareTo(temp_date2)>=0) {
-            System.out.println("400: A Data de Fim tem de ser posterior ao dia "+new_election.getStartingString()+"!");
+        while (temp_date1.compareTo(temp_date2)>0) {
+            System.out.println("Erro: A Data de Fim tem de ser posterior ao dia "+new_election.getStartingDateString()+"!");
             temp_date2= input_manage.askDate(keyboard, "Data de Fim da Eleicao [dd/mm/aaaa]: ");
         } 
         LocalTime temp_hour2= input_manage.askHour(keyboard, "Hora de Fim da Eleicao [hh:mm]: ");        
+        while (temp_date1.compareTo(temp_date2)==0 && temp_hour1.compareTo(temp_hour2)>0) {
+            System.out.println("Erro: A Hora de Fim tem de ser posterior a Hora "+new_election.getStartingHourString()+"!");
+            temp_hour2= input_manage.askHour(keyboard, "Hora de Fim da Eleicao [hh:mm]: ");
+        }
 
         new_election.setEnding(LocalDateTime.of(temp_date2, temp_hour2));
     
@@ -247,7 +255,7 @@ public class AdminConsole extends RMIClient {
         System.out.println("----------------------------------------");
         for (int i = 0; i < available_elections.size(); i++) {
             Election aux= available_elections.get(i);
-            System.out.println(i+1+": "+aux.getTitle()+"\t"+aux.getStartingString()+"\t"+aux.getEndingString()+aux.getCandidatures_to_election().size()+"\t"+aux.getDescription());
+            System.out.println(i+1+": "+aux.getTitle()+"\t"+aux.getStartingDateString()+"\t"+aux.getEndingDateString()+aux.getCandidatures_to_election().size()+"\t"+aux.getDescription());
         }
         System.out.println("----------------------------------------");
         option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 0, available_elections.size())-1;
@@ -261,7 +269,7 @@ public class AdminConsole extends RMIClient {
         ArrayList<User> users_restricts= new ArrayList<>();
 
         //  ASK CANDIDATURE NAME
-        new_candidature.setCandidature_name(input_manage.askVariable(keyboard, "Titulo: ", 0));
+        new_candidature.setCandidature_name(input_manage.askVariable(keyboard, "Titulo: ", 5));
 
         //  CHECK IF THAT CANDIDATURE NAME ALREADY EXIST
         for (Candidature candidature : selected_election.getCandidatures_to_election()) {
@@ -324,7 +332,37 @@ public class AdminConsole extends RMIClient {
         }
     }
     private void addVoteTable(Scanner keyboard) {
-        
+        ArrayList<Department> available_deps=null;
+        int option;
+
+        try { available_deps= admin.getServer1().getDepartmentsWithNoVoteTable(); } 
+        catch (Exception e1) {
+            try { available_deps= admin.getServer2().getDepartmentsWithNoVoteTable(); } 
+            catch (Exception e2) { System.out.println("500: Nao ha servers!\n"); }
+        }
+        if (available_deps==null) { input_manage.messageToWait("Erro: Nao existem Departamentos Disponiveis!"); return; };
+
+        //  ASK DEPARTMENT FROM THE ONES WHICH HAVE NOT VOTE TABLE 
+        System.out.println("----------------------------------------");
+        System.out.println("Departamentos Disponiveis [0 Para Voltar]");
+        System.out.println("----------------------------------------");
+        for (int i = 0; i < available_deps.size(); i++) {
+            Department aux= available_deps.get(i);
+            System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName());
+        }
+        System.out.println("----------------------------------------");
+        option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 0, available_deps.size())-1;
+        if (option==-1) { input_manage.messageToWait("Voltando para o Menu Admin..."); return; }
+        Department selected_dep= available_deps.get(option);
+
+        int terminals= input_manage.checkIntegerOption(keyboard, "Quantos terminais tera a Mesa de Voto de "+selected_dep.getName()+" [Max=100]: ", 1, 100);
+        selected_dep.setVoteTable(terminals);
+
+        try { System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep)); }
+        catch (Exception e1) {
+            try { System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep)); } 
+            catch (Exception e) { System.out.println("500: Nao ha servers!\n"); }
+        }
     }
 
     private void editElection(Scanner keyboard) { 
@@ -344,7 +382,7 @@ public class AdminConsole extends RMIClient {
         System.out.println("Eleicoes Disponiveis");
         System.out.println("----------------------------------------");
         for (int i = 0; i < available_elections.size(); i++) 
-            System.out.println(i+1+": "+available_elections.get(i).getTitle()+"\t"+available_elections.get(i).getStartingString()+"\t"+available_elections.get(i).getEndingString()+"\t"+available_elections.get(i).getDescription());
+            System.out.println(i+1+": "+available_elections.get(i).getTitle()+"\t"+available_elections.get(i).getStartingDateString()+"\t"+available_elections.get(i).getEndingDateString()+"\t"+available_elections.get(i).getDescription());
         System.out.println("----------------------------------------");
         option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 1, available_elections.size())-1;
         
@@ -354,8 +392,8 @@ public class AdminConsole extends RMIClient {
         System.out.println("----------------------------------------");
         System.out.println("1: Titulo: "+updated_election.getTitle());
         System.out.println("2: Descricao: "+updated_election.getDescription());
-        System.out.println("3: Data e Hora de Inicio: "+updated_election.getStartingString());
-        System.out.println("4: Data e Hora de Fim: "+updated_election.getEndingString());
+        System.out.println("3: Data e Hora de Inicio: "+updated_election.getStartingDateString());
+        System.out.println("4: Data e Hora de Fim: "+updated_election.getEndingDateString());
         System.out.println("0: Voltar");
         option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 0, 4);
         
@@ -375,7 +413,7 @@ public class AdminConsole extends RMIClient {
             LocalDate temp_date2= input_manage.askDate(keyboard, "Nova Data de Fim da Eleicao [dd/mm/aaaa]: ");
             LocalTime temp_hour2= input_manage.askHour(keyboard, "Nova Hora de Fim da Eleicao [hh:mm]: ");        
             if (updated_election.getStarting().compareTo(LocalDateTime.of(temp_date2, temp_hour2))>=0) {
-                System.out.println("Erro: A Nova Data de Fim tem de ser posterior ao dia "+updated_election.getStartingString()+"!");
+                System.out.println("Erro: A Nova Data de Fim tem de ser posterior ao dia "+updated_election.getStartingDateString()+"!");
                 input_manage.messageToWait("Voltando para o Menu Admin..."); return ;
             } else { updated_election.setEnding(LocalDateTime.of(temp_date2, temp_hour2)); }
         } 
@@ -387,7 +425,6 @@ public class AdminConsole extends RMIClient {
             catch (Exception e2) { System.out.println("500: Nao ha servers\n"); }
         }
     }
-
     
 }
 
