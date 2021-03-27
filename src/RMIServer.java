@@ -235,7 +235,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
 
 
 /**
- * FilesManagement take care of all data storage
+ * FilesManagement takes care of all data storage
 */
 class FilesManagement {
 
@@ -474,10 +474,10 @@ class ElectionsState implements Runnable {
 
             //  CHECK UNSTARTED ELECTIONS
             if (!unstarted_elections.isEmpty()) {
-                temp_elec= unstarted_elections.get(unstarted_id);
-                
                 //  RESET ARRAY
                 if (unstarted_id<0 || unstarted_id>=unstarted_elections.size()) unstarted_id=0;
+                temp_elec= unstarted_elections.get(unstarted_id);
+                
                 try { 
                     if (temp_elec.getStarting().compareTo(now)<=0) {
                         running_elections.add(temp_elec);
@@ -489,10 +489,10 @@ class ElectionsState implements Runnable {
 
             //  CHECK RUNNING ELECTIONS
             if (!running_elections.isEmpty()) {
-                temp_elec= running_elections.get(running_id);
-                
                 //  RESET ARRAY
                 if (running_id<0 || running_id>=running_elections.size()) running_id=0;
+                temp_elec= running_elections.get(running_id);
+                
                 try { 
                     if (temp_elec.getEnding().compareTo(now)<0) { 
                         finished_elections.add(temp_elec);

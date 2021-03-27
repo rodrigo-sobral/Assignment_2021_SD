@@ -56,7 +56,17 @@ public class Election implements Serializable {
     public void setCollege_restrictions(ArrayList<String> college_restrictions) { this.college_restrictions = college_restrictions; }
     public void setDepartment_restrictions(ArrayList<String> department_restrictions) { this.department_restrictions = department_restrictions; }
 
-    public void incrementBlankVotes() { this.blank_votes++; this.total_votes++; }
-    public void incrementNullVotes() { this.null_votes++; this.total_votes++; }
-    public void incrementTotalVotes() { this.total_votes++; }
+    public void incrementBlankVote() { this.blank_votes++; this.total_votes++; }
+    public void incrementNullVote() { this.null_votes++; this.total_votes++; }
+    public void incrementValidVote(String candidature_name) { 
+        for (Candidature candidature : candidatures_to_election) {
+            if (candidature.getCandidature_name().compareTo(candidature_name)==0) { 
+                candidature.incrementCandidatureVotes(); 
+                this.total_votes++; 
+                return; 
+            }
+        }
+    }
+
+
 }

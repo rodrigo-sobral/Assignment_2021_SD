@@ -87,6 +87,7 @@ public class AdminConsole extends RMIClient {
             System.out.println("|====================================|");
             System.out.println("|  1: Registar Eleicao               |");
             System.out.println("|  2: Editar Eleicao                 |");
+            System.out.println("|  3: Consultar Eleicoes Passadas    |");
             System.out.println("|  0: Voltar                         |");
             System.out.println("|====================================|");
             option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 2);
@@ -96,6 +97,8 @@ public class AdminConsole extends RMIClient {
             addElection(keyboard);
         } else if (option==2) {
             editElection(keyboard);
+        } else if (option==3) {
+            consultPassedElections(keyboard);
         } else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
     }
     private void manageCandidatures(Scanner keyboard) {
@@ -426,6 +429,56 @@ public class AdminConsole extends RMIClient {
         }
     }
     
+    private void consultPassedElections(Scanner keyboard) {
+        ArrayList<Election> available_elections= new ArrayList<>();
+        int option;
+
+        //  GET ELECTION TO THE NEW CANDIDATURE
+        try { available_elections = admin.getServer1().getFinishedElections(); } 
+        catch (Exception e1) {
+            try { available_elections = admin.getServer2().getFinishedElections(); } 
+            catch (Exception e2) { System.out.println("500: Nao ha servers"); }
+        }
+        if (available_elections.isEmpty()) { input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); return; }
+        
+        //  ASK ELECTION 
+        System.out.println("----------------------------------------");
+        System.out.println("Eleicoes Finalizadas [0 Para Voltar]");
+        System.out.println("----------------------------------------");
+        for (int i = 0; i < available_elections.size(); i++) {
+            Election aux= available_elections.get(i);
+            System.out.println(i+1+": "+aux.getTitle()+"\t"+aux.getStartingDateString()+"\t"+aux.getEndingDateString()+aux.getCandidatures_to_election().size()+"\t"+aux.getDescription());
+        } System.out.println("----------------------------------------");
+        option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 0, available_elections.size())-1;
+        if (option==-1) { input_manage.messageToWait("Voltando para o Menu Admin..."); return; }
+
+        Election selected_election= available_elections.get(option);
+        
+        System.out.println("----------------------------------------");
+        System.out.println("Titulo: "+selected_election.getTitle());
+        System.out.println("Descricao: "+selected_election.getDescription());
+        System.out.println("Data Inicio: "+selected_election.getStartingDateString()+"  "+selected_election.getStartingHourString());
+        System.out.println("Data Fim: "+selected_election.getEndingDateString()+"  "+selected_election.getEndingHourString());
+        System.out.println("Eleitores/Candidatos: "+selected_election.getElection_type());
+        if (!selected_election.getCollege_restrictions().isEmpty()) {
+            System.out.println("Faculdades:");
+            for (String college : selected_election.getCollege_restrictions()) System.out.print(" "+college);
+            System.out.println("");
+        } if (!selected_election.getDepartment_restrictions().isEmpty()) {
+            System.out.println("Departamentos:");
+            for (String department : selected_election.getDepartment_restrictions()) System.out.print(" "+department);
+            System.out.println("");
+        } if (!selected_election.getCandidatures_to_election().isEmpty()) {
+            System.out.println("Candidatos: ");
+            for (Candidature candidature: selected_election.getCandidatures_to_election()) 
+                System.out.printf("\t %s\tVotos: %.2f%% (%d)\n", candidature.getCandidature_name(), (candidature.getCandidature_votes()/selected_election.getTotalVotes())*100, candidature.getCandidature_votes());
+            System.out.printf("Votos Nulos: %.2f%% (%d)\n", (selected_election.getNullVotes()/selected_election.getTotalVotes())*100, selected_election.getNullVotes());
+            System.out.printf("Votos em Branco: %.2f%% (%d)\n", (selected_election.getBlankVotes()/selected_election.getTotalVotes())*100, selected_election.getBlankVotes());
+        }
+        System.out.println("Total de Votos: "+ selected_election.getTotalVotes());
+        System.out.println("----------------------------------------");
+    }
+
 }
 
 
