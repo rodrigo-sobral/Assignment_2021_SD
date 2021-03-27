@@ -64,7 +64,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
 		} catch (InterruptedException e) { System.out.println("Interrupted"); }
     }
    
-
+    //  ===========================================================================================================
+    //  CONNECTIONS AND CONFIGURATIONS
+    //  ===========================================================================================================
     public void readAllFiles(RMIServer active_server) {
         active_server.file_manage.loadElectionsFile(active_server.unstarted_elections, "unstarted");
         active_server.file_manage.loadElectionsFile(active_server.running_elections, "running");
@@ -99,10 +101,14 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         return "200: Adicionado ao Servidor com Sucesso";
 	}
 
+    synchronized public String ping() throws RemoteException { return "ACK"; }
+
+    //  ===========================================================================================================
+    //  COMUNICATIONS WITH ADMIN CONSOLE    
     //  ===========================================================================================================
 
     /**
-     * @param new_college Name of the new college, registed with the new user data
+    * @param new_college Name of the new college, registed with the new user data
      * @param new_department Name of the new department, registed with the new user data
      * @param new_user New User data
      * @return returns a 200 code if sucess during registation, 400 otherwise
@@ -230,7 +236,35 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         return available_departments;
     }
 
-    synchronized public String ping() throws RemoteException { return "ACK"; }
+    //  ===========================================================================================================
+    //  COMUNICATIONS WITH MULTICAST SERVERS
+    //  ===========================================================================================================
+
+    synchronized public boolean authorizeUser(String cc_number) {
+        for (College college : colleges) {
+            for (Department department : college.getDepartments()) {
+                for (User student : department.getStudents())
+                    if (student.getCc_number().compareTo(cc_number)==0) return true;
+                for (User teacher : department.getTeachers())
+                    if (teacher.getCc_number().compareTo(cc_number)==0) return true;
+                for (User staff : department.getStaff())
+                    if (staff.getCc_number().compareTo(cc_number)==0) return true;
+            }
+        } return false;
+    }
+    synchronized public boolean authenticateUser(String username, String password) {
+        for (College college : colleges) {
+            for (Department department : college.getDepartments()) {
+                for (User student : department.getStudents())
+                    if (student.getName().compareTo(username)==0 && student.getPassword().compareTo(password)==0) return true;
+                for (User teacher : department.getTeachers())
+                    if (teacher.getName().compareTo(username)==0 && teacher.getPassword().compareTo(password)==0) return true;
+                for (User staff : department.getStaff())
+                    if (staff.getName().compareTo(username)==0 && staff.getPassword().compareTo(password)==0) return true;
+            }
+        } return false;
+    }
+
 }
 
 

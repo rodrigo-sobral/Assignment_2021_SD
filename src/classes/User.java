@@ -1,6 +1,7 @@
 package classes;
 
 import java.io.*;
+import java.util.ArrayList;
 
 public class User implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -9,6 +10,7 @@ public class User implements Serializable {
     private String name, password, address, phone_number;
     private String cc_number, cc_shelflife;
     private String college, department;
+    private ArrayList<String> voted_elections= new ArrayList<>();
 
     /**
      * null para não declarar
@@ -56,6 +58,7 @@ public class User implements Serializable {
     public void setCc_shelflife(String cc_shelflife) { this.cc_shelflife = cc_shelflife; }
     public void setCollege(String college) { this.college = college; }
     public void setDepartment(String department) { this.department = department; }
+    public void registUserVote(String voted_election) { this.voted_elections.add(voted_election); }
 
     @Override
     public String toString() {

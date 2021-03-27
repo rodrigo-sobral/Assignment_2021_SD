@@ -90,7 +90,7 @@ public class AdminConsole extends RMIClient {
             System.out.println("|  3: Consultar Eleicoes Passadas    |");
             System.out.println("|  0: Voltar                         |");
             System.out.println("|====================================|");
-            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 2);
+            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 3);
             if (option!=-1) break;
         }
         if (option==1) {
@@ -343,7 +343,7 @@ public class AdminConsole extends RMIClient {
             try { available_deps= admin.getServer2().getDepartmentsWithNoVoteTable(); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers!\n"); }
         }
-        if (available_deps==null) { input_manage.messageToWait("Erro: Nao existem Departamentos Disponiveis!"); return; };
+        if (available_deps.isEmpty()) { input_manage.messageToWait("Erro: Nao existem Departamentos Disponiveis!"); return; };
 
         //  ASK DEPARTMENT FROM THE ONES WHICH HAVE NOT VOTE TABLE 
         System.out.println("----------------------------------------");
