@@ -556,14 +556,14 @@ class Inputs {
         option= checkIntegerOption(keyboard, "Opcao: ", 1, available_colleges.size())-1;
         return available_colleges.get(option);
     }
-    public String askDepartment(AdminConsole admin, Scanner keyboard, ArrayList<String> department_restrictions) {
+    public String askDepartment(RMIClient client, Scanner keyboard, ArrayList<String> department_restrictions) {
         ArrayList<String> available_departments= new ArrayList<>();
         int option;
 
         //  Get Department Names from RMI Server
-        try { available_departments = admin.getServer1().getDepartmentsNames(); } 
+        try { available_departments = client.getServer1().getDepartmentsNames(); } 
         catch (Exception e1) {
-            try { available_departments = admin.getServer2().getDepartmentsNames(); } 
+            try { available_departments = client.getServer2().getDepartmentsNames(); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers"); return "";}
         }
 
@@ -582,6 +582,19 @@ class Inputs {
         System.out.println("----------------------------------------");
         option= checkIntegerOption(keyboard, "Opcao: ", 1, available_departments.size())-1;
         return available_departments.get(option);
+    }
+
+    public String askCCNumber(RMIClient client, Scanner keyboard) {
+        boolean result=false;
+        while (true) {
+            String cc_number= askVariable(keyboard, "Insira o seu Numero de CC: ", 2);
+            try { result= client.getServer1().authorizeUser(cc_number); } 
+            catch(Exception e1) {
+                try { result= client.getServer2().authorizeUser(cc_number); }
+                catch (Exception e2) {System.out.println("500: Nao ha servers!");}
+            }
+            if (result) { messageToWait("Sera reencaminhado para um Terminal de Voto..."); return cc_number; }
+        }
     }
 
     public int checkIntegerOption(Scanner keyboard, String message, int min_limit, int max_limit) {

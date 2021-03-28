@@ -26,31 +26,26 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
     public void setMensagens(String mensagens) { this.mensagens = mensagens; }
 
     public static void main(String[] args) throws RemoteException {
-        Scanner scanner = new Scanner(System.in);
-        String cart,depar;
-        Inputs inpu = new Inputs();
-        String messag = "";
-
         rmi_connection = new RMIClient();
         rmi_connection.connect2Servers(rmi_connection);
-        ArrayList<String> test= rmi_connection.getServer1().getCollegesNames();
-        for (String string : test) System.out.println(string);
+        Scanner scanner = new Scanner(System.in);
+        String depar;
+        Inputs inpu = new Inputs();
 
-        depar = inpu.askVariable(scanner,"Insert the department to which the desk vote belongs: " , 0);
-        mesa_voto = new MCServer(Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
+
+        depar = inpu.askDepartment(rmi_connection, scanner, new ArrayList<>());
+        mesa_voto = new MCServer(Gerar_Numeros.gerar_ip(), Gerar_Numeros.gerar_port(1000,10), depar);
         //SecMultServer mesa_voto_2 = new SecMultServer("", "", depar);
         ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort());
-        System.out.println("----Vote Desk from "+mesa_voto.desk.getDeparNome()+"----");
-        cart  = inpu.askVariable(scanner, "Insert CC: ", 2);
-        messag = "type|RmiVerification|cc"+cart;
-        mesa_voto.setMensagens(messag);
+        System.out.println("---- Vote Desk from " + mesa_voto.desk.getDeparNome() + "----");
+        
+        mesa_voto.setMensagens("type|RmiVerification|cc" + inpu.askCCNumber(rmi_connection, scanner));
         //verificacao no rmi se o eleitor esta registado
         //mesa_voto.start();
         Handler_Message.typeMessage("type|login;username|qwev;password|vdfgbv",mesa_voto);
         //mesa_voto_2.start(); 
     }
 
-    
 
     public void run() {
         Scanner keyboardScanner= new Scanner(System.in);

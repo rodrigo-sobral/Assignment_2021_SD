@@ -30,4 +30,8 @@ public interface RMIServer_I extends Remote {
 	public ArrayList<Election> getUnstartedElections() throws RemoteException;
 	public ArrayList<String> getElectionNames(String election_state) throws RemoteException;
 	public String setUpdatedElection(Election updated_election, boolean is_candidature) throws RemoteException;
+
+	//	AUTHENTICATIONS
+	public boolean authorizeUser(String cc_number);
+	public boolean authenticateUser(String username, String password);
 }
