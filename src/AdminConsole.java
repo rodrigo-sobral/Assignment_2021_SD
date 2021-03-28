@@ -359,7 +359,7 @@ public class AdminConsole extends RMIClient {
         Department selected_dep= available_deps.get(option);
 
         int terminals= input_manage.checkIntegerOption(keyboard, "Quantos terminais tera a Mesa de Voto de "+selected_dep.getName()+" [Max=100]: ", 1, 100);
-        selected_dep.setVoteTable(terminals);
+        //selected_dep.setVoteTable(terminals);
 
         try { System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep)); }
         catch (Exception e1) {

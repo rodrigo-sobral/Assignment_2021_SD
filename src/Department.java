@@ -41,7 +41,7 @@ public class Department implements Serializable {
     public void setStudents(ArrayList<User> students) { this.students = students; }
     public void setTeachers(ArrayList<User> teachers) { this.teachers = teachers; }
     public void setStaff(ArrayList<User> staff) { this.staff = staff; }
-    public void setVoteTable(int num_vote_tables) { this.vote_table= new MCServer(num_vote_tables); }
+    //public void setVoteTable(int num_vote_tables) { this.vote_table= new MCServer(num_vote_tables); }
 
 
     public String toString(String user_type) {
