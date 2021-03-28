@@ -39,17 +39,16 @@ public class MCServer extends Thread{
         String messag = "";
         //gerar aleatoriamente
         //while(true){
-            //System.out.println("Insert the department to which the desk vote belongs: ");
             depar = inpu.askVariable(scanner,"Insert the department to which the desk vote belongs: " , 0);
             MCServer mesa_voto = new MCServer(Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
-            /*SecMultServer mesa_voto_2 = new SecMultServer("", "", depar);
+            SecMultServer mesa_voto_2 = new SecMultServer("", "", depar);
             ReadWrite.Write("VoteDesk.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort());
             System.out.println("----Vote Desk from "+mesa_voto.desk.getDeparNome()+"----");
             cart  = inpu.askVariable(scanner, "Insert CC: ", 2);
             messag = "type|RmiVerification|cc"+cart;
             mesa_voto.setMensagens(messag);
             //verificacao no rmi se o eleitor esta registado
-            mesa_voto.start();*/
+            mesa_voto.start();
             Handler_Message.typeMessage("type|login;username|qwev;password|vdfgbv",mesa_voto);
             //mesa_voto_2.start();      
 
@@ -174,7 +173,7 @@ class Handler_Message{
         else if (sublista[1].compareTo("login")==0){
 
         }
-        
+        return "";
     }
 }
 class Gerar_Numeros {
