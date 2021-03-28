@@ -4,33 +4,27 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.io.IOException;
 import java.util.Scanner;
-import classes.User;
-import javax.swing.text.StyledEditorKit.BoldAction;
 
-/**
- * The MulticastClient class joins a multicast group and loops receiving
- * messages from that group. The client also runs a MulticastUser thread that
- * loops reading a string from the keyboard and multicasting it to the group.
- * <p>
- * The example IPv4 address chosen may require you to use a VM option to
- * prefer IPv4 (if your operating system uses IPv6 sockets by default).
- * <p>
- * Usage: java -Djava.net.preferIPv4Stack=true MulticastClient
- *
- * @author Raul Barbosa
- * @version 1.0
- */
-public class MCClient extends Thread{
+
+public class MCClient implements Runnable{
+
     private VoteTerminal vote_terminal;
     private String messag;
     private Boolean Connected;
-    private static SecMultGClient secgm_terminal_voto;
-    private static MCClient terminal_voto ;
+    public Thread thread;
+
+    //threads
+    private static SecMultGClient cliente2;
+    private static MCClient cliente;
+    //private static Eleitor_Connected thread_eleitor;
+
+
     //construtor
-    public MCClient(){
+    public MCClient(String threadname){
         this.vote_terminal = new VoteTerminal();
         this.messag = "";
         this.Connected = false;
+        thread = new Thread(this,threadname);
     }
 
     //getter
@@ -43,28 +37,29 @@ public class MCClient extends Thread{
     public void setConnected(Boolean connected) { Connected = connected; }
 
     public static void main(String[] args) {
-        terminal_voto = new MCClient();
+        cliente = new MCClient("cliente");
+        cliente2 = new SecMultGClient("cliente2");
         Inputs inpu = new Inputs();
-        secgm_terminal_voto = new SecMultGClient();
+        
         Scanner scanner = new Scanner(System.in);
         String depar;
         depar = inpu.askVariable(scanner,"Insert the department to which the desk vote belongs: " , 0);
-        secgm_terminal_voto.getMcclient().getVote_terminal().setNome_depar(depar);
+        cliente2.getMcclient().getVote_terminal().setNome_depar(depar);
 
         //SERVER->CLIENT
-        ReadWrite.read_ip_port("VoteDesk.txt", depar, terminal_voto);
-        if (terminal_voto.vote_terminal.getNome_depar().compareTo("")==0){
+        ReadWrite.read_ip_port("VoteDesk.txt", depar, cliente);
+        if (cliente.vote_terminal.getNome_depar().compareTo("")==0){
             System.out.println("There is no desk vote open in that department");
         }
-        secgm_terminal_voto.getMcclient().getVote_terminal().setId_terminal(Integer.parseInt(Gerar_Numeros.gerar_port(100, 1)));
-        terminal_voto.getVote_terminal().setId_terminal(secgm_terminal_voto.getMcclient().getVote_terminal().getId_terminal());
-        secgm_terminal_voto.getMcclient().setMessag("type|envia_id;id|"+secgm_terminal_voto.getMcclient().getVote_terminal().getId_terminal());
+        cliente2.getMcclient().getVote_terminal().setId_terminal(Integer.parseInt(Gerar_Numeros.gerar_port(100, 1)));
+        cliente.getVote_terminal().setId_terminal(cliente2.getMcclient().getVote_terminal().getId_terminal());
+        cliente2.getMcclient().setMessag("type|envia_id;id|"+cliente2.getMcclient().getVote_terminal().getId_terminal());
         
-        //scanner.close();
-        terminal_voto.start();
-        secgm_terminal_voto.start();
+        scanner.close();
+        //terminal_voto.start();
+        cliente2.start();
         //MulticastUser user = new MulticastUser();
-        //user.start();*/
+        //user.start();
     }
 
 
@@ -79,45 +74,37 @@ public class MCClient extends Thread{
                 byte[] buffer = new byte[256];
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
-                System.out.println("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
+                System.out.print("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
                 String message = new String(packet.getData(), 0, packet.getLength());
                 System.out.println(message);
 
                 if (Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal()).compareTo("Choose")==0){
                     System.out.println("É este o terminal de voto escolhido");
                     setConnected(true);
-                    Eleitor_Connected.eleitor_acoes(message,secgm_terminal_voto.getMcclient());
+                    //Eleitor_Connected thread_connected = new Eleitor_Connected(secgm_terminal_voto, terminal_voto);
+                    //thread_connected.start();
                 }
-                //else if(Handler_Message.typeMessage_Client(message, id))
-
+                else if(Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal()).compareTo("LoginSucess")==0){
+                    cliente.notify();
+                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            socket.close();
-        }
+        } catch (IOException e) { e.printStackTrace(); } 
+        finally { socket.close(); }
     }
 }
 
-
-
-
-
 class SecMultGClient extends Thread{
+    
+    //atributos
     private MCClient mcclient;
 
-
-    //construtor
-    public SecMultGClient(){
-        this.mcclient = new MCClient();
-        
+  
+    public SecMultGClient(String threadname) {
+        this.mcclient = new MCClient(threadname);
+   
     }
     
-
-    //getters
     public MCClient getMcclient() { return mcclient; }
-
-    
 
     public void run(){
         getMcclient().getVote_terminal().setIp(Gerar_Numeros.gerar_ip());
@@ -134,37 +121,37 @@ class SecMultGClient extends Thread{
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getMcclient().getVote_terminal().getPort()));
                     socket.send(packet);
                     getMcclient().setMessag("");
-                    try { sleep((long) (Math.random() * 1000)); } catch (InterruptedException e) { }
                     
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                socket.close();
+                    try { sleep((long) (Math.random() * 1000)); } catch (InterruptedException e) { }        
+                } catch (IOException e) { e.printStackTrace(); } 
+                finally { socket.close(); }
             }
-
         }
-        
-        }
-
-        
-
     }
-
 }
 
+class Eleitor_Connected implements Runnable {
+    private static SecMultGClient secgm_terminal_voto;
+    //private static MCClient terminal_voto ;
 
-
-class Eleitor_Connected{
-    public static void eleitor_acoes(String mensagem, MCClient sec_mult){
+    public Eleitor_Connected(SecMultGClient secgm_terminal_voto,MCClient terminal_voto){
+        Eleitor_Connected.secgm_terminal_voto= secgm_terminal_voto;
+        //Eleitor_Connected.terminal_voto = terminal_voto;
+    }
+    
+    public void run(){
         Scanner scanner = new Scanner(System.in);
         Inputs inpu = new Inputs();
         String username,password;
         username = inpu.askVariable(scanner,"Username: " , 0);
         password = inpu.askVariable(scanner,"Password: " , 2);
-        sec_mult.setMessag("type|login;username|"+username+";password|"+password);
+        secgm_terminal_voto.getMcclient().setMessag("type|login;username|"+username+";password|"+password);
+        try { secgm_terminal_voto.wait(); }
+        catch (Exception e) { }
+    
     }
-
+   
     public static void ListaEleicoes(String message){
-
     }
 }
+

@@ -1,99 +1,90 @@
 import java.util.ArrayList;
 import java.net.MulticastSocket;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.io.IOException;
 import java.util.*;
 import java.io.*;
  
-public class MCServer extends Thread{
-    //Atributos
-    private long SLEEP_TIME = 5000;
-    private VoteDesk desk;
+public class MCServer extends UnicastRemoteObject implements Runnable {
+    private static final long serialVersionUID = 1L;
+
+    private MCServerData desk;
+    private static MCServer mesa_voto;
+    private static RMIClient rmi_connection;
     private String mensagens;
-
-    //private ArrayList<MCClient> vote_terminals= new ArrayList<>();
-    //contrutor
-
-    public MCServer(String ip, String port,String depar) {
+    
+    public MCServer(String ip, String port,String depar) throws RemoteException {
         this.mensagens = "";
-        this.desk = new VoteDesk(ip,port,depar);
+        this.desk = new MCServerData(ip,port,depar);
     }
-
-    //public ArrayList<MCClient> getVote_terminals() { return vote_terminals; }
     
-    //getters
-    public VoteDesk getDesk() { return desk; }
+    public MCServerData getDesk() { return desk; }
     public String getMensagens() { return mensagens; }
-    
-    //setters
     public void setMensagens(String mensagens) { this.mensagens = mensagens; }
 
-    //public void setVote_terminals(ArrayList<MCClient> vote_terminals) { this.vote_terminals = vote_terminals; }
-
-    public static void main(String[] args) {
-       
+    public static void main(String[] args) throws RemoteException {
         Scanner scanner = new Scanner(System.in);
         String cart,depar;
         Inputs inpu = new Inputs();
         String messag = "";
-        //gerar aleatoriamente
-        //while(true){
-            depar = inpu.askVariable(scanner,"Insert the department to which the desk vote belongs: " , 0);
-            MCServer mesa_voto = new MCServer(Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
-            SecMultServer mesa_voto_2 = new SecMultServer("", "", depar);
-            ReadWrite.Write("VoteDesk.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort());
-            System.out.println("----Vote Desk from "+mesa_voto.desk.getDeparNome()+"----");
-            cart  = inpu.askVariable(scanner, "Insert CC: ", 2);
-            messag = "type|RmiVerification|cc"+cart;
-            mesa_voto.setMensagens(messag);
-            //verificacao no rmi se o eleitor esta registado
-            mesa_voto.start();
-            Handler_Message.typeMessage("type|login;username|qwev;password|vdfgbv",mesa_voto);
-            //mesa_voto_2.start();      
 
-        //}
+        rmi_connection = new RMIClient();
+        rmi_connection.connect2Servers(rmi_connection);
+        ArrayList<String> test= rmi_connection.getServer1().getCollegesNames();
+        for (String string : test) System.out.println(string);
+
+        depar = inpu.askVariable(scanner,"Insert the department to which the desk vote belongs: " , 0);
+        mesa_voto = new MCServer(Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
+        //SecMultServer mesa_voto_2 = new SecMultServer("", "", depar);
+        ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort());
+        System.out.println("----Vote Desk from "+mesa_voto.desk.getDeparNome()+"----");
+        cart  = inpu.askVariable(scanner, "Insert CC: ", 2);
+        messag = "type|RmiVerification|cc"+cart;
+        mesa_voto.setMensagens(messag);
+        //verificacao no rmi se o eleitor esta registado
+        //mesa_voto.start();
+        Handler_Message.typeMessage("type|login;username|qwev;password|vdfgbv",mesa_voto);
+        //mesa_voto_2.start(); 
     }
 
     
 
     public void run() {
-        System.out.println("entrouuu");
+        Scanner keyboardScanner= new Scanner(System.in);
+        InetAddress group;
+        DatagramPacket packet;
+        String readKeyboard;
+
         while(true){
             MulticastSocket socket = null;
             try {
-                socket = new MulticastSocket();  // create socket without binding it (only for sending)
-                Scanner keyboardScanner = new Scanner(System.in);
+                socket = new MulticastSocket();  // create socket without binding it (only for sending)                
                 while (true) {
-                    String readKeyboard = keyboardScanner.nextLine();
+                    readKeyboard = keyboardScanner.nextLine();
                     byte[] buffer = readKeyboard.getBytes();
 
-                    InetAddress group = InetAddress.getByName(getDesk().getIp());
-                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getDesk().getPort()));
+                    group = InetAddress.getByName(getDesk().getIp());
+                    packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getDesk().getPort()));
                     socket.send(packet);
 
-                    try { sleep((long) (Math.random() * SLEEP_TIME)); } catch (InterruptedException e) { }
+                    try { mesa_voto.wait((long) (Math.random() * 5000)); } catch (InterruptedException e) { }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                socket.close();
-            }
-        }
-        
-   }  
+            } catch (IOException e) { e.printStackTrace(); } 
+            finally { socket.close(); keyboardScanner.close(); }
+        }  
+    }  
 }
 
 
-class SecMultServer extends Thread{
+class SecMultServer extends Thread {
     private MCServer mcserver;
-
-    //getters
+    
+    public SecMultServer(String ip, String port,String depar) throws RemoteException { this.mcserver = new MCServer(ip,port,depar); }
+    
     public MCServer getMcserver() { return mcserver; }
-
-    public SecMultServer(String ip, String port,String depar){
-        this.mcserver = new MCServer(ip,port,depar);
-    }
 
     public void run() {
         File f= new File("TerminalVote.txt");
@@ -102,8 +93,8 @@ class SecMultServer extends Thread{
             if (f.exists() && f.isFile()){
                 ReadWrite.read_ip_port_terminal("TerminalVote.txt", getMcserver().getDesk().getDeparNome(), getMcserver());
                 if (getMcserver().getDesk().getIp().compareTo("")!=0){
-                    System.out.println("IP->"+getMcserver().getDesk().getIp());
-                    System.out.println("Port->"+getMcserver().getDesk().getPort());
+                    System.out.println("IP-> "+getMcserver().getDesk().getIp());
+                    System.out.println("Port-> "+getMcserver().getDesk().getPort());
                     MulticastSocket socket = null;
                     try {
                         socket = new MulticastSocket(Integer.parseInt(getMcserver().getDesk().getPort()));  // create socket and bind it
@@ -111,25 +102,18 @@ class SecMultServer extends Thread{
                         System.out.println(Integer.parseInt(getMcserver().getDesk().getPort())+getMcserver().getDesk().getIp());
                         socket.joinGroup(group);
                         while (true) {
-                            System.out.println("fuck");
                             byte[] buffer = new byte[256];
                             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                             socket.receive(packet);
-                            System.out.println("chegou\n");
                             System.out.println("(Server)Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
                             String message = new String(packet.getData(), 0, packet.getLength());
                             System.out.println(message);
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } finally {
-                        socket.close();
-                    }
+                    } catch (IOException e) { e.printStackTrace();
+                    } finally { socket.close(); }
                 }
-                
             }
-        }
-        
+        }    
     } 
 }
 
@@ -167,15 +151,14 @@ class Handler_Message{
         String[] lista = mensagem.split(";");
         System.out.println(lista.length);
         sublista= lista[0].split("\\|");
-        if (sublista[1].compareTo(Integer.toString(id))==0){
-            return "choose";
-        }
-        else if (sublista[1].compareTo("login")==0){
 
-        }
+        if (sublista[1].compareTo(Integer.toString(id))==0) return "choose";
+        else if (sublista[1].compareTo("login")==0) return "LoginSucess";
         return "";
     }
 }
+
+
 class Gerar_Numeros {
     public static String gerar_ip(){
         int max = 239,min = 224;
@@ -188,7 +171,7 @@ class Gerar_Numeros {
             max = 255;
             min = 0;
         }
-    return ip;
+        return ip;
     }
 
     public static String gerar_port(int max,int min){

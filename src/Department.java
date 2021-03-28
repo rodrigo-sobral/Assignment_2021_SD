@@ -7,7 +7,8 @@ public class Department implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String name, college;
-    private MCServer vote_table=null;
+    private boolean vote_table;
+    private int vote_terminals;
     private ArrayList<User> students= new ArrayList<>();
     private ArrayList<User> teachers= new ArrayList<>();
     private ArrayList<User> staff= new ArrayList<>();
@@ -23,7 +24,8 @@ public class Department implements Serializable {
     //  GETTERS
     public String getName() { return name; }
     public String getCollege() { return college; }
-    public MCServer getVote_table() { return vote_table; }
+    public boolean getVoteTable() { return vote_table; }
+    public int getVoteTerminals() { return vote_terminals; }
     public ArrayList<User> getStudents() { return students; }
     public ArrayList<User> getTeachers() { return teachers; }
     public ArrayList<User> getStaff() { return staff; }
@@ -37,11 +39,11 @@ public class Department implements Serializable {
     //  SETTERS
     public void setName(String name) { this.name = name; }
     public void setCollege(String college) { this.college = college; }
-    public void setVote_table(MCServer vote_table) { this.vote_table = vote_table; }
+    public void setVote_table(Boolean vote_table) { this.vote_table = vote_table; }
     public void setStudents(ArrayList<User> students) { this.students = students; }
     public void setTeachers(ArrayList<User> teachers) { this.teachers = teachers; }
     public void setStaff(ArrayList<User> staff) { this.staff = staff; }
-    //public void setVoteTable(int num_vote_tables) { this.vote_table= new MCServer(num_vote_tables); }
+    public void setVoteTable(int num_vote_terminals) { this.vote_table=true; this.vote_terminals=num_vote_terminals; }
 
 
     public String toString(String user_type) {
@@ -52,7 +54,7 @@ public class Department implements Serializable {
             for (User user : this.students) final_string+="Departamento: "+this.name+"\t"+user+"\n";
         } if (user_type=="all" || user_type.compareTo("Funcionario")==0) {
             for (User user : this.staff) final_string+="Departamento: "+this.name+"\t"+user+"\n";
-        } 
-        return final_string;
+        } return final_string;
     }
+    
 }

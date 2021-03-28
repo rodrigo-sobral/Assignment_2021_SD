@@ -232,7 +232,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         ArrayList<Department> available_departments= new ArrayList<>();
         for (College college : colleges)
             for (Department department : college.getDepartments())
-                if (department.getVote_table()==null) available_departments.add(department);
+                if (!department.getVoteTable()) available_departments.add(department);
         return available_departments;
     }
 
@@ -449,7 +449,7 @@ class IsClientAlive implements Runnable {
             //  PING CLIENTS
             if (!clients.isEmpty()) {
                 //  RESET ARRAY
-                if (client_id<0 || client_id>=admins.size()) client_id=0;
+                if (client_id<0 || client_id>=clients.size()) client_id=0;
                 try { 
                     if (clients.get(client_id)!=null) { clients.get(client_id).ping(); client_id++; }
                     else client_id++;

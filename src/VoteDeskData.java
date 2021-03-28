@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class VoteDesk {
+public class VoteDeskData {
 
     private String ip;
     private String port;
@@ -9,7 +9,7 @@ public class VoteDesk {
     private String depar; 
     private ArrayList<Integer> array_id = new ArrayList<>();
 
-    public VoteDesk(String ip, String port,String depar){
+    public VoteDeskData(String ip, String port,String depar){
         this.ip = ip;
         this.port = port;
         this.n_terminal_vote =0;

@@ -1,10 +1,15 @@
 
 rmiserver:
-	javac RMIClient.java RMIServer.java AdminConsole.java MCServer.java MCClient.java
+	javac RMIServer.java RMIClient.java AdminConsole.java
 	java RMIServer
 admin:
-	javac RMIClient.java RMIServer.java AdminConsole.java
+	javac AdminConsole.java RMIClient.java RMIServer.java
 	java AdminConsole
+
+mcserver:
+	javac MCServer.java RMIClient.java RMIServer.java 
+	java MCServer
+
 
 clear:
 	rm classes/*.class
