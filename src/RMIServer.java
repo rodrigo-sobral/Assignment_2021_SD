@@ -23,6 +23,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
     public Registry regist = LocateRegistry.createRegistry(port);
     private static RMIServer server1, server2;
     private ArrayList<RMIClient_I> clients_list= new ArrayList<>(), admins_list= new ArrayList<>();
+    private ArrayList<String> associated_deps_list= new ArrayList<>();
 
     //  Threads
     private static IsClientAlive client_checker;
@@ -40,12 +41,12 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
     public void run() { }
 
     public static void main(String[] args) throws Exception {
-        System.getProperties().put("java.security.policy","RMIServer.policy");
+        System.getProperties().put("java.security.policy","AdminConsole.policy");
         if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
         
         boolean server1_running= initServers();
         servers_manager= new ServersManagement("servers_manager", server1, server2, server1_running);
-        client_checker= new IsClientAlive("clients_checker", server1.clients_list, server1.admins_list);
+        client_checker= new IsClientAlive("clients_checker", server1.clients_list, server1.admins_list, server1.colleges, server1.associated_deps_list);
         election_state= new ElectionsState("election_state", server1.unstarted_elections, server1.running_elections, server1.finished_elections);
 
         if (!server1.running_elections.isEmpty()) {
@@ -95,16 +96,23 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         }
     }
 
-    synchronized public String subscribeNewClient(RMIClient_I new_client) throws RemoteException {
-        if (new_client.getIsAdmin()) { admins_list.add(new_client); System.out.println("Novo Administrador Conectado ["+(admins_list.size()-1)+"]"); }
-		else { clients_list.add(new_client); System.out.println("Novo Cliente Conectado ["+(clients_list.size()-1)+"]"); }
-        return "200: Adicionado ao Servidor com Sucesso";
+    synchronized public String subscribeNewClient(RMIClient_I new_client, String depart_name) throws RemoteException {
+        if (depart_name==null) { admins_list.add(new_client); System.out.println("Novo Administrador Conectado ["+(admins_list.size()-1)+"]"); }
+		else { 
+            Department selected_depart= getUniqueDepartment(depart_name);
+            if (!selected_depart.getVoteTable()) return "400: "+depart_name+" nao tem Mesa de Voto!\n";
+            if (selected_depart.getActivatedVoteTable()) return "400: Ja existe uma Mesa de Voto associada ao "+depart_name+"!\n";
+            selected_depart.turnOnVoteTable();
+            associated_deps_list.add(depart_name);
+            clients_list.add(new_client); 
+            System.out.println("Mesa de Voto do "+depart_name+" Conectado ["+(clients_list.size()-1)+"]");
+        } return "200: Adicionado ao Servidor com Sucesso";
 	}
 
     synchronized public String ping() throws RemoteException { return "ACK"; }
 
     //  ===========================================================================================================
-    //  COMUNICATIONS WITH ADMIN CONSOLE    
+    //  COMUNICATIONS WITH ADMIN CONSOLE
     //  ===========================================================================================================
 
     /**
@@ -213,34 +221,44 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         for (Election election : unstarted_elections)
             if (election.getTitle().compareTo(updated_election.getTitle())==0) {
                 unstarted_elections.set(unstarted_elections.indexOf(election), updated_election);
+                file_manage.saveCollegesFile(colleges);
                 if (is_candidature) { System.out.println("Nova Candidatura Submetida pela Consola de Administrador"); return "200: Candidatura Submetida com Sucesso"; }
                 else { System.out.println("Eleicao "+election.getTitle()+" alterada pela Consola de Administrador"); return "200: Eleicao Editada com Sucesso"; }
             }
         return "400: Essa Eleicao nao foi encontrada";
     }
-    synchronized public String setUpdatedDepartment(Department updated_department) throws RemoteException { 
+    synchronized public String setUpdatedDepartment(Department updated_department, boolean new_vote_table) throws RemoteException { 
         for (College college : colleges) {
             ArrayList<Department> colleg_deps= college.getDepartments();
             int dep_index = IntStream.range(0, colleg_deps.size()).filter(i -> colleg_deps.get(i).getName().equals(updated_department.getName())).findFirst().orElse(-1);
             if (dep_index==-1) continue;
             college.getDepartments().set(dep_index, updated_department);
-            return "200: Mesa de Voto Registada com Sucesso";
+            file_manage.saveCollegesFile(colleges);
+            if (new_vote_table) { 
+                System.out.println("Mesa de Voto Registada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()+" com "+updated_department.getVoteTerminals()+" terminais de voto"); 
+                return "200: Mesa de Voto Registada com Sucesso"; 
+            } else {
+                System.out.println("Mesa de Voto Eliminada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()); 
+                return "200: Mesa de Voto Eliminada com Sucesso"; 
+            }
         } return "400: Departamento nao encontrado";
     }
 
-    synchronized public ArrayList<Department> getDepartmentsWithNoVoteTable() throws RemoteException {
+    synchronized public ArrayList<Department> getDepartmentsWithOrNotVoteTable(boolean with) throws RemoteException {
         ArrayList<Department> available_departments= new ArrayList<>();
-        for (College college : colleges)
-            for (Department department : college.getDepartments())
-                if (!department.getVoteTable()) available_departments.add(department);
-        return available_departments;
+        for (College college : colleges) {
+            for (Department department : college.getDepartments()) {
+                if (!with && !department.getVoteTable()) available_departments.add(department);
+                if (with && department.getVoteTable()) available_departments.add(department);
+            }
+        } return available_departments;
     }
 
     //  ===========================================================================================================
     //  COMUNICATIONS WITH MULTICAST SERVERS
     //  ===========================================================================================================
 
-    synchronized public boolean authorizeUser(String cc_number) {
+    synchronized public boolean authorizeUser(String cc_number) throws RemoteException {
         for (College college : colleges) {
             for (Department department : college.getDepartments()) {
                 for (User student : department.getStudents())
@@ -252,7 +270,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             }
         } return false;
     }
-    synchronized public boolean authenticateUser(String username, String password) {
+    synchronized public boolean authenticateUser(String username, String password) throws RemoteException {
         for (College college : colleges) {
             for (Department department : college.getDepartments()) {
                 for (User student : department.getStudents())
@@ -426,15 +444,19 @@ class ServersManagement implements Runnable {
 class IsClientAlive implements Runnable {
     public Thread thread;
     private ArrayList<RMIClient_I> clients, admins;
+    private ArrayList<College> colleges;
+    private ArrayList<String> associated_deps_list= new ArrayList<>();
 
     /**
      * @param threadname Name of the Thread
-     * @param clients ArrayList of Clients subscribed running
-     * @param admins ArrayList of Admin Consoles subscribed running
+     * @param clients ArrayList of subscribed and running Clients 
+     * @param admins ArrayList of subscribed and running Admin Consoles
      */
-    public IsClientAlive(String threadname, ArrayList<RMIClient_I> clients, ArrayList<RMIClient_I> admins) {
+    public IsClientAlive(String threadname, ArrayList<RMIClient_I> clients, ArrayList<RMIClient_I> admins, ArrayList<College> colleges, ArrayList<String> associated_deps_list) {
         this.clients = clients;
         this.admins = admins;
+        this.colleges = colleges;
+        this.associated_deps_list = associated_deps_list;
         thread = new Thread(this, threadname);
         System.out.println("Verificacao de ativacao dos Clientes: Ativa");
         thread.start();
@@ -451,9 +473,11 @@ class IsClientAlive implements Runnable {
                 //  RESET ARRAY
                 if (client_id<0 || client_id>=clients.size()) client_id=0;
                 try { 
-                    if (clients.get(client_id)!=null) { clients.get(client_id).ping(); client_id++; }
+                    if (clients.get(client_id)!=null) { clients.get(client_id).ping(); client_id++; } 
                     else client_id++;
-                } catch (Exception e) {
+                } catch (Exception e1) {
+                    try { turnOffVoteTable(associated_deps_list.get(client_id)); }
+                    catch (Exception e2) { }
                     clients.set(client_id, null);
                     System.out.println("O Cliente ["+(client_id++)+"] desconectou-se!");
                 }
@@ -473,6 +497,14 @@ class IsClientAlive implements Runnable {
             }
         }
     }
+    synchronized public Department turnOffVoteTable(String department_name) throws RemoteException { 
+        for (College college : colleges) {
+            for (Department department : college.getDepartments()) {
+                if (department.getName().compareTo(department_name)==0) department.turnOffVoteTable();
+            }
+        } return null;
+    }
+    
 }
 
 
@@ -538,3 +570,4 @@ class ElectionsState implements Runnable {
         }
     }
 }
+

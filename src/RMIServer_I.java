@@ -6,7 +6,7 @@ import classes.User;
 
 public interface RMIServer_I extends Remote {
 	//	CONNECTION METHODS
-	public String subscribeNewClient(RMIClient_I new_client) throws RemoteException;
+	public String subscribeNewClient(RMIClient_I new_client, String depart_name) throws RemoteException;
 	public String ping() throws RemoteException;
 	
 	//	REGIST METHODS
@@ -21,8 +21,8 @@ public interface RMIServer_I extends Remote {
 	//	DEPARTMENTS METHODS
 	public ArrayList<String> getDepartmentsNames() throws RemoteException;
 	public Department getUniqueDepartment(String department_name) throws RemoteException;
-	public ArrayList<Department> getDepartmentsWithNoVoteTable() throws RemoteException;
-	public String setUpdatedDepartment(Department updated_department) throws RemoteException;
+	public ArrayList<Department> getDepartmentsWithOrNotVoteTable(boolean with) throws RemoteException;
+	public String setUpdatedDepartment(Department updated_department, boolean new_vote_table) throws RemoteException;
 	
 	//	ELECTION METHODS
 	public ArrayList<Election> getRunningElections() throws RemoteException;
@@ -32,6 +32,6 @@ public interface RMIServer_I extends Remote {
 	public String setUpdatedElection(Election updated_election, boolean is_candidature) throws RemoteException;
 
 	//	AUTHENTICATIONS
-	public boolean authorizeUser(String cc_number);
-	public boolean authenticateUser(String username, String password);
+	public boolean authorizeUser(String cc_number) throws RemoteException;
+	public boolean authenticateUser(String username, String password) throws RemoteException;
 }

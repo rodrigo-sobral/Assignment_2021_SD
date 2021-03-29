@@ -8,6 +8,7 @@ public class Department implements Serializable {
 
     private String name, college;
     private boolean vote_table;
+    private boolean activated_vote_table;
     private int vote_terminals;
     private ArrayList<User> students= new ArrayList<>();
     private ArrayList<User> teachers= new ArrayList<>();
@@ -25,6 +26,7 @@ public class Department implements Serializable {
     public String getName() { return name; }
     public String getCollege() { return college; }
     public boolean getVoteTable() { return vote_table; }
+    public boolean getActivatedVoteTable() { return activated_vote_table; }
     public int getVoteTerminals() { return vote_terminals; }
     public ArrayList<User> getStudents() { return students; }
     public ArrayList<User> getTeachers() { return teachers; }
@@ -39,11 +41,14 @@ public class Department implements Serializable {
     //  SETTERS
     public void setName(String name) { this.name = name; }
     public void setCollege(String college) { this.college = college; }
-    public void setVote_table(Boolean vote_table) { this.vote_table = vote_table; }
     public void setStudents(ArrayList<User> students) { this.students = students; }
     public void setTeachers(ArrayList<User> teachers) { this.teachers = teachers; }
     public void setStaff(ArrayList<User> staff) { this.staff = staff; }
-    public void setVoteTable(int num_vote_terminals) { this.vote_table=true; this.vote_terminals=num_vote_terminals; }
+    public void createVoteTable(int num_vote_terminals) { this.vote_table=true; this.vote_terminals=num_vote_terminals; }
+    public void deleteVoteTable() { this.vote_table=false; this.activated_vote_table=false; this.vote_terminals=0; }
+    
+    public void turnOnVoteTable() { if (this.vote_table) this.activated_vote_table=true; }
+    public void turnOffVoteTable() { if (this.vote_table) this.activated_vote_table=false; }
 
 
     public String toString(String user_type) {

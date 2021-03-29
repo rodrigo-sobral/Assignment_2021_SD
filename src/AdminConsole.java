@@ -18,17 +18,15 @@ public class AdminConsole extends RMIClient {
     private static Inputs input_manage= new Inputs();
     private static AdminConsole admin;
 
-    public AdminConsole() throws RemoteException { 
-        super(); 
-        isAdmin=true; 
-    }
+    public AdminConsole() throws RemoteException { super(); }
 
     public static void main(String[] args) throws RemoteException {
-        System.getProperties().put("java.security.policy","RMIServer.policy");
+        System.getProperties().put("java.security.policy","AdminConsole.policy");
         if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
                 
 		admin = new AdminConsole();
-        admin.connect2Servers(admin);
+        admin.connect2Servers();
+        admin.subscribe2Servers(admin, null);
 		admin.adminMenu();
         System.exit(0);
     }
@@ -74,9 +72,8 @@ public class AdminConsole extends RMIClient {
             option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 1);
             if (option!=-1) break;
         }
-        if (option==1) {
-            addPerson(keyboard);
-        } else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
+        if (option==1) addPerson(keyboard);
+        else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
     }
     private void manageElections(Scanner keyboard) {
         int option;
@@ -92,13 +89,10 @@ public class AdminConsole extends RMIClient {
             option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 3);
             if (option!=-1) break;
         }
-        if (option==1) {
-            addElection(keyboard);
-        } else if (option==2) {
-            editElection(keyboard);
-        } else if (option==3) {
-            consultPassedElections(keyboard);
-        } else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
+        if (option==1) addElection(keyboard);
+        else if (option==2) editElection(keyboard);
+        else if (option==3) consultPassedElections(keyboard);
+        else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
     }
     private void manageCandidatures(Scanner keyboard) {
         int option;
@@ -112,9 +106,8 @@ public class AdminConsole extends RMIClient {
             option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 1);
             if (option!=-1) break;
         }
-        if (option==1) {
-            addCandidature(keyboard);
-        } else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
+        if (option==1) addCandidature(keyboard);
+        else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
     }
     private void manageVoteTables(Scanner keyboard) {
         int option;
@@ -124,15 +117,16 @@ public class AdminConsole extends RMIClient {
             System.out.println("|====================================|");
             System.out.println("|  1: Registar Mesa de Voto          |");
             System.out.println("|  2: Eliminar Mesa de Voto          |");
+            System.out.println("|  3: Consultar Mesas de Voto        |");
             System.out.println("|  0: Voltar                         |");
             System.out.println("|====================================|");
-            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 2);
+            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 3);
             if (option!=-1) break;
         }
-        if (option==1) {
-            addVoteTable(keyboard);
-        } else if (option==2) {
-        } else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
+        if (option==1) addVoteTable(keyboard);
+        else if (option==2) deleteVoteTable(keyboard);
+        else if (option==3) consultVoteTables(keyboard);
+        else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
     }
 
     private void addPerson(Scanner keyboard) {
@@ -214,7 +208,7 @@ public class AdminConsole extends RMIClient {
                             System.out.println("Restricao aplicada com Sucesso!\n");
                         }
                     } else if (option==2) {
-                        String result= input_manage.askDepartment(admin, keyboard, new_election.getDepartment_restrictions());
+                        String result= input_manage.askDepartment(admin, keyboard, new_election.getDepartment_restrictions(), false);
                         if (!result.isEmpty()) {
                             new_election.getDepartment_restrictions().add(result);
                             System.out.println("Restricao aplicada com Sucesso!\n");
@@ -337,9 +331,9 @@ public class AdminConsole extends RMIClient {
         ArrayList<Department> available_deps=null;
         int option;
 
-        try { available_deps= admin.getServer1().getDepartmentsWithNoVoteTable(); } 
+        try { available_deps= admin.getServer1().getDepartmentsWithOrNotVoteTable(false); } 
         catch (Exception e1) {
-            try { available_deps= admin.getServer2().getDepartmentsWithNoVoteTable(); } 
+            try { available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(false); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers!\n"); }
         }
         if (available_deps.isEmpty()) { input_manage.messageToWait("Erro: Nao existem Departamentos Disponiveis!"); return; };
@@ -357,11 +351,43 @@ public class AdminConsole extends RMIClient {
         if (option==-1) { input_manage.messageToWait("Voltando para o Menu Admin..."); return; }
         Department selected_dep= available_deps.get(option);
 
-        selected_dep.setVoteTable(input_manage.checkIntegerOption(keyboard, "Quantos terminais tera a Mesa de Voto do "+selected_dep.getName()+" [Max=100]: ", 1, 100));
+        selected_dep.createVoteTable(input_manage.checkIntegerOption(keyboard, "Quantos terminais tera a Mesa de Voto do "+selected_dep.getName()+" [Max=100]: ", 1, 100));
 
-        try { System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep)); }
+        try { System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep, true)); }
         catch (Exception e1) {
-            try { System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep)); } 
+            try { System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep, true)); } 
+            catch (Exception e) { System.out.println("500: Nao ha servers!\n"); }
+        }
+    }
+    private void deleteVoteTable(Scanner keyboard) {
+        ArrayList<Department> available_deps=null;
+        int option;
+
+        try { available_deps= admin.getServer1().getDepartmentsWithOrNotVoteTable(true); } 
+        catch (Exception e1) {
+            try { available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(true); } 
+            catch (Exception e2) { System.out.println("500: Nao ha servers!\n"); }
+        }
+        if (available_deps.isEmpty()) { input_manage.messageToWait("Erro: Nao existem Mesas de Voto Disponiveis!"); return; };
+
+        //  ASK DEPARTMENT FROM THE ONES WHICH HAVE NOT VOTE TABLE 
+        System.out.println("----------------------------------------");
+        System.out.println("Mesas de Voto Disponiveis [0 Para Voltar]");
+        System.out.println("----------------------------------------");
+        for (int i = 0; i < available_deps.size(); i++) {
+            Department aux= available_deps.get(i);
+            if (aux.getActivatedVoteTable()) System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tAtiva\t"+aux.getVoteTerminals());
+            else System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tInativa\t"+aux.getVoteTerminals());
+        }
+        System.out.println("----------------------------------------");
+        option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 0, available_deps.size())-1;
+        if (option==-1) { input_manage.messageToWait("Voltando para o Menu Admin..."); return; }
+        Department selected_dep= available_deps.get(option);
+        selected_dep.deleteVoteTable();
+
+        try { System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep, false)); }
+        catch (Exception e1) {
+            try { System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep, false)); } 
             catch (Exception e) { System.out.println("500: Nao ha servers!\n"); }
         }
     }
@@ -477,6 +503,41 @@ public class AdminConsole extends RMIClient {
         System.out.println("----------------------------------------");
     }
 
+    private void consultVoteTables(Scanner keyboard) {
+        ArrayList<Department> available_deps=null;
+        GetEnterKey pressed_enter= new GetEnterKey("pressed_enter", keyboard, input_manage);
+
+        while (true) {
+            //  CLEAR CONSOLE
+            try { Thread.sleep(100); }
+            catch (Exception e) { }
+            System.out.print("\033[H\033[2J");  
+            System.out.flush(); 
+
+            try { available_deps= admin.getServer1().getDepartmentsWithOrNotVoteTable(true); } 
+            catch (Exception e1) {
+                try { available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(true); } 
+                catch (Exception e2) { System.out.println("500: Nao ha servers!\n"); }
+            }
+            if (available_deps.isEmpty()) { input_manage.messageToWait("Erro: Nao existem Mesas de Voto Disponiveis!"); return; };
+
+            //  ASK DEPARTMENT FROM THE ONES WHICH HAVE NOT VOTE TABLE 
+            System.out.println("----------------------------------------");
+            System.out.println("Mesas de Voto Disponiveis");
+            System.out.println("----------------------------------------");
+            for (int i = 0; i < available_deps.size(); i++) {
+                Department aux= available_deps.get(i);
+                if (aux.getActivatedVoteTable()) System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tAtiva\t"+aux.getVoteTerminals());
+                else System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tInativa\t"+aux.getVoteTerminals());
+            }
+            System.out.println("----------------------------------------");
+            System.out.println("Pressione Enter para Voltar...");
+
+            if (!pressed_enter.enter_thread.isAlive()) break;
+            try { pressed_enter.enter_thread.join(1000); } 
+            catch (InterruptedException e) { break; }
+        }
+    }
 }
 
 
@@ -556,7 +617,7 @@ class Inputs {
         option= checkIntegerOption(keyboard, "Opcao: ", 1, available_colleges.size())-1;
         return available_colleges.get(option);
     }
-    public String askDepartment(RMIClient client, Scanner keyboard, ArrayList<String> department_restrictions) {
+    public String askDepartment(RMIClient client, Scanner keyboard, ArrayList<String> department_restrictions, boolean voting_table) {
         ArrayList<String> available_departments= new ArrayList<>();
         int option;
 
@@ -568,22 +629,27 @@ class Inputs {
         }
 
         //  There's no registed Departments
-        if (available_departments.isEmpty()) { 
-            messageToWait("Erro: Nao existem Departamentos registados!\n");
-            return ""; 
-        }
+        if (available_departments.isEmpty()) { messageToWait("Erro: Nao existem Departamentos registados!\n"); return ""; }
         
         //  Removing Departments already registed
-        for (String temp_depart : department_restrictions) available_departments.remove(temp_depart);
+        if (!voting_table) for (String temp_depart : department_restrictions) available_departments.remove(temp_depart);
         
         System.out.println("Insira o Departamento onde ocorrera a Eleicao");
         System.out.println("----------------------------------------");
         for (int i = 0; i < available_departments.size(); i++) System.out.println(i+1+": "+available_departments.get(i));
         System.out.println("----------------------------------------");
         option= checkIntegerOption(keyboard, "Opcao: ", 1, available_departments.size())-1;
-        return available_departments.get(option);
-    }
 
+        //  VERIFY IF THE SELECTED DEPARTMENT ALREADY HAS A VOTE TABLE ASSOCIATED
+        //  IF TRUE RETURNS ERROR, OTHERWISE, SETS A VOTE TABLE
+        String selected_dep=available_departments.get(option);
+        boolean result=false;
+        if (voting_table) {
+            try { result= client.subscribe2Servers(client, selected_dep); } 
+            catch (Exception e1) { return ""; }
+            if (!result) return "";
+        } return selected_dep;
+    }
     public String askCCNumber(RMIClient client, Scanner keyboard) {
         boolean result=false;
         while (true) {
@@ -667,3 +733,32 @@ class Inputs {
         catch (Exception e1) { }
     }
 }
+
+
+/**
+ * GetEnterKey Wait until an Enter key be pressed
+ */
+class GetEnterKey implements Runnable {
+    Scanner keyboard;
+    Inputs input;
+    Thread enter_thread;
+
+    public GetEnterKey(String threadname, Scanner keyboard, Inputs input) {
+        this.keyboard= keyboard;
+        this.input= input;
+        enter_thread= new Thread(this, threadname);
+        enter_thread.start();
+    }
+
+    public void run() {
+        while (true) {
+            //try { Thread.sleep(100); }
+            //catch (Exception e) { }
+            try {
+                String enter= keyboard.nextLine();
+                if (enter.isEmpty()) return;
+            } catch (Exception e) { }
+        }
+    }
+}
+
