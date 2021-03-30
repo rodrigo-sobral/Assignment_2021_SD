@@ -1,573 +1,611 @@
-//  Default
-import java.io.*;
+    //  Default
+    import java.io.*;
 
-//  RMI
-import java.rmi.*;
+    //  RMI
+    import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.rmi.server.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.stream.IntStream;
+    import java.time.LocalDateTime;
+    import java.util.ArrayList;
+    import java.util.Scanner;
+    import java.util.stream.IntStream;
 
-//  CUSTOM 
-import classes.Election;
-import classes.User;
+    //  CUSTOM 
+    import classes.Election;
+    import classes.User;
 
-public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runnable {   
-    private static final long serialVersionUID = 1L;
+    import java.net.DatagramSocket;
+    import java.net.InetAddress;
 
-    //  Connection Data
-	private int port=1099;
-	public String rmiregistry1="rmiconnection1", rmiregistry2="rmiconnection2";
-    public Registry regist = LocateRegistry.createRegistry(port);
-    private static RMIServer server1, server2;
-    private ArrayList<RMIClient_I> clients_list= new ArrayList<>(), admins_list= new ArrayList<>();
-    private ArrayList<String> associated_deps_list= new ArrayList<>();
 
-    //  Threads
-    private static IsClientAlive client_checker;
-    private static ElectionsState election_state;
-    private static ServersManagement servers_manager;
+    public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runnable {   
+        private static final long serialVersionUID = 1L;
 
-    //  Storage Data
-    private FilesManagement file_manage= new FilesManagement();
-    
-    //  Data to Store
-    private ArrayList<College> colleges= new ArrayList<>();
-    private ArrayList<Election> unstarted_elections= new ArrayList<>(), running_elections= new ArrayList<>(), finished_elections= new ArrayList<>();
+        //  Connection Data
+        private static RMIServer server=null;
+        public static String rmiregistry1="rmiconnection1", rmiregistry2="rmiconnection2";
+        private static int port=1099;
+        private RMIServer_I pinger=null;
+        private boolean main_server= false;
+        private String my_rmi_ip="", remoted_server_ip="";
 
-    public RMIServer() throws RemoteException { super(); }
-    public void run() { }
+        private ArrayList<RMIClient_I> clients_list= new ArrayList<>(), admins_list= new ArrayList<>();
+        private ArrayList<String> associated_deps_list= new ArrayList<>();
 
-    public static void main(String[] args) throws Exception {
-        System.getProperties().put("java.security.policy","AdminConsole.policy");
-        if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
+        //  Threads
+        private static IsClientAlive client_checker;
+        private static ElectionsState election_state;
+        private static ServersManagement servers_manager;
+
+        //  Storage Data
+        private FilesManagement file_manage= new FilesManagement();
+        private static Inputs input_manage= new Inputs();
         
-        boolean server1_running= initServers();
-        servers_manager= new ServersManagement("servers_manager", server1, server2, server1_running);
-        client_checker= new IsClientAlive("clients_checker", server1.clients_list, server1.admins_list, server1.colleges, server1.associated_deps_list);
-        election_state= new ElectionsState("election_state", server1.unstarted_elections, server1.running_elections, server1.finished_elections);
+        //  Data to Store
+        private ArrayList<College> colleges= new ArrayList<>();
+        private ArrayList<Election> unstarted_elections= new ArrayList<>(), running_elections= new ArrayList<>(), finished_elections= new ArrayList<>();
 
-        if (!server1.running_elections.isEmpty()) {
-            for (String  name: server1.getElectionNames("unstarted")) System.out.println(name);
-            for (String  name: server1.getElectionNames("running")) System.out.println(name);
-        }
-        if (!server1.colleges.isEmpty()) for (String  name: server1.getCollegesNames()) System.out.println(name);
+        public RMIServer() throws RemoteException { super(); }
+        public void run() { }
 
-        try {
-			client_checker.thread.join();
-            System.out.println("Verificacao de ativacao dos Clientes: Desativa");
-			election_state.thread.join();
-            System.out.println("Verificacao de estado de Eleicoes: Desativa");
-			servers_manager.manager_thread.join();
-            System.out.println("Verificacao de estado dos Servidores: Desativa");
-		} catch (InterruptedException e) { System.out.println("Interrupted"); }
-    }
-   
-    //  ===========================================================================================================
-    //  CONNECTIONS AND CONFIGURATIONS
-    //  ===========================================================================================================
-    public void readAllFiles(RMIServer active_server) {
-        active_server.file_manage.loadElectionsFile(active_server.unstarted_elections, "unstarted");
-        active_server.file_manage.loadElectionsFile(active_server.running_elections, "running");
-        active_server.file_manage.loadElectionsFile(active_server.finished_elections, "finished");
-        active_server.file_manage.loadCollegesFile(active_server.colleges);
-    }
+        public static void main(String[] args) throws Exception {
+            System.getProperties().put("java.security.policy","AdminConsole.policy");
+            if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
+            
+            LocateRegistry.createRegistry(port);
+            String ip="";
+            try(final DatagramSocket socket = new DatagramSocket()){
+                socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+                ip=socket.getLocalAddress().getHostAddress();
+            } catch (Exception e3) { throw new Exception("Nao foi possivel obter o endereco IP do Servidor"); }
 
-    private static boolean initServers() {
-        while (true) {
-            try {
-                server1 = new RMIServer();  // this would firstly be the main rmi server
-                server1.regist.rebind(server1.rmiregistry1, server1);
-                server1.readAllFiles(server1);
-                System.out.println("Servidor 1 Ativo");
-                return true;
-            } catch (Exception e1) { 
-                try {
-                    System.out.println("Problemas com o arranque do Servidor 1");
-                    server2 = new RMIServer();  // this would firstly be the main rmi server
-                    server2.regist.rebind(server2.rmiregistry2, server2);
-                    server2.readAllFiles(server2);
-                    System.out.println("Servidor 2 Ativo");
-                    return false;
-                } catch (Exception e2) { System.out.println("Erro a ligar os servidores!"); } 
+
+            if (!initServers(ip)) System.exit(0);
+            servers_manager= new ServersManagement("servers_manager", server);
+            /*client_checker= new IsClientAlive("clients_checker", server.clients_list, server.admins_list, server.colleges, server.associated_deps_list);
+            election_state= new ElectionsState("election_state", server.unstarted_elections, server.running_elections, server.finished_elections);
+
+            if (!server.running_elections.isEmpty()) {
+                for (String  name: server.getElectionNames("unstarted")) System.out.println(name);
+                for (String  name: server.getElectionNames("running")) System.out.println(name);
             }
-        }
-    }
+            if (!server.colleges.isEmpty()) for (String  name: server.getCollegesNames()) System.out.println(name);
 
-    synchronized public String subscribeNewClient(RMIClient_I new_client, String depart_name) throws RemoteException {
-        if (depart_name==null) { admins_list.add(new_client); System.out.println("Novo Administrador Conectado ["+(admins_list.size()-1)+"]"); }
-		else { 
-            Department selected_depart= getUniqueDepartment(depart_name);
-            if (!selected_depart.getVoteTable()) return "400: "+depart_name+" nao tem Mesa de Voto!\n";
-            if (selected_depart.getActivatedVoteTable()) return "400: Ja existe uma Mesa de Voto associada ao "+depart_name+"!\n";
-            selected_depart.turnOnVoteTable();
-            associated_deps_list.add(depart_name);
-            clients_list.add(new_client); 
-            System.out.println("Mesa de Voto do "+depart_name+" Conectado ["+(clients_list.size()-1)+"]");
-        } return "200: Adicionado ao Servidor com Sucesso";
-	}
-
-    synchronized public String ping() throws RemoteException { return "ACK"; }
-
-    //  ===========================================================================================================
-    //  COMUNICATIONS WITH ADMIN CONSOLE
-    //  ===========================================================================================================
-
-    /**
-    * @param new_college Name of the new college, registed with the new user data
-     * @param new_department Name of the new department, registed with the new user data
-     * @param new_user New User data
-     * @return returns a 200 code if sucess during registation, 400 otherwise
-     */
-    synchronized public String registUser(String new_college, String new_department, User new_user) throws RemoteException {
-        if (verifyUserExistence(new_user)) return "400: Uma pessoa com esse Numero de CC ja foi registada!\n";
-        int college_index = IntStream.range(0, colleges.size()).filter(i -> colleges.get(i).getName().equals(new_college)).findFirst().orElse(-1);
-        if (college_index==-1) {
-            colleges.add(new College(new_college, new Department(new_department, new_college, new_user)));
-        } else {
-            int department_index = IntStream.range(0, colleges.get(college_index).getDepartments().size()).filter(i -> colleges.get(college_index).getDepartments().get(i).getName().equals(new_department)).findFirst().orElse(-1);
-            if (department_index==-1) colleges.get(college_index).getDepartments().add(new Department(new_department, new_college, new_user));
-            else colleges.get(college_index).getDepartments().get(department_index).getUsersWithType(new_user.getUser_type()).add(new_user);
-        }
-        
-        System.out.println("Nova Pessoa Registada pela Consola de Administrador");
-        file_manage.saveCollegesFile(colleges);
-        return "200: Pessoa registada com sucesso!\n";
-	}
-    synchronized public boolean verifyUserExistence(User comparing_user) {
-        for (College college : colleges) {
-            for (Department department : college.getDepartments()) {
-                for (User user : department.getStudents()) {
-                    if (comparing_user.getCc_number().compareTo(user.getCc_number())==0) return true;
-                }
-                for (User user : department.getTeachers()) {
-                    if (comparing_user.getCc_number().compareTo(user.getCc_number())==0) return true;
-                }
-                for (User user : department.getStaff()) {
-                    if (comparing_user.getCc_number().compareTo(user.getCc_number())==0) return true;
-                }
-            }
-        } return false;
-    }
-   
-    synchronized public String registElection(Election new_election) throws RemoteException {
-        for (Election election : unstarted_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
-        for (Election election : running_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
-        for (Election election : finished_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
-
-        unstarted_elections.add(new_election);
-        file_manage.saveElectionsFile(unstarted_elections, "unstarted");
-        System.out.println("Nova Eleicao Registada pela Consola de Administrador");
-        return "200: Eleicao registada com sucesso!";
-	}
-
-    synchronized public ArrayList<College> getColleges() throws RemoteException { return this.colleges; }
-    synchronized public ArrayList<String> getDepartmentsNames() throws RemoteException { 
-        ArrayList<String> names= new ArrayList<>();
-        for (College college : colleges) {
-            for (Department department : college.getDepartments()) names.add(department.getName());
-        } return names;
-    }
-    synchronized public ArrayList<String> getCollegesNames() throws RemoteException { 
-        ArrayList<String> names= new ArrayList<>();
-        for (College college : colleges) names.add(college.getName());
-        return names;
-    }
-    synchronized public College getUniqueCollege(String college_name) throws RemoteException { 
-        try {
-            for (College college : server1.getColleges()) {
-                if (college.getName().compareTo(college_name)==0) return college;
-            } return null;
-        } catch (Exception e1) {
             try {
-                for (College college : server2.getColleges()) {
-                    if (college.getName().compareTo(college_name)==0) return college;
-                } return null;
-            } catch (Exception e2) { System.out.println("500: Nao ha servers!"); return null; }
+                client_checker.thread.join();
+                System.out.println("Verificacao de ativacao dos Clientes: Desativa");
+                election_state.thread.join();
+                System.out.println("Verificacao de estado de Eleicoes: Desativa");
+                servers_manager.manager_thread.join();
+                System.out.println("Verificacao de estado dos Servidores: Desativa");
+            } catch (InterruptedException e) { System.out.println("Interrupted"); }*/
         }
-    }
-    synchronized public Department getUniqueDepartment(String department_name) throws RemoteException { 
-        try {
-            for (College college : server1.getColleges()) {
-                for (Department department : college.getDepartments()) {
-                    if (department.getName().compareTo(department_name)==0) return department;
-                }
-            } return null;
-        } catch (Exception e1) {
-            try {
-                for (College college : server2.getColleges()) {
-                    for (Department department : college.getDepartments()) {
-                        if (department.getName().compareTo(department_name)==0) return department;
-                    }
-                } return null;
-            } catch (Exception e2) { System.out.println("500: Nao ha servers!"); return null; }
-        }
-    }
     
-    synchronized public ArrayList<Election> getUnstartedElections() throws RemoteException { return unstarted_elections; }
-    synchronized public ArrayList<Election> getRunningElections() throws RemoteException { return running_elections; }
-    synchronized public ArrayList<Election> getFinishedElections() throws RemoteException { return finished_elections; }
-    synchronized public ArrayList<String> getElectionNames(String election_state) throws RemoteException { 
-        ArrayList<String> names= new ArrayList<>();
-        if (election_state=="running") for (Election election : running_elections) names.add(election.getTitle());
-        else if (election_state=="finished") for (Election election : finished_elections) names.add(election.getTitle());
-        else if (election_state=="unstarted") for (Election election : unstarted_elections) names.add(election.getTitle());
-        return names;
-    }
-    
-    synchronized public String setUpdatedElection(Election updated_election, boolean is_candidature) throws RemoteException { 
-        for (Election election : unstarted_elections)
-            if (election.getTitle().compareTo(updated_election.getTitle())==0) {
-                unstarted_elections.set(unstarted_elections.indexOf(election), updated_election);
-                file_manage.saveCollegesFile(colleges);
-                if (is_candidature) { System.out.println("Nova Candidatura Submetida pela Consola de Administrador"); return "200: Candidatura Submetida com Sucesso"; }
-                else { System.out.println("Eleicao "+election.getTitle()+" alterada pela Consola de Administrador"); return "200: Eleicao Editada com Sucesso"; }
-            }
-        return "400: Essa Eleicao nao foi encontrada";
-    }
-    synchronized public String setUpdatedDepartment(Department updated_department, boolean new_vote_table) throws RemoteException { 
-        for (College college : colleges) {
-            ArrayList<Department> colleg_deps= college.getDepartments();
-            int dep_index = IntStream.range(0, colleg_deps.size()).filter(i -> colleg_deps.get(i).getName().equals(updated_department.getName())).findFirst().orElse(-1);
-            if (dep_index==-1) continue;
-            college.getDepartments().set(dep_index, updated_department);
-            file_manage.saveCollegesFile(colleges);
-            if (new_vote_table) { 
-                System.out.println("Mesa de Voto Registada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()+" com "+updated_department.getVoteTerminals()+" terminais de voto"); 
-                return "200: Mesa de Voto Registada com Sucesso"; 
+        //  ===========================================================================================================
+        //  CONNECTIONS AND CONFIGURATIONS
+        //  ===========================================================================================================
+        public void readAllFiles(RMIServer active_server) {
+            active_server.file_manage.loadElectionsFile(active_server.unstarted_elections, "unstarted");
+            active_server.file_manage.loadElectionsFile(active_server.running_elections, "running");
+            active_server.file_manage.loadElectionsFile(active_server.finished_elections, "finished");
+            active_server.file_manage.loadCollegesFile(active_server.colleges);
+        }
+
+        private static boolean initServers(String my_ip) {
+            Scanner keyboard= new Scanner(System.in);
+            String server1_ip= input_manage.askVariable(keyboard, "Insira o IP do Servidor 1, se este for o Servidor 1 clique Enter: ", 5);
+            keyboard.close();
+            if (server1_ip.isBlank()) {
+                //  TURN ON SERVER 1
+                try { 
+                    server= new RMIServer();
+                    server.my_rmi_ip= getRegistryFromIP(my_ip, rmiregistry1);
+                    Naming.rebind(server.my_rmi_ip, server);
+                    System.out.println("Servidor 1 a correr no IP "+ server.my_rmi_ip);
+                    server.main_server=true;
+                    return true;
+                } catch (Exception e2) { System.out.println(e2); return false;}
             } else {
-                System.out.println("Mesa de Voto Eliminada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()); 
-                return "200: Mesa de Voto Eliminada com Sucesso"; 
-            }
-        } return "400: Departamento nao encontrado";
-    }
-
-    synchronized public ArrayList<Department> getDepartmentsWithOrNotVoteTable(boolean with) throws RemoteException {
-        ArrayList<Department> available_departments= new ArrayList<>();
-        for (College college : colleges) {
-            for (Department department : college.getDepartments()) {
-                if (!with && !department.getVoteTable()) available_departments.add(department);
-                if (with && department.getVoteTable()) available_departments.add(department);
-            }
-        } return available_departments;
-    }
-
-    //  ===========================================================================================================
-    //  COMUNICATIONS WITH MULTICAST SERVERS
-    //  ===========================================================================================================
-
-    synchronized public boolean authorizeUser(String cc_number) throws RemoteException {
-        for (College college : colleges) {
-            for (Department department : college.getDepartments()) {
-                for (User student : department.getStudents())
-                    if (student.getCc_number().compareTo(cc_number)==0) return true;
-                for (User teacher : department.getTeachers())
-                    if (teacher.getCc_number().compareTo(cc_number)==0) return true;
-                for (User staff : department.getStaff())
-                    if (staff.getCc_number().compareTo(cc_number)==0) return true;
-            }
-        } return false;
-    }
-    synchronized public boolean authenticateUser(String username, String password) throws RemoteException {
-        for (College college : colleges) {
-            for (Department department : college.getDepartments()) {
-                for (User student : department.getStudents())
-                    if (student.getName().compareTo(username)==0 && student.getPassword().compareTo(password)==0) return true;
-                for (User teacher : department.getTeachers())
-                    if (teacher.getName().compareTo(username)==0 && teacher.getPassword().compareTo(password)==0) return true;
-                for (User staff : department.getStaff())
-                    if (staff.getName().compareTo(username)==0 && staff.getPassword().compareTo(password)==0) return true;
-            }
-        } return false;
-    }
-
-}
-
-
-/**
- * FilesManagement takes care of all data storage
-*/
-class FilesManagement {
-
-    public FilesManagement() { }
-
-    /**
-     * Writes colleges in a object file called "database_colleges.data"
-     * @param colleges ArrayList of Colleges, considering each one has a Department and each Department has 3 ArrayList (students, teachers and staff)
-     * @return true if the file was save successfully, false otherwise
-     */
-    public boolean saveCollegesFile(ArrayList<College> colleges) {
-        if (colleges.size()==0) return false;
-        String filePath = "database_colleges.dat";
-        try {
-            FileOutputStream file = new FileOutputStream(new File(filePath));
-            ObjectOutputStream writer = new ObjectOutputStream(file);
-            
-            writer.writeObject(colleges);
-
-            writer.close();
-            file.close();
-            return true;
-        } catch (FileNotFoundException e) { System.out.println("404: File not found"); } 
-        catch (IOException e) { System.out.println("Error initializing stream\n"+e); } 
-        return false;
-    }
-    
-    /**
-     * Reads and loads all colleges from a object file called "database_colleges.data"
-     * @param colleges ArrayList of Colleges, considering each one has a Department and each Department has 3 ArrayList (students, teachers and staff)
-     * @return true if the file was save successfully, false otherwise
-     */
-    public ArrayList<College> loadCollegesFile(ArrayList<College> colleges) {
-        String filePath = "database_colleges.dat";
-        try {
-            FileInputStream file = new FileInputStream(new File(filePath));
-            ObjectInputStream reader = new ObjectInputStream(file);
-
-            Object file_obj = reader.readObject();
-            ArrayList<?> coleg_list = (ArrayList<?>) file_obj;
-            for (Object coleg : coleg_list) {
-                College new_college= (College) coleg;
-                colleges.add(new_college);
-            }
-            reader.close();
-            file.close();
-            return colleges;
-        } catch (FileNotFoundException e) { System.out.println("404: File "+filePath+" not found"); }
-        catch (IOException e) { System.out.println("Error initializing stream"); }
-        catch (ClassNotFoundException e) { e.printStackTrace(); }
-        return colleges;
-    }
-
-
-    public boolean saveElectionsFile(ArrayList<Election> elections, String election_type) {
-        if (elections.size()==0) return false;
-        String filePath = "database_elections_"+election_type+".dat";
-        try {
-            FileOutputStream file = new FileOutputStream(new File(filePath));
-            ObjectOutputStream writer = new ObjectOutputStream(file);
-            
-            writer.writeObject(elections);
-
-            writer.close();
-            file.close();
-            return true;
-        } catch (FileNotFoundException e) { System.out.println("404: File not found"); } 
-        catch (IOException e) { System.out.println("Error initializing stream\n"+e); } 
-        return false;
-    }
-    public ArrayList<Election> loadElectionsFile(ArrayList<Election> elections, String election_type) {
-        String filePath = "database_elections_"+election_type+".dat";
-        try {
-            FileInputStream file = new FileInputStream(new File(filePath));
-            ObjectInputStream reader = new ObjectInputStream(file);
-
-            Object obj = reader.readObject();
-            if (obj instanceof ArrayList<?>) {
-                ArrayList<?> al = (ArrayList<?>) obj;
-                for (Object object : al) {
-                    Election new_election= (Election) object;
-                    elections.add(new_election);
-                }
-            }
-            reader.close();
-            file.close();
-            return elections;
-        } catch (FileNotFoundException e) { System.out.println("404: File "+filePath+" not found"); }
-        catch (IOException e) { System.out.println("Error initializing stream"); }
-        catch (ClassNotFoundException e) { e.printStackTrace(); }
-        return elections;
-    }
-    
-}
-
-
-class ServersManagement implements Runnable {
-    public Thread manager_thread;
-    public RMIServer server1, server2; 
-    public boolean server1_running;
-
-    ServersManagement(String threadname, RMIServer server1, RMIServer server2, boolean server1_running) {
-        this.server1 = server1;
-        this.server2 = server2;
-        this.server1_running = server1_running;
-        manager_thread = new Thread(this, threadname);
-        System.out.println("Verificacao de estado dos Servidores: Ativa");
-        manager_thread.start();
-    }
-
-    public void run() {
-        int error_response= 0;
-        while (true) {
-            try { Thread.sleep(100); }
-            catch (Exception e) { }
-
-            try { 
-                if (server1_running) server1.ping(); 
-                else server2.ping();
-            } catch(Exception e){ 
-                if (server1_running) System.out.println("Ping "+error_response+" ao Servidor 1: Falhado"); 
-                else System.out.println("Ping "+error_response+" ao Servidor 2: Falhado"); 
-                error_response++;  
-            }
-            
-            if(error_response==5) {
+                //  TURN ON SERVER 2
                 try { 
-                    if (server1_running) {
-                        server2= new RMIServer();
-                        server2.regist.rebind(server2.rmiregistry2, server2); 
-                        server2.readAllFiles(server2);
-                        error_response=0;
-                        server1_running=!server1_running;
-                        System.out.println("Servidor Ativo: 2"); 
-                    } else {
-                        server1= new RMIServer();
-                        server1.regist.rebind(server1.rmiregistry1, server1); 
-                        server1.readAllFiles(server1);
-                        error_response=0;
-                        server1_running=!server1_running;
-                        System.out.println("Servidor Ativo: 1");
+                    server= new RMIServer();
+                    server.my_rmi_ip= getRegistryFromIP(my_ip, rmiregistry2);
+                    server.remoted_server_ip= getRegistryFromIP(server1_ip, rmiregistry1);
+                    Naming.rebind(server.my_rmi_ip, server);
+                    server.pinger = (RMIServer_I) Naming.lookup(server.remoted_server_ip);
+                    if (server.pinger.subscribeNewServer(server.my_rmi_ip)) System.out.println("200: Servidor associado com Sucesso!");
+                    else { System.out.println("500: O servidor ja tem um Servidor Secundario Associado!"); return false; }
+                    System.out.println("Servidor 2 a correr no IP "+ server.my_rmi_ip);
+                    server.main_server=false;
+                    return true;
+                } catch (Exception e1) { System.out.println("Inseriu um IP incorreto!"); return false; }
+            }
+        }
+
+        synchronized public String subscribeNewClient(RMIClient_I new_client, String depart_name) throws RemoteException {
+            if (depart_name==null) { admins_list.add(new_client); System.out.println("Novo Administrador Conectado ["+(admins_list.size()-1)+"]"); }
+            else { 
+                Department selected_depart= getUniqueDepartment(depart_name);
+                if (!selected_depart.getVoteTable()) return "400: "+depart_name+" nao tem Mesa de Voto!\n";
+                if (selected_depart.getActivatedVoteTable()) return "400: Ja existe uma Mesa de Voto associada ao "+depart_name+"!\n";
+                selected_depart.turnOnVoteTable();
+                associated_deps_list.add(depart_name);
+                clients_list.add(new_client); 
+                System.out.println("Mesa de Voto do "+depart_name+" Conectado ["+(clients_list.size()-1)+"]");
+            } return "200: Adicionado ao Servidor com Sucesso";
+        }
+        synchronized public boolean subscribeNewServer(String new_server_ip) throws RemoteException {
+            if (server.pinger==null && (server.getRemoted_server_ip().isEmpty() || server.getRemoted_server_ip().compareTo(new_server_ip)==0)) { 
+                try {
+                    server.remoted_server_ip= new_server_ip;
+                    setPinger((RMIServer_I) Naming.lookup(server.remoted_server_ip));
+                    return true; 
+                } catch (Exception e) { System.out.println(e); return false; }
+            } else return false;
+        }
+
+        synchronized private static String getRegistryFromIP(String ip, String registryName) { return "rmi://"+ip+":"+port+"/"+registryName; }
+        synchronized public String ping() throws RemoteException { return "ACK"; }
+
+
+        //  ===========================================================================================================
+        //  SERVER ATTRIBUTES
+        //  ===========================================================================================================
+        synchronized public boolean isMainServer() { return main_server; }
+        synchronized public String getMy_rmi_ip() throws RemoteException { return my_rmi_ip; }
+        synchronized public String getRemoted_server_ip() throws RemoteException { return remoted_server_ip; }
+        synchronized public RMIServer_I getPinger() { return pinger; }
+        synchronized public boolean changeServerPriority() throws RemoteException { 
+            main_server=!main_server; 
+            if (!main_server) System.out.println("Este Servidor passou a ser Secundario!"); 
+            else System.out.println("Este Servidor passou a ser Primario!"); 
+            return true; 
+        }
+        synchronized public void setPinger(RMIServer_I pinger) { 
+            this.pinger= pinger; 
+            if (this.pinger==null) System.out.println("O Servidor Secundario foi desassociado!");
+            else System.out.println("Novo Servidor Secundario Adicionado!");
+        }
+
+
+        //  ===========================================================================================================
+        //  COMUNICATIONS WITH ADMIN CONSOLE
+        //  ===========================================================================================================
+
+        /**
+        * @param new_college Name of the new college, registed with the new user data
+        * @param new_department Name of the new department, registed with the new user data
+        * @param new_user New User data
+        * @return returns a 200 code if sucess during registation, 400 otherwise
+        */
+        synchronized public String registUser(String new_college, String new_department, User new_user) throws RemoteException {
+            if (verifyUserExistence(new_user)) return "400: Uma pessoa com esse Numero de CC ja foi registada!\n";
+            int college_index = IntStream.range(0, colleges.size()).filter(i -> colleges.get(i).getName().equals(new_college)).findFirst().orElse(-1);
+            if (college_index==-1) {
+                colleges.add(new College(new_college, new Department(new_department, new_college, new_user)));
+            } else {
+                int department_index = IntStream.range(0, colleges.get(college_index).getDepartments().size()).filter(i -> colleges.get(college_index).getDepartments().get(i).getName().equals(new_department)).findFirst().orElse(-1);
+                if (department_index==-1) colleges.get(college_index).getDepartments().add(new Department(new_department, new_college, new_user));
+                else colleges.get(college_index).getDepartments().get(department_index).getUsersWithType(new_user.getUser_type()).add(new_user);
+            }
+            
+            System.out.println("Nova Pessoa Registada pela Consola de Administrador");
+            file_manage.saveCollegesFile(colleges);
+            return "200: Pessoa registada com sucesso!\n";
+        }
+        synchronized public boolean verifyUserExistence(User comparing_user) {
+            for (College college : colleges) {
+                for (Department department : college.getDepartments()) {
+                    for (User user : department.getStudents()) {
+                        if (comparing_user.getCc_number().compareTo(user.getCc_number())==0) return true;
                     }
-                } 
-                catch(Exception e){ e.printStackTrace(); }   
-            }
-        }
-    }
-}
-
-
-/**
- * IsClientAlive is a Thread that iterates all the Clients (includind Admins) and checks if they're alive
- */
-class IsClientAlive implements Runnable {
-    public Thread thread;
-    private ArrayList<RMIClient_I> clients, admins;
-    private ArrayList<College> colleges;
-    private ArrayList<String> associated_deps_list= new ArrayList<>();
-
-    /**
-     * @param threadname Name of the Thread
-     * @param clients ArrayList of subscribed and running Clients 
-     * @param admins ArrayList of subscribed and running Admin Consoles
-     */
-    public IsClientAlive(String threadname, ArrayList<RMIClient_I> clients, ArrayList<RMIClient_I> admins, ArrayList<College> colleges, ArrayList<String> associated_deps_list) {
-        this.clients = clients;
-        this.admins = admins;
-        this.colleges = colleges;
-        this.associated_deps_list = associated_deps_list;
-        thread = new Thread(this, threadname);
-        System.out.println("Verificacao de ativacao dos Clientes: Ativa");
-        thread.start();
-    }
-
-    public void run() {
-        int client_id=0, admin_id=0;
-        while (true) {
-            try { Thread.sleep(100); }
-            catch (Exception e) { }
-            
-            //  PING CLIENTS
-            if (!clients.isEmpty()) {
-                //  RESET ARRAY
-                if (client_id<0 || client_id>=clients.size()) client_id=0;
-                try { 
-                    if (clients.get(client_id)!=null) { clients.get(client_id).ping(); client_id++; } 
-                    else client_id++;
-                } catch (Exception e1) {
-                    try { turnOffVoteTable(associated_deps_list.get(client_id)); }
-                    catch (Exception e2) { }
-                    clients.set(client_id, null);
-                    System.out.println("O Cliente ["+(client_id++)+"] desconectou-se!");
+                    for (User user : department.getTeachers()) {
+                        if (comparing_user.getCc_number().compareTo(user.getCc_number())==0) return true;
+                    }
+                    for (User user : department.getStaff()) {
+                        if (comparing_user.getCc_number().compareTo(user.getCc_number())==0) return true;
+                    }
                 }
-            }
-
-            //  PING ADMINS
-            if (!admins.isEmpty()) {
-                //  RESET ARRAY
-                if (admin_id<0 || admin_id>=admins.size()) admin_id=0;
-                try { 
-                    if (admins.get(admin_id)!=null) { admins.get(admin_id).ping(); admin_id++; } 
-                    else admin_id++;
-                } catch (Exception e) {
-                    admins.set(admin_id, null);
-                    System.out.println("O Administrador ["+(admin_id++)+"] desconectou-se!");
-                }
-            }
+            } return false;
         }
-    }
-    synchronized public Department turnOffVoteTable(String department_name) throws RemoteException { 
-        for (College college : colleges) {
-            for (Department department : college.getDepartments()) {
-                if (department.getName().compareTo(department_name)==0) department.turnOffVoteTable();
-            }
-        } return null;
-    }
     
-}
+        synchronized public String registElection(Election new_election) throws RemoteException {
+            for (Election election : unstarted_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
+            for (Election election : running_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
+            for (Election election : finished_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
 
+            unstarted_elections.add(new_election);
+            file_manage.saveElectionsFile(unstarted_elections, "unstarted");
+            System.out.println("Nova Eleicao Registada pela Consola de Administrador");
+            return "200: Eleicao registada com sucesso!";
+        }
 
-/**
- * ElectionsState is a Thread that iterates all the Elections (including Unstarted, Running and Finished ones) and manage them according to their defined Starting and Ending Dates
-*/
-class ElectionsState implements Runnable {
-    public Thread thread;
-    ArrayList<Election> unstarted_elections, running_elections, finished_elections;
+        synchronized public ArrayList<College> getColleges() throws RemoteException { return this.colleges; }
+        synchronized public ArrayList<String> getDepartmentsNames() throws RemoteException { 
+            ArrayList<String> names= new ArrayList<>();
+            for (College college : colleges)
+                for (Department department : college.getDepartments()) names.add(department.getName());
+            return names;
+        }
+        synchronized public ArrayList<String> getCollegesNames() throws RemoteException { 
+            ArrayList<String> names= new ArrayList<>();
+            for (College college : colleges) names.add(college.getName());
+            return names;
+        }
+        synchronized public College getUniqueCollege(String college_name) throws RemoteException { 
+            for (College college : server.getColleges()) 
+                if (college.getName().compareTo(college_name)==0) return college;
+            return null;
+        }
+        synchronized public Department getUniqueDepartment(String department_name) throws RemoteException { 
+            for (College college : server.getColleges())
+                for (Department department : college.getDepartments())
+                    if (department.getName().compareTo(department_name)==0) return department;
+            return null;
+        }
+        
+        synchronized public ArrayList<Election> getUnstartedElections() throws RemoteException { return unstarted_elections; }
+        synchronized public ArrayList<Election> getRunningElections() throws RemoteException { return running_elections; }
+        synchronized public ArrayList<Election> getFinishedElections() throws RemoteException { return finished_elections; }
+        synchronized public ArrayList<String> getElectionNames(String election_state) throws RemoteException { 
+            ArrayList<String> names= new ArrayList<>();
+            if (election_state=="running") for (Election election : running_elections) names.add(election.getTitle());
+            else if (election_state=="finished") for (Election election : finished_elections) names.add(election.getTitle());
+            else if (election_state=="unstarted") for (Election election : unstarted_elections) names.add(election.getTitle());
+            return names;
+        }
+        
+        synchronized public String setUpdatedElection(Election updated_election, boolean is_candidature) throws RemoteException { 
+            for (Election election : unstarted_elections)
+                if (election.getTitle().compareTo(updated_election.getTitle())==0) {
+                    unstarted_elections.set(unstarted_elections.indexOf(election), updated_election);
+                    file_manage.saveCollegesFile(colleges);
+                    if (is_candidature) { System.out.println("Nova Candidatura Submetida pela Consola de Administrador"); return "200: Candidatura Submetida com Sucesso"; }
+                    else { System.out.println("Eleicao "+election.getTitle()+" alterada pela Consola de Administrador"); return "200: Eleicao Editada com Sucesso"; }
+                }
+            return "400: Essa Eleicao nao foi encontrada";
+        }
+        synchronized public String setUpdatedDepartment(Department updated_department, boolean new_vote_table) throws RemoteException { 
+            for (College college : colleges) {
+                ArrayList<Department> colleg_deps= college.getDepartments();
+                int dep_index = IntStream.range(0, colleg_deps.size()).filter(i -> colleg_deps.get(i).getName().equals(updated_department.getName())).findFirst().orElse(-1);
+                if (dep_index==-1) continue;
+                college.getDepartments().set(dep_index, updated_department);
+                file_manage.saveCollegesFile(colleges);
+                if (new_vote_table) { 
+                    System.out.println("Mesa de Voto Registada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()+" com "+updated_department.getVoteTerminals()+" terminais de voto"); 
+                    return "200: Mesa de Voto Registada com Sucesso"; 
+                } else {
+                    System.out.println("Mesa de Voto Eliminada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()); 
+                    return "200: Mesa de Voto Eliminada com Sucesso"; 
+                }
+            } return "400: Departamento nao encontrado";
+        }
 
-    /**
-     * @param threadname Name of the Thread
-     * @param unstarted_elections ArrayList of Unstarted Elections
-     * @param running_elections ArrayList of Running Elections
-     * @param finished_elections ArrayList of Finished Elections
-    */
-    ElectionsState(String threadname, ArrayList<Election> unstarted_elections, ArrayList<Election> running_elections, ArrayList<Election> finished_elections) {
-        this.unstarted_elections = unstarted_elections;
-        this.running_elections = running_elections;
-        this.finished_elections = finished_elections;
-        thread = new Thread(this, threadname);
-        System.out.println("Verificacao de estado das Eleicoes: Ativa");
-        thread.start();
+        synchronized public ArrayList<Department> getDepartmentsWithOrNotVoteTable(boolean with) throws RemoteException {
+            ArrayList<Department> available_departments= new ArrayList<>();
+            for (College college : colleges) {
+                for (Department department : college.getDepartments()) {
+                    if (!with && !department.getVoteTable()) available_departments.add(department);
+                    if (with && department.getVoteTable()) available_departments.add(department);
+                }
+            } return available_departments;
+        }
+
+        //  ===========================================================================================================
+        //  COMUNICATIONS WITH MULTICAST SERVERS
+        //  ===========================================================================================================
+
+        synchronized public boolean authorizeUser(String cc_number) throws RemoteException {
+            for (College college : colleges) {
+                for (Department department : college.getDepartments()) {
+                    for (User student : department.getStudents())
+                        if (student.getCc_number().compareTo(cc_number)==0) return true;
+                    for (User teacher : department.getTeachers())
+                        if (teacher.getCc_number().compareTo(cc_number)==0) return true;
+                    for (User staff : department.getStaff())
+                        if (staff.getCc_number().compareTo(cc_number)==0) return true;
+                }
+            } return false;
+        }
+        synchronized public boolean authenticateUser(String username, String password) throws RemoteException {
+            for (College college : colleges) {
+                for (Department department : college.getDepartments()) {
+                    for (User student : department.getStudents())
+                        if (student.getName().compareTo(username)==0 && student.getPassword().compareTo(password)==0) return true;
+                    for (User teacher : department.getTeachers())
+                        if (teacher.getName().compareTo(username)==0 && teacher.getPassword().compareTo(password)==0) return true;
+                    for (User staff : department.getStaff())
+                        if (staff.getName().compareTo(username)==0 && staff.getPassword().compareTo(password)==0) return true;
+                }
+            } return false;
+        }
+        
     }
 
-    public void run() {
-        int unstarted_id=0, running_id=0;
-        Election temp_elec;
-        while (true) {
-            try { Thread.sleep(100); }
-            catch (Exception e) { }
-            LocalDateTime now= LocalDateTime.now();
 
-            //  CHECK UNSTARTED ELECTIONS
-            if (!unstarted_elections.isEmpty()) {
-                //  RESET ARRAY
-                if (unstarted_id<0 || unstarted_id>=unstarted_elections.size()) unstarted_id=0;
-                temp_elec= unstarted_elections.get(unstarted_id);
-                
-                try { 
-                    if (temp_elec.getStarting().compareTo(now)<=0) {
-                        running_elections.add(temp_elec);
-                        unstarted_elections.remove(unstarted_id); 
-                        System.out.println("A Eleicao "+temp_elec.getTitle()+" comecou!"); 
-                    } else unstarted_id++;
-                } catch (Exception e) { }
-            }
+    /**
+     * FilesManagement takes care of all data storage
+    */
+    class FilesManagement {
 
-            //  CHECK RUNNING ELECTIONS
-            if (!running_elections.isEmpty()) {
-                //  RESET ARRAY
-                if (running_id<0 || running_id>=running_elections.size()) running_id=0;
-                temp_elec= running_elections.get(running_id);
+        public FilesManagement() { }
+
+        /**
+         * Writes colleges in a object file called "database_colleges.data"
+         * @param colleges ArrayList of Colleges, considering each one has a Department and each Department has 3 ArrayList (students, teachers and staff)
+         * @return true if the file was save successfully, false otherwise
+         */
+        public boolean saveCollegesFile(ArrayList<College> colleges) {
+            if (colleges.size()==0) return false;
+            String filePath = "database_colleges.dat";
+            try {
+                FileOutputStream file = new FileOutputStream(new File(filePath));
+                ObjectOutputStream writer = new ObjectOutputStream(file);
                 
-                try { 
-                    if (temp_elec.getEnding().compareTo(now)<0) { 
-                        finished_elections.add(temp_elec);
-                        running_elections.remove(running_id); 
-                        System.out.println("A Eleicao "+temp_elec.getTitle()+" acabou!"); 
-                    } else running_id++;
-                } catch (Exception e) { }
+                writer.writeObject(colleges);
+
+                writer.close();
+                file.close();
+                return true;
+            } catch (FileNotFoundException e) { System.out.println("404: File not found"); } 
+            catch (IOException e) { System.out.println("Error initializing stream\n"+e); } 
+            return false;
+        }
+        
+        /**
+         * Reads and loads all colleges from a object file called "database_colleges.data"
+         * @param colleges ArrayList of Colleges, considering each one has a Department and each Department has 3 ArrayList (students, teachers and staff)
+         * @return true if the file was save successfully, false otherwise
+         */
+        public ArrayList<College> loadCollegesFile(ArrayList<College> colleges) {
+            String filePath = "database_colleges.dat";
+            try {
+                FileInputStream file = new FileInputStream(new File(filePath));
+                ObjectInputStream reader = new ObjectInputStream(file);
+
+                Object file_obj = reader.readObject();
+                ArrayList<?> coleg_list = (ArrayList<?>) file_obj;
+                for (Object coleg : coleg_list) {
+                    College new_college= (College) coleg;
+                    colleges.add(new_college);
+                }
+                reader.close();
+                file.close();
+                return colleges;
+            } catch (FileNotFoundException e) { System.out.println("404: File "+filePath+" not found"); }
+            catch (IOException e) { System.out.println("Error initializing stream"); }
+            catch (ClassNotFoundException e) { e.printStackTrace(); }
+            return colleges;
+        }
+
+
+        public boolean saveElectionsFile(ArrayList<Election> elections, String election_type) {
+            if (elections.size()==0) return false;
+            String filePath = "database_elections_"+election_type+".dat";
+            try {
+                FileOutputStream file = new FileOutputStream(new File(filePath));
+                ObjectOutputStream writer = new ObjectOutputStream(file);
+                
+                writer.writeObject(elections);
+
+                writer.close();
+                file.close();
+                return true;
+            } catch (FileNotFoundException e) { System.out.println("404: File not found"); } 
+            catch (IOException e) { System.out.println("Error initializing stream\n"+e); } 
+            return false;
+        }
+        public ArrayList<Election> loadElectionsFile(ArrayList<Election> elections, String election_type) {
+            String filePath = "database_elections_"+election_type+".dat";
+            try {
+                FileInputStream file = new FileInputStream(new File(filePath));
+                ObjectInputStream reader = new ObjectInputStream(file);
+
+                Object obj = reader.readObject();
+                if (obj instanceof ArrayList<?>) {
+                    ArrayList<?> al = (ArrayList<?>) obj;
+                    for (Object object : al) {
+                        Election new_election= (Election) object;
+                        elections.add(new_election);
+                    }
+                }
+                reader.close();
+                file.close();
+                return elections;
+            } catch (FileNotFoundException e) { System.out.println("404: File "+filePath+" not found"); }
+            catch (IOException e) { System.out.println("Error initializing stream"); }
+            catch (ClassNotFoundException e) { e.printStackTrace(); }
+            return elections;
+        }
+    }
+
+
+    class ServersManagement implements Runnable {
+        public Thread manager_thread;
+        public RMIServer server; 
+        public boolean im_the_main_now=false;
+        public int error_response;
+
+        ServersManagement(String threadname, RMIServer server) {
+            this.server = server;
+            manager_thread = new Thread(this, threadname);
+            System.out.println("Verificacao de estado dos Servidores: Ativa");
+            error_response= 0;
+            manager_thread.start();
+        }
+
+        public void run() {
+
+            while (true) {
+                try { Thread.sleep(100); }
+                catch (Exception e) { }
+
+                if (server.getPinger()!=null) {
+                    try { 
+                        System.out.println(server.getPinger().ping());
+                        error_response=0;
+                    }
+                    catch(RemoteException e) { 
+                        System.out.println(e+"\t"+error_response);
+                        if (!server.isMainServer()) System.out.println("Ping "+(error_response+1)+" ao Servidor Principal: Falhado");  
+                        else System.out.println("Ping "+(error_response+1)+" ao Servidor Secundario: Falhado");  
+                        error_response++; 
+                    }
+                    
+                    if(error_response==5 && !server.isMainServer()) {
+                        try { 
+                            error_response=0;
+                            server.changeServerPriority();
+                            im_the_main_now=!im_the_main_now;
+                            System.out.println("Este Servidor passou a ser o Principal");
+                        } 
+                        catch(Exception e){ e.printStackTrace(); }   
+                    } else if (error_response==5 && server.isMainServer()) server.setPinger(null);
+
+                    if (im_the_main_now) {
+                        try {
+                            if(server.getPinger().changeServerPriority()) { im_the_main_now=!im_the_main_now; System.out.println("O antigo Servidor Principal passou a ser Secundario");}
+                            else System.out.println("Erro: O antigo Servidor Principal recusa-se a ser Secundario!");
+                        } catch (Exception e1) { }
+                    }
+                }
+
             }
         }
     }
-}
+
+
+    /**
+     * IsClientAlive is a Thread that iterates all the Clients (includind Admins) and checks if they're alive
+     */
+    class IsClientAlive implements Runnable {
+        public Thread thread;
+        private ArrayList<RMIClient_I> clients, admins;
+        private ArrayList<College> colleges;
+        private ArrayList<String> associated_deps_list= new ArrayList<>();
+
+        /**
+         * @param threadname Name of the Thread
+         * @param clients ArrayList of subscribed and running Clients 
+         * @param admins ArrayList of subscribed and running Admin Consoles
+         */
+        public IsClientAlive(String threadname, ArrayList<RMIClient_I> clients, ArrayList<RMIClient_I> admins, ArrayList<College> colleges, ArrayList<String> associated_deps_list) {
+            this.clients = clients;
+            this.admins = admins;
+            this.colleges = colleges;
+            this.associated_deps_list = associated_deps_list;
+            thread = new Thread(this, threadname);
+            System.out.println("Verificacao de ativacao dos Clientes: Ativa");
+            thread.start();
+        }
+
+        public void run() {
+            int client_id=0, admin_id=0;
+            while (true) {
+                try { Thread.sleep(100); }
+                catch (Exception e) { }
+                
+                //  PING CLIENTS
+                if (!clients.isEmpty()) {
+                    //  RESET ARRAY
+                    if (client_id<0 || client_id>=clients.size()) client_id=0;
+                    try { 
+                        if (clients.get(client_id)!=null) { clients.get(client_id).ping(); client_id++; } 
+                        else client_id++;
+                    } catch (Exception e1) {
+                        try { turnOffVoteTable(associated_deps_list.get(client_id)); }
+                        catch (Exception e2) { }
+                        clients.set(client_id, null);
+                        System.out.println("O Cliente ["+(client_id++)+"] desconectou-se!");
+                    }
+                }
+
+                //  PING ADMINS
+                if (!admins.isEmpty()) {
+                    //  RESET ARRAY
+                    if (admin_id<0 || admin_id>=admins.size()) admin_id=0;
+                    try { 
+                        if (admins.get(admin_id)!=null) { admins.get(admin_id).ping(); admin_id++; } 
+                        else admin_id++;
+                    } catch (Exception e) {
+                        admins.set(admin_id, null);
+                        System.out.println("O Administrador ["+(admin_id++)+"] desconectou-se!");
+                    }
+                }
+            }
+        }
+        synchronized public Department turnOffVoteTable(String department_name) throws RemoteException { 
+            for (College college : colleges) {
+                for (Department department : college.getDepartments()) {
+                    if (department.getName().compareTo(department_name)==0) department.turnOffVoteTable();
+                }
+            } return null;
+        }
+        
+    }
+
+
+    /**
+     * ElectionsState is a Thread that iterates all the Elections (including Unstarted, Running and Finished ones) and manage them according to their defined Starting and Ending Dates
+    */
+    class ElectionsState implements Runnable {
+        public Thread thread;
+        ArrayList<Election> unstarted_elections, running_elections, finished_elections;
+
+        /**
+         * @param threadname Name of the Thread
+         * @param unstarted_elections ArrayList of Unstarted Elections
+         * @param running_elections ArrayList of Running Elections
+         * @param finished_elections ArrayList of Finished Elections
+        */
+        ElectionsState(String threadname, ArrayList<Election> unstarted_elections, ArrayList<Election> running_elections, ArrayList<Election> finished_elections) {
+            this.unstarted_elections = unstarted_elections;
+            this.running_elections = running_elections;
+            this.finished_elections = finished_elections;
+            thread = new Thread(this, threadname);
+            System.out.println("Verificacao de estado das Eleicoes: Ativa");
+            thread.start();
+        }
+
+        public void run() {
+            int unstarted_id=0, running_id=0;
+            Election temp_elec;
+            while (true) {
+                try { Thread.sleep(100); }
+                catch (Exception e) { }
+                LocalDateTime now= LocalDateTime.now();
+
+                //  CHECK UNSTARTED ELECTIONS
+                if (!unstarted_elections.isEmpty()) {
+                    //  RESET ARRAY
+                    if (unstarted_id<0 || unstarted_id>=unstarted_elections.size()) unstarted_id=0;
+                    temp_elec= unstarted_elections.get(unstarted_id);
+                    
+                    try { 
+                        if (temp_elec.getStarting().compareTo(now)<=0) {
+                            running_elections.add(temp_elec);
+                            unstarted_elections.remove(unstarted_id); 
+                            System.out.println("A Eleicao "+temp_elec.getTitle()+" comecou!"); 
+                        } else unstarted_id++;
+                    } catch (Exception e) { }
+                }
+
+                //  CHECK RUNNING ELECTIONS
+                if (!running_elections.isEmpty()) {
+                    //  RESET ARRAY
+                    if (running_id<0 || running_id>=running_elections.size()) running_id=0;
+                    temp_elec= running_elections.get(running_id);
+                    
+                    try { 
+                        if (temp_elec.getEnding().compareTo(now)<0) { 
+                            finished_elections.add(temp_elec);
+                            running_elections.remove(running_id); 
+                            System.out.println("A Eleicao "+temp_elec.getTitle()+" acabou!"); 
+                        } else running_id++;
+                    } catch (Exception e) { }
+                }
+            }
+        }
+    }
 

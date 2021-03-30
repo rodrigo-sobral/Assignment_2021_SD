@@ -7,7 +7,11 @@ import classes.User;
 public interface RMIServer_I extends Remote {
 	//	CONNECTION METHODS
 	public String subscribeNewClient(RMIClient_I new_client, String depart_name) throws RemoteException;
+	public boolean subscribeNewServer(String new_server_ip) throws RemoteException;
 	public String ping() throws RemoteException;
+	public boolean changeServerPriority() throws RemoteException;
+	public String getMy_rmi_ip() throws RemoteException;
+    public String getRemoted_server_ip() throws RemoteException;
 	
 	//	REGIST METHODS
 	public String registUser(String new_college, String new_department, User new_user) throws RemoteException;

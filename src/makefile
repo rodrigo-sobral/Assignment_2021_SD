@@ -1,6 +1,5 @@
 
 rmiserver:
-	clear
 	javac RMIServer.java RMIClient.java AdminConsole.java
 	java RMIServer
 	
