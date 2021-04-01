@@ -21,7 +21,7 @@ import java.rmi.server.*;
     public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runnable {   
         private static final long serialVersionUID = 1L;
 
-        //  Connection Data
+        //  CONNECTION DATA
         private static RMIServer server=null;
         public static String rmiregistry1="rmiconnection1", rmiregistry2="rmiconnection2";
         private static int port=1099;
@@ -29,21 +29,21 @@ import java.rmi.server.*;
         private boolean main_server= false;
         private String my_rmi_ip="", remoted_server_ip="";
 
-        private ArrayList<RMIClient_I> clients_list= new ArrayList<>(), admins_list= new ArrayList<>();
-        private ArrayList<String> associated_deps_list= new ArrayList<>();
+        public ArrayList<RMIClient_I> clients_list= new ArrayList<>(), admins_list= new ArrayList<>();
+        public ArrayList<String> associated_deps_list= new ArrayList<>();
 
-        //  Threads
+        //  THREADS
         private static IsClientAlive client_checker;
         private static ElectionsState election_state;
         private static ServersManagement servers_manager;
 
-        //  Storage Data
+        //  STORAGE DATA
         private FilesManagement file_manage= new FilesManagement();
         private static Inputs input_manage= new Inputs();
         
-        //  Data to Store
+        //  DATA TO STORE
         private ArrayList<College> colleges= new ArrayList<>();
-        private ArrayList<Election> unstarted_elections= new ArrayList<>(), running_elections= new ArrayList<>(), finished_elections= new ArrayList<>();
+        public ArrayList<Election> unstarted_elections= new ArrayList<>(), running_elections= new ArrayList<>(), finished_elections= new ArrayList<>();
 
         public RMIServer() throws RemoteException { super(); }
         public void run() { }
@@ -52,7 +52,9 @@ import java.rmi.server.*;
             System.getProperties().put("java.security.policy","AdminConsole.policy");
             if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
             
-            LocateRegistry.createRegistry(port);
+            try { LocateRegistry.createRegistry(port); } 
+            catch (Exception e) { }
+
             String ip="";
             try(final DatagramSocket socket = new DatagramSocket()){
                 socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
@@ -62,8 +64,10 @@ import java.rmi.server.*;
 
             if (!initServers(ip)) System.exit(0);
             servers_manager= new ServersManagement("servers_manager", server);
-            /*client_checker= new IsClientAlive("clients_checker", server.clients_list, server.admins_list, server.colleges, server.associated_deps_list);
-            election_state= new ElectionsState("election_state", server.unstarted_elections, server.running_elections, server.finished_elections);
+            client_checker= new IsClientAlive("clients_checker", server.clients_list, server.admins_list, server.colleges, server.associated_deps_list);
+            election_state= new ElectionsState("election_state", server);
+
+            server.readAllFiles(server);
 
             if (!server.running_elections.isEmpty()) {
                 for (String  name: server.getElectionNames("unstarted")) System.out.println(name);
@@ -78,22 +82,29 @@ import java.rmi.server.*;
                 System.out.println("Verificacao de estado de Eleicoes: Desativa");
                 servers_manager.manager_thread.join();
                 System.out.println("Verificacao de estado dos Servidores: Desativa");
-            } catch (InterruptedException e) { System.out.println("Interrupted"); }*/
+            } catch (InterruptedException e) { System.out.println("Interrupted"); }
         }
     
         //  ===========================================================================================================
         //  CONNECTIONS AND CONFIGURATIONS
         //  ===========================================================================================================
-        public void readAllFiles(RMIServer active_server) {
-            active_server.file_manage.loadElectionsFile(active_server.unstarted_elections, "unstarted");
-            active_server.file_manage.loadElectionsFile(active_server.running_elections, "running");
-            active_server.file_manage.loadElectionsFile(active_server.finished_elections, "finished");
-            active_server.file_manage.loadCollegesFile(active_server.colleges);
+        private void readAllFiles(RMIServer active_server) throws RemoteException {
+            if (isMainServer()) {
+                active_server.file_manage.loadElectionsFile(active_server.unstarted_elections, "unstarted");
+                active_server.file_manage.loadElectionsFile(active_server.running_elections, "running");
+                active_server.file_manage.loadElectionsFile(active_server.finished_elections, "finished");
+                active_server.file_manage.loadCollegesFile(active_server.colleges);
+            } else if (!isMainServer() && getPinger()!=null) {
+                setColleges(active_server.getPinger().getColleges());
+                setUnstarted_elections(active_server.getPinger().getUnstartedElections());
+                setRunning_elections(active_server.getPinger().getRunningElections());
+                setFinished_elections(active_server.getPinger().getFinishedElections());
+            }
         }
 
         private static boolean initServers(String my_ip) {
             Scanner keyboard= new Scanner(System.in);
-            String server1_ip= input_manage.askVariable(keyboard, "Insira o IP do Servidor 1, se este for o Servidor 1 clique Enter: ", 5);
+            String server1_ip= input_manage.askVariable(keyboard, "Insira o IP do Servidor Principal, se este for o Servidor Principal clique Enter: ", 5);
             keyboard.close();
             if (server1_ip.isBlank()) {
                 //  TURN ON SERVER 1
@@ -123,7 +134,11 @@ import java.rmi.server.*;
         }
 
         synchronized public String subscribeNewClient(RMIClient_I new_client, String depart_name) throws RemoteException {
-            if (depart_name==null) { admins_list.add(new_client); System.out.println("Novo Administrador Conectado ["+(admins_list.size()-1)+"]"); }
+            if (depart_name==null) { 
+                admins_list.add(new_client);
+                //  TODO: corrigir bug do administrador se desconectar
+                System.out.println("Novo Administrador Conectado ["+(admins_list.size()-1)+"]"); 
+                }
             else { 
                 Department selected_depart= getUniqueDepartment(depart_name);
                 if (!selected_depart.getVoteTable()) return "400: "+depart_name+" nao tem Mesa de Voto!\n";
@@ -135,10 +150,11 @@ import java.rmi.server.*;
             } return "200: Adicionado ao Servidor com Sucesso";
         }
         synchronized public boolean subscribeNewServer(String new_server_ip) throws RemoteException {
-            if (server.pinger==null && (server.getRemoted_server_ip().isEmpty() || server.getRemoted_server_ip().compareTo(new_server_ip)==0)) { 
+            if (pinger==null || getRemoted_server_ip().isEmpty() || getRemoted_server_ip().compareTo(new_server_ip)==0) { 
                 try {
-                    server.remoted_server_ip= new_server_ip;
-                    setPinger((RMIServer_I) Naming.lookup(server.remoted_server_ip));
+                    remoted_server_ip= new_server_ip;
+                    setPinger((RMIServer_I) Naming.lookup(remoted_server_ip));
+                    System.out.println("Novo Servidor Secundario Adicionado!");
                     return true; 
                 } catch (Exception e) { System.out.println(e); return false; }
             } else return false;
@@ -151,20 +167,20 @@ import java.rmi.server.*;
         //  ===========================================================================================================
         //  SERVER ATTRIBUTES
         //  ===========================================================================================================
-        synchronized public boolean isMainServer() { return main_server; }
+        synchronized public boolean isMainServer() throws RemoteException { return main_server; }
         synchronized public String getMy_rmi_ip() throws RemoteException { return my_rmi_ip; }
         synchronized public String getRemoted_server_ip() throws RemoteException { return remoted_server_ip; }
-        synchronized public RMIServer_I getPinger() { return pinger; }
-        synchronized public boolean changeServerPriority() throws RemoteException { 
+        synchronized public void setMy_rmi_ip(String full_ip) throws RemoteException { this.my_rmi_ip= full_ip; }
+        synchronized public void setRemoted_server_ip(String full_ip) throws RemoteException { this.remoted_server_ip= full_ip; }
+        synchronized public RMIServer_I getPinger() throws RemoteException { return pinger; }
+        synchronized public void changeServerPriority() throws RemoteException { 
             main_server=!main_server; 
             if (!main_server) System.out.println("Este Servidor passou a ser Secundario!"); 
-            else System.out.println("Este Servidor passou a ser Primario!"); 
-            return true; 
+            else { System.out.println("Este Servidor passou a ser Primario!"); pinger=null; }
         }
         synchronized public void setPinger(RMIServer_I pinger) { 
             this.pinger= pinger; 
             if (this.pinger==null) System.out.println("O Servidor Secundario foi desassociado!");
-            else System.out.println("Novo Servidor Secundario Adicionado!");
         }
 
 
@@ -191,6 +207,7 @@ import java.rmi.server.*;
             
             System.out.println("Nova Pessoa Registada pela Consola de Administrador");
             file_manage.saveCollegesFile(colleges);
+            if (server.getPinger()!=null) server.getPinger().setColleges(colleges);
             return "200: Pessoa registada com sucesso!\n";
         }
         synchronized public boolean verifyUserExistence(User comparing_user) {
@@ -216,6 +233,7 @@ import java.rmi.server.*;
 
             unstarted_elections.add(new_election);
             file_manage.saveElectionsFile(unstarted_elections, "unstarted");
+            if (server.getPinger()!=null) server.getPinger().setUnstarted_elections(unstarted_elections);
             System.out.println("Nova Eleicao Registada pela Consola de Administrador");
             return "200: Eleicao registada com sucesso!";
         }
@@ -260,6 +278,7 @@ import java.rmi.server.*;
                 if (election.getTitle().compareTo(updated_election.getTitle())==0) {
                     unstarted_elections.set(unstarted_elections.indexOf(election), updated_election);
                     file_manage.saveCollegesFile(colleges);
+                    if (server.getPinger()!=null) server.getPinger().setUnstarted_elections(unstarted_elections);
                     if (is_candidature) { System.out.println("Nova Candidatura Submetida pela Consola de Administrador"); return "200: Candidatura Submetida com Sucesso"; }
                     else { System.out.println("Eleicao "+election.getTitle()+" alterada pela Consola de Administrador"); return "200: Eleicao Editada com Sucesso"; }
                 }
@@ -272,6 +291,7 @@ import java.rmi.server.*;
                 if (dep_index==-1) continue;
                 college.getDepartments().set(dep_index, updated_department);
                 file_manage.saveCollegesFile(colleges);
+                if (server.getPinger()!=null) server.getPinger().setColleges(colleges);
                 if (new_vote_table) { 
                     System.out.println("Mesa de Voto Registada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()+" com "+updated_department.getVoteTerminals()+" terminais de voto"); 
                     return "200: Mesa de Voto Registada com Sucesso"; 
@@ -319,6 +339,23 @@ import java.rmi.server.*;
                         if (staff.getName().compareTo(username)==0 && staff.getPassword().compareTo(password)==0) return true;
                 }
             } return false;
+        }
+
+        synchronized public void setColleges(ArrayList<College> colleges) throws RemoteException { 
+            System.out.println("Informacao dos Eleitores recebida do Servidor Primario!");
+            this.colleges = colleges; 
+        }
+        synchronized public void setUnstarted_elections(ArrayList<Election> unstarted_elections) throws RemoteException { 
+            System.out.println("Informacao das Eleicoes Nao Comecadas recebida do Servidor Primario!");
+            this.unstarted_elections = unstarted_elections; 
+        }
+        synchronized public void setRunning_elections(ArrayList<Election> running_elections) throws RemoteException { 
+            System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Primario!");
+            this.running_elections = running_elections; 
+        }
+        synchronized public void setFinished_elections(ArrayList<Election> finished_elections) throws RemoteException { 
+            System.out.println("Informacao das Eleicoes Acabadas recebida do Servidor Primario!");
+            this.finished_elections = finished_elections;
         }
         
     }
@@ -438,39 +475,45 @@ import java.rmi.server.*;
         public void run() {
 
             while (true) {
-                try { Thread.sleep(100); }
+                try { Thread.sleep(10); }
                 catch (Exception e) { }
 
-                if (server.getPinger()!=null) {
-                    try { 
-                        System.out.println(server.getPinger().ping());
-                        error_response=0;
-                    }
-                    catch(RemoteException e) { 
-                        System.out.println(e+"\t"+error_response);
-                        if (!server.isMainServer()) System.out.println("Ping "+(error_response+1)+" ao Servidor Principal: Falhado");  
-                        else System.out.println("Ping "+(error_response+1)+" ao Servidor Secundario: Falhado");  
-                        error_response++; 
-                    }
-                    
-                    if(error_response==5 && !server.isMainServer()) {
+                try {
+                    if (server.getPinger()!=null) {
                         try { 
+                            server.getPinger().ping();
                             error_response=0;
-                            server.changeServerPriority();
-                            im_the_main_now=!im_the_main_now;
-                            System.out.println("Este Servidor passou a ser o Principal");
+                        } catch(RemoteException e) { 
+                            if (!server.isMainServer()) System.out.println("Ping "+(++error_response)+" ao Servidor Principal: Falhado");  
+                            else System.out.println("Ping "+(++error_response)+" ao Servidor Secundario: Falhado");  
+                            try { 
+                                server.setPinger((RMIServer_I) Naming.lookup(server.getRemoted_server_ip())); 
+                                if (!server.isMainServer()) System.out.println("O Servidor Primario voltou!");
+                                else System.out.println("O Servidor Secundario voltou!");
+                                error_response=0;
+                            } catch (Exception e2) { }
+                        }
+                        
+                        if(error_response==5 && !server.isMainServer()) {
+                            try { 
+                                error_response=0;
+                                server.changeServerPriority();
+                                im_the_main_now=!im_the_main_now;
+                            } catch(Exception e){ e.printStackTrace(); }   
                         } 
-                        catch(Exception e){ e.printStackTrace(); }   
-                    } else if (error_response==5 && server.isMainServer()) server.setPinger(null);
+                        else if (error_response==5 && server.isMainServer()) { server.setPinger(null); error_response=0; }
 
-                    if (im_the_main_now) {
-                        try {
-                            if(server.getPinger().changeServerPriority()) { im_the_main_now=!im_the_main_now; System.out.println("O antigo Servidor Principal passou a ser Secundario");}
-                            else System.out.println("Erro: O antigo Servidor Principal recusa-se a ser Secundario!");
-                        } catch (Exception e1) { }
+                        if (im_the_main_now) {
+                            try {
+                                try { 
+                                    server.setPinger((RMIServer_I) Naming.lookup(server.getRemoted_server_ip())); 
+                                    server.getPinger().changeServerPriority();
+                                    im_the_main_now=!im_the_main_now; 
+                                } catch (Exception e2) { }
+                            } catch (Exception e1) { }
+                        }
                     }
-                }
-
+                } catch (RemoteException e0) { }
             }
         }
     }
@@ -529,6 +572,11 @@ import java.rmi.server.*;
                         if (admins.get(admin_id)!=null) { admins.get(admin_id).ping(); admin_id++; } 
                         else admin_id++;
                     } catch (Exception e) {
+                        try {
+                            //Naming.lookup(admins.get(admin_id))    
+                        } catch (Exception e1) {
+                        
+                        }
                         admins.set(admin_id, null);
                         System.out.println("O Administrador ["+(admin_id++)+"] desconectou-se!");
                     }
@@ -551,7 +599,7 @@ import java.rmi.server.*;
     */
     class ElectionsState implements Runnable {
         public Thread thread;
-        ArrayList<Election> unstarted_elections, running_elections, finished_elections;
+        RMIServer server;
 
         /**
          * @param threadname Name of the Thread
@@ -559,10 +607,8 @@ import java.rmi.server.*;
          * @param running_elections ArrayList of Running Elections
          * @param finished_elections ArrayList of Finished Elections
         */
-        ElectionsState(String threadname, ArrayList<Election> unstarted_elections, ArrayList<Election> running_elections, ArrayList<Election> finished_elections) {
-            this.unstarted_elections = unstarted_elections;
-            this.running_elections = running_elections;
-            this.finished_elections = finished_elections;
+        ElectionsState(String threadname, RMIServer server) {
+            this.server = server;
             thread = new Thread(this, threadname);
             System.out.println("Verificacao de estado das Eleicoes: Ativa");
             thread.start();
@@ -577,30 +623,38 @@ import java.rmi.server.*;
                 LocalDateTime now= LocalDateTime.now();
 
                 //  CHECK UNSTARTED ELECTIONS
-                if (!unstarted_elections.isEmpty()) {
+                if (!server.unstarted_elections.isEmpty()) {
                     //  RESET ARRAY
-                    if (unstarted_id<0 || unstarted_id>=unstarted_elections.size()) unstarted_id=0;
-                    temp_elec= unstarted_elections.get(unstarted_id);
+                    if (unstarted_id<0 || unstarted_id>=server.unstarted_elections.size()) unstarted_id=0;
+                    temp_elec= server.unstarted_elections.get(unstarted_id);
                     
                     try { 
                         if (temp_elec.getStarting().compareTo(now)<=0) {
-                            running_elections.add(temp_elec);
-                            unstarted_elections.remove(unstarted_id); 
+                            server.running_elections.add(temp_elec);
+                            server.unstarted_elections.remove(unstarted_id); 
+                            if (server.getPinger()!=null) {
+                                server.getPinger().setUnstarted_elections(server.unstarted_elections);
+                                server.getPinger().setRunning_elections(server.running_elections); 
+                            }
                             System.out.println("A Eleicao "+temp_elec.getTitle()+" comecou!"); 
                         } else unstarted_id++;
                     } catch (Exception e) { }
                 }
 
                 //  CHECK RUNNING ELECTIONS
-                if (!running_elections.isEmpty()) {
+                if (!server.running_elections.isEmpty()) {
                     //  RESET ARRAY
-                    if (running_id<0 || running_id>=running_elections.size()) running_id=0;
-                    temp_elec= running_elections.get(running_id);
+                    if (running_id<0 || running_id>=server.running_elections.size()) running_id=0;
+                    temp_elec= server.running_elections.get(running_id);
                     
                     try { 
                         if (temp_elec.getEnding().compareTo(now)<0) { 
-                            finished_elections.add(temp_elec);
-                            running_elections.remove(running_id); 
+                            server.finished_elections.add(temp_elec);
+                            server.running_elections.remove(running_id); 
+                            if (server.getPinger()!=null) {
+                                server.getPinger().setRunning_elections(server.running_elections);
+                                server.getPinger().setFinished_elections(server.finished_elections);
+                            }
                             System.out.println("A Eleicao "+temp_elec.getTitle()+" acabou!"); 
                         } else running_id++;
                     } catch (Exception e) { }

@@ -23,17 +23,18 @@ public class AdminConsole extends RMIClient {
     public static void main(String[] args) throws RemoteException {
         System.getProperties().put("java.security.policy","AdminConsole.policy");
         if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
-                
+
+        Scanner keyboard= new Scanner(System.in);
+
 		admin = new AdminConsole();
-        admin.connect2Servers();
+        admin.connect2Servers(keyboard);
         admin.subscribe2Servers(admin, null);
-		admin.adminMenu();
+		admin.adminMenu(keyboard);
         System.exit(0);
     }
 
-    private void adminMenu() {
+    private void adminMenu(Scanner keyboard) {
         int option=0;
-        Scanner keyboard= new Scanner(System.in);
         while (true) {
             try { Runtime.getRuntime().exec("cls"); }
             catch (Exception e) { }

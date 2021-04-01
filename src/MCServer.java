@@ -26,26 +26,22 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
     public void setMensagens(String mensagens) { this.mensagens = mensagens; }
 
     public static void main(String[] args) throws RemoteException {
-        rmi_connection = new RMIClient();
-        rmi_connection.connect2Servers();
         Scanner scanner = new Scanner(System.in);
+        rmi_connection = new RMIClient();
+        rmi_connection.connect2Servers(scanner);
         String depar;
-        Inputs inpu = new Inputs();
+        Inputs input = new Inputs();
 
         while (true) {
-            depar = inpu.askDepartment(rmi_connection, scanner, new ArrayList<>(), true);
+            depar = input.askDepartment(rmi_connection, scanner, new ArrayList<>(), true);
             if (!depar.isEmpty()) break;
         }
         mesa_voto = new MCServer(Gerar_Numeros.gerar_ip(), Gerar_Numeros.gerar_port(1000,10), depar);
         while (true) {
-            //SecMultServer mesa_voto_2 = new SecMultServer("", "", depar);
             ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort());
             System.out.println("---- Vote Desk from " + mesa_voto.desk.getDeparNome() + "----");
             
-            mesa_voto.setMensagens("type|RmiVerification|cc" + inpu.askCCNumber(rmi_connection, scanner));
-            //verificacao no rmi se o eleitor esta registado
-            //mesa_voto.start();
-            //mesa_voto_2.start(); 
+            mesa_voto.setMensagens("type|RmiVerification|cc" + input.askCCNumber(rmi_connection, scanner));
         }
     }
 

@@ -9,9 +9,18 @@ public interface RMIServer_I extends Remote {
 	public String subscribeNewClient(RMIClient_I new_client, String depart_name) throws RemoteException;
 	public boolean subscribeNewServer(String new_server_ip) throws RemoteException;
 	public String ping() throws RemoteException;
-	public boolean changeServerPriority() throws RemoteException;
+	public void changeServerPriority() throws RemoteException;
+	public boolean isMainServer() throws RemoteException;
+	public RMIServer_I getPinger() throws RemoteException;
 	public String getMy_rmi_ip() throws RemoteException;
     public String getRemoted_server_ip() throws RemoteException;
+	public void setMy_rmi_ip(String full_ip) throws RemoteException;
+	public void setRemoted_server_ip(String full_ip) throws RemoteException;
+
+	public void setColleges(ArrayList<College> colleges) throws RemoteException;
+	public void setUnstarted_elections(ArrayList<Election> unstarted_elections) throws RemoteException;
+	public void setRunning_elections(ArrayList<Election> running_elections) throws RemoteException;
+	public void setFinished_elections(ArrayList<Election> finished_elections) throws RemoteException;
 	
 	//	REGIST METHODS
 	public String registUser(String new_college, String new_department, User new_user) throws RemoteException;

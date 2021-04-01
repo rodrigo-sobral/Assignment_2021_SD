@@ -4,12 +4,10 @@ rmiserver:
 	java RMIServer
 	
 admin:
-	clear
 	javac AdminConsole.java RMIClient.java RMIServer.java
 	java AdminConsole
 
 mcserver:
-	clear
 	javac MCServer.java RMIClient.java RMIServer.java AdminConsole.java
 	java MCServer
 
