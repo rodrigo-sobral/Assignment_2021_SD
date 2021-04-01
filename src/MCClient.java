@@ -50,16 +50,13 @@ public class MCClient implements Runnable{
         cliente2.getVoteTerminal().setNome_depar(depar);
 
         //SERVER->CLIENT
-        ReadWrite.read_ip_port("MCServerData.txt", depar, cliente);
-        if (cliente.vote_terminal.getNome_depar().compareTo("")==0){
-            System.out.println("There is no desk vote open in that department");
-        }
+        
         //gerar numero aleatorio para atribuir um id ao terminal
         //para o cliente2 (envia as mensagens do server) ter o id associado
         cliente2.getVoteTerminal().setId_terminal(Integer.parseInt(Gerar_Numeros.gerar_port(100, 1)));
         //para o client1 (recebe as mensagens do server) ter o id associado
         cliente.getVote_terminal().setId_terminal(cliente2.getVoteTerminal().getId_terminal());
-        System.out.println("ID DO TERMINAL: "+cliente.getVote_terminal().getId_terminal()+" "+cliente2.getVoteTerminal().getId_terminal());
+        System.out.println("ID TERMINAL: "+cliente.getVote_terminal().getId_terminal());
         //enviar a mensagem para o servidor com o id (quer dizer que esta livre)
         cliente2.setMessag("type|envia_id;id|"+cliente2.getVoteTerminal().getId_terminal());
         //terminal_voto.start();
@@ -73,49 +70,64 @@ public class MCClient implements Runnable{
     public void run() {
         MulticastSocket socket = null;
         String messag_lida;
-        try {
-            
-            System.out.println("server->cliente");
-            socket = new MulticastSocket(Integer.parseInt(getVote_terminal().getPort()));  // create socket and bind it
-            InetAddress group = InetAddress.getByName(getVote_terminal().getIp());
-            socket.joinGroup(group);
-            byte[] buffer = new byte[256];
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            while (true) {
-                try {Thread.sleep(1000);} catch (InterruptedException e){}
-                socket.receive(packet);
-                System.out.print("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
-                String message = new String(packet.getData(), 0, packet.getLength());
-                System.out.println(message);
-                cliente.setMessag(messag);
-                messag_lida = Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal());
-                System.out.println("Mensagem lida: "+messag_lida);
-                if (messag_lida.compareTo("choose")==0){
-                    System.out.println("Terminal Escolhido");
-                    setConnected(true);
-                    //Eleitor_Connected thread_connected = new Eleitor_Connected(secgm_terminal_voto, terminal_voto);
-                    thread_eleitor.thread.start();
-                }
-                else if(messag_lida.compareTo("sucessed")==0){
-                    //do something
-                }
-                else if(messag_lida.compareTo("unsucessed")==0){
-                    //do something
-                }
-                else if(messag_lida.compareTo("false")==0){
-                    //do something
-                    continue;
-                }
-                //lista eleicoes
-                else{
-                    cliente.setMessag(messag_lida);
-                    Thread.currentThread().notify();
-
-                }
+        ReadWrite.read_ip_port("MCServerData.txt", cliente2.getVoteTerminal().getNome_depar(), cliente);
+        if (cliente.vote_terminal.getNome_depar().compareTo("")==0){
+            System.out.println("There is no desk vote open in that department");
+        }
+        while(true){
+            ReadWrite.read_ip_port("MCServerData.txt", cliente2.getVoteTerminal().getNome_depar(), cliente);
+            if(cliente.vote_terminal.getNome_depar().compareTo("")!=0){
+                try {
+                
+                    System.out.println("server->cliente");
+                    socket = new MulticastSocket(Integer.parseInt(getVote_terminal().getPort()));  // create socket and bind it
+                    InetAddress group = InetAddress.getByName(getVote_terminal().getIp());
+                    socket.joinGroup(group);
+                    byte[] buffer = new byte[256];
+                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                    while (true) {
+                        try {Thread.sleep(1000);} catch (InterruptedException e){}
+                        socket.receive(packet);
+                        System.out.print("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
+                        String message = new String(packet.getData(), 0, packet.getLength());
+                        System.out.println("e a mensagem"+message);
+                        cliente.setMessag(message);
+                        
+                        messag_lida = Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal());
+                        System.out.println("Mensagem lida: "+messag_lida);
+                        if (messag_lida.compareTo("choose")==0){
+                            System.out.println("Terminal Escolhido");
+                            setConnected(true);
+                            //Eleitor_Connected thread_connected = new Eleitor_Connected(secgm_terminal_voto, terminal_voto);
+                            thread_eleitor.thread.start();
+                        }
+                        else if(messag_lida.compareTo("sucessed")==0){
+                            //do something
+                        }
+                        else if(messag_lida.compareTo("unsucessed")==0){
+                            //do something
+                        }
+                        else if(messag_lida.compareTo("false")==0){
+                            //do something
+                            continue;
+                        }
+                        else if(messag_lida.compareTo("connected_server")==0){
+                            //feito em baixo
+                        }
+                        //lista eleicoes
+                        else{
+                            cliente.setMessag(messag_lida);
+                            Thread.currentThread().notify();
+    
+                        }
+                    }
+                } catch (IOException e) { e.printStackTrace(); } 
+                finally { socket.close(); }
             }
-        } catch (IOException e) { e.printStackTrace(); } 
-        finally { socket.close(); }
+            
+        }
     }
+        
 }
 
 
@@ -149,7 +161,7 @@ class SecMultGClient implements Runnable{
 
     public void run(){
         String ip_port= ReadWrite.check_client_connect("TerminalVote.txt",getVoteTerminal().getNome_depar());
-        String [] val;  
+        String [] val,aux;  
         System.out.println("cliente->server");
         System.out.println(getVoteTerminal().getNome_depar());
         if (ip_port.compareTo("")!=0){
@@ -174,8 +186,20 @@ class SecMultGClient implements Runnable{
                     System.out.println("mensagem a enviar: "+getMessag());
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getVoteTerminal().getPort()));
                     socket.send(packet);
-                    setMessag("");
-                    
+                    val = getMessag().split(";");
+                    aux = val[0].split("\\|");
+                    if (aux[1].compareTo("envia_id")==0){
+                        //fazer a conecao
+                        System.out.println("entrou aqui");
+                        if (cliente.getMessag().compareTo("")!=0){
+                            aux = cliente.getMessag().split(";");
+                            if (aux[1].compareTo("received")==0){
+                                cliente.setConnected(true);
+                                setMessag("");
+                            }
+                        }
+                        
+                    }
                 } catch (IOException e) { e.printStackTrace(); } 
                 finally { socket.close(); }
             }
