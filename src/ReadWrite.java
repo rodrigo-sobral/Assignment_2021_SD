@@ -126,17 +126,18 @@ public class ReadWrite implements Serializable{
                 FileReader fr = new FileReader(f);
                 BufferedReader br= new BufferedReader(fr);
                 String line;
-                while((line=br.readLine()) !=null){
+                while((line=br.readLine())!=null){
                     String lista[] = line.split(" ");
                     if(lista[0].compareTo(depar)==0){
                         //linha correta
                         ip_port=lista[1]+" "+lista[2];
+                        br.close();
+                        fr.close();
                         return ip_port;
                     }
                 }
                 br.close();
                 fr.close();
-                
             }catch(FileNotFoundException ex){
                 JOptionPane.showMessageDialog(null, "[TerminalVote.txt]: Erro ao abrir o ficheiro de texto", "ERRO!", JOptionPane.ERROR_MESSAGE);
             }catch(IOException ex){
