@@ -47,7 +47,9 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         String cart, depar;
         Inputs input = new Inputs();
         String messag = "";
-        int cont = 0;
+        int cont = 0,ind;
+        Random alea = new Random();
+        
         rmi_connection = new RMIClient();
         rmi_connection.connect2Servers(scanner);
         
@@ -66,12 +68,13 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         while(true){
             try {Thread.sleep(1000);} catch (InterruptedException e){}
             cart  = input.askVariable(scanner, "Insere o CC: ", 2);
+            
             synchronized (mesa_voto.thread) {
                 try {
                     System.out.println("WAIT");
                     mesa_voto.thread.wait();
                     System.out.println("SAIU DO WAIT");
-                    System.out.println("---A connectar-se com um terminal---");
+                    System.out.println("---A adquirir um terminal para o eleitor---");
                     if(mesa_voto.getDesk().getArray_id().size() !=0){
                         if (mesa_voto.getDesk().getArray_id().size()==1){
                             ind = 0;
@@ -252,6 +255,7 @@ class Handler_Message{
 
     //trata das mensagens que o cliente recebe
     public static String typeMessage_Client(String mensagem, int id){
+        System.out.println("chegou esta mesangem"+mensagem);
         String [] sublista;
         String message="";
         String[] lista = mensagem.split(";");
@@ -265,7 +269,7 @@ class Handler_Message{
                 if (sublista[1].compareTo("sucessed")==0) return "sucessed";    
                 else return "unsucessed";
             }
-            else if(sublista[1].compareTo("received")==0) return "connected_server";
+            else if(lista[1].compareTo("received")==0) return "connected_server";
             else if(sublista[1].compareTo("connected")==0)return "choose";
             else if(sublista[1].compareTo("listaeleicoes")==0){
                 for (int i = 1; i < lista.length-1; i++) {

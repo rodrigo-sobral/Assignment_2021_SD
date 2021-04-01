@@ -75,6 +75,7 @@ public class MCClient implements Runnable{
             System.out.println("There is no desk vote open in that department");
         }
         while(true){
+            try {Thread.sleep(1000);} catch (InterruptedException e){}
             ReadWrite.read_ip_port("MCServerData.txt", cliente2.getVoteTerminal().getNome_depar(), cliente);
             if(cliente.vote_terminal.getNome_depar().compareTo("")!=0){
                 try {
@@ -91,7 +92,7 @@ public class MCClient implements Runnable{
                         System.out.print("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
                         String message = new String(packet.getData(), 0, packet.getLength());
                         System.out.println("e a mensagem"+message);
-                        cliente.setMessag(message);
+                        cliente.setMessage(message);
                         
                         messag_lida = Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal());
                         System.out.println("Mensagem lida: "+messag_lida);
@@ -113,10 +114,12 @@ public class MCClient implements Runnable{
                         }
                         else if(messag_lida.compareTo("connected_server")==0){
                             //feito em baixo
+                            cliente2.setMessage("");
                         }
                         //lista eleicoes
                         else{
-                            cliente.setMessag(messag_lida);
+                            System.out.println("AHHHHH");
+                            cliente.setMessage(messag_lida);
                             Thread.currentThread().notify();
     
                         }
@@ -141,9 +144,10 @@ class SecMultGClient implements Runnable{
     //threads
     private static Eleitor_Connected thread_eleitor;
     private static MCClient cliente;
-
     public Thread thread;
   
+
+    
     public SecMultGClient(String threadname,MCClient cliente,Eleitor_Connected thread_eleitor) {
         SecMultGClient.cliente = cliente;
         SecMultGClient.thread_eleitor = thread_eleitor;
@@ -175,7 +179,7 @@ class SecMultGClient implements Runnable{
             //gerar numero aleatorio para o id do terminal de voto
         }
         while (true){
-            try {Thread.sleep(1000);} catch (InterruptedException e){}
+            try {Thread.sleep(2000);} catch (InterruptedException e){}
             MulticastSocket socket = null;
             if (getMessage().compareTo("")!=0){
                 try {
@@ -185,20 +189,21 @@ class SecMultGClient implements Runnable{
                     System.out.println("mensagem a enviar: "+getMessage());
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getVoteTerminal().getPort()));
                     socket.send(packet);
-                    val = getMessag().split(";");
+                    /*val = getMessage().split(";");
                     aux = val[0].split("\\|");
                     if (aux[1].compareTo("envia_id")==0){
                         //fazer a conecao
-                        System.out.println("entrou aqui");
-                        if (cliente.getMessag().compareTo("")!=0){
-                            aux = cliente.getMessag().split(";");
+                        System.out.println("__entrou aqui__");
+                        if (cliente.getMessage().compareTo("")!=0){
+                            aux = cliente.getMessage().split(";");
                             if (aux[1].compareTo("received")==0){
                                 cliente.setConnected(true);
-                                setMessag("");
+
+                                setMessage("");
                             }
                         }
                         
-                    }
+                    }*/
                 } catch (IOException e) { e.printStackTrace(); } 
                 finally { socket.close(); }
             }
