@@ -16,6 +16,7 @@ public class Election implements Serializable {
     private ArrayList<String> department_restrictions= new ArrayList<>();
     
     private ArrayList<Candidature> candidatures_to_election= new ArrayList<>();
+    private ArrayList<String> voters_ccs= new ArrayList<>();
 
     public String getElection_type() { return election_type; }
     public String getTitle() { return title; }
@@ -56,17 +57,24 @@ public class Election implements Serializable {
     public void setCollege_restrictions(ArrayList<String> college_restrictions) { this.college_restrictions = college_restrictions; }
     public void setDepartment_restrictions(ArrayList<String> department_restrictions) { this.department_restrictions = department_restrictions; }
 
-    public void incrementBlankVote() { this.blank_votes++; this.total_votes++; }
-    public void incrementNullVote() { this.null_votes++; this.total_votes++; }
-    public void incrementValidVote(String candidature_name) { 
-        for (Candidature candidature : candidatures_to_election) {
-            if (candidature.getCandidature_name().compareTo(candidature_name)==0) { 
-                candidature.incrementCandidatureVotes(); 
-                this.total_votes++; 
-                return; 
-            }
-        }
+    public void incrementBlankVote(String voter_cc) { this.blank_votes++; this.total_votes++; voters_ccs.add(voter_cc); }
+    public void incrementNullVote(String voter_cc) { this.null_votes++; this.total_votes++; voters_ccs.add(voter_cc); }
+    public void incrementValidVote(int candidature_index, String voter_cc) { 
+        Candidature candidature = candidatures_to_election.get(candidature_index);
+        candidature.incrementCandidatureVotes(); 
+        voters_ccs.add(voter_cc);
+        this.total_votes++; 
     }
 
+    public boolean registVote(String voter_choice, String voter_cc) {
+        if (voter_choice.isBlank()) { incrementBlankVote(voter_cc); return true; }
+        for (String cc : voters_ccs) if (voter_cc.compareTo(cc)==0) return false;
+        try { 
+            int candidature_index= Integer.parseInt(voter_choice); 
+            if (candidature_index>0 && candidature_index<=candidatures_to_election.size()) incrementValidVote(candidature_index, voter_cc);
+            else incrementNullVote(voter_cc); 
+            return true;
+        } catch (Exception e) { incrementNullVote(voter_cc); return true; }
+    }
 
 }

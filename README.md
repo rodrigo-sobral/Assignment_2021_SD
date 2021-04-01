@@ -43,10 +43,9 @@ Não se perde/duplica votos se a comunicação Multicast tiver falhas | 4
 Avarias temporárias (<30s) dos 2 RMIs são invisíveis para clientes | 4
 Terminal de voto bloqueado automaticamente após 60s sem uso | 4
 Crash de terminal de voto é recuperado | 4
-Grupos de 3: Crash de um servidor Multicast é recuperado (-4) | 0 (X)
 -- | 
 **Failover** | 24
-O servidor RMI secundário testa periodicamente o primário | 4 (X)
+O servidor RMI secundário testa periodicamente o primário | 4 
 Em caso de avaria longa os servidores Multicast ligam ao secundário | 4
 Servidor RMI secundário substitui o primário em caso de avaria | 4
 Os dados são os mesmos em ambos os servidores RMI | 4
