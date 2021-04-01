@@ -26,8 +26,8 @@ Criar eleição | 3 (X)
 Gerir listas de candidatos a uma eleição | 3 (X)
 Criar mesas de voto | 3 (X)
 Gestão automática de terminais de voto, por Multicast | 3
-Identificar eleitor na mesa de voto e desbloquear um terminal de voto | 3
-Login de eleitor no terminal de voto | 3
+Identificar eleitor na mesa de voto e desbloquear um terminal de voto | 3 (X)
+Login de eleitor no terminal de voto | 3 (X)
 Votar (escolher, uma só vez, uma lista no terminal de voto) | 3
 Editar propriedades de uma eleição | 3 (X)
 Saber em que local votou cada eleitor | 3

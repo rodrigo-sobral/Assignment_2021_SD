@@ -59,19 +59,15 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             depar = input.askDepartment(rmi_connection, scanner, new ArrayList<>(), true);
             if (!depar.isEmpty()) break;
         }
-        rmi_connection.subscribe2Servers(rmi_connection,depar);
 
         mesa_voto = new MCServer(mesa_voto2,"mesa_voto",Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
         mesa_voto2 = new SecMultServer(mesa_voto,"mesa_voto2","", "", depar);
 
         ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort());
         System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");
-        mesa_voto2.thread.start();
-        mesa_voto.thread.start();
         while(true){
             try {Thread.sleep(1000);} catch (InterruptedException e){}
             cart  = input.askVariable(scanner, "Insira o Numero do seu CC: ", 2);
-            rmi_connection.getServer1().authorizeUser(cart);
             try {
                 if (!rmi_connection.getServer1().authorizeUser(cart)) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
             } catch (RemoteException e) {
@@ -79,6 +75,8 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     if (!rmi_connection.getServer2().authorizeUser(cart)) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
                 } catch (RemoteException e1) { }
             }
+            mesa_voto.thread.start();
+            mesa_voto2.thread.start();
             
             synchronized (mesa_voto.thread) {
                 try {

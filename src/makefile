@@ -8,8 +8,12 @@ admin:
 	java AdminConsole
 
 mcserver:
-	javac MCServer.java RMIClient.java RMIServer.java AdminConsole.java
+	javac MCServer.java RMIClient.java RMIServer.java AdminConsole.java VoteDeskData.java
 	java MCServer
+
+mcclient:
+	javac MCServer.java MCClient.java VoteTerminal.java AdminConsole.java
+	java MCClient
 
 clear:
 	rm classes/*.class
