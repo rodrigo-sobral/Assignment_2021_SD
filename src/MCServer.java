@@ -39,7 +39,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         Scanner scanner = new Scanner(System.in);
         String cart, depar;
         Inputs input = new Inputs();
-        String messag = "";
+        String message = "";
         int cont = 0;
         rmi_connection = new RMIClient();
         rmi_connection.connect2Servers(scanner);

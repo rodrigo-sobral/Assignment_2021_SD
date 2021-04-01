@@ -9,7 +9,7 @@ import java.util.*;
 public class MCClient implements Runnable{
 
     private VoteTerminal vote_terminal;
-    private String messag;
+    private String message;
     private Boolean Connected;
     public Thread thread;
 
@@ -23,7 +23,7 @@ public class MCClient implements Runnable{
     //construtor
     public MCClient(String threadname,Eleitor_Connected thread_eleitor,SecMultGClient cliente2){
         this.vote_terminal = new VoteTerminal();
-        this.messag = "";
+        this.message = "";
         this.Connected = false;
         thread = new Thread(this,threadname);
         MCClient.cliente2 = cliente2;
@@ -31,12 +31,12 @@ public class MCClient implements Runnable{
     }
 
     //getter
-    public String getMessage() { return messag; }
+    public String getMessage() { return message; }
     public VoteTerminal getVote_terminal() { return vote_terminal; }
     public Boolean getConnected() { return Connected; }    
     
     //setter
-    public void setMessage(String messag) { this.messag = messag; }
+    public void setMessage(String message) { this.message = message; }
     public void setConnected(Boolean connected) { Connected = connected; }
 
     public static void main(String[] args) {
@@ -86,7 +86,7 @@ public class MCClient implements Runnable{
                 System.out.print("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
                 String message = new String(packet.getData(), 0, packet.getLength());
                 System.out.println(message);
-                cliente.setMessage(messag);
+                cliente.setMessage(message);
                 messag_lida = Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal());
                 System.out.println("Mensagem lida: "+messag_lida);
                 if (messag_lida.compareTo("choose")==0){
@@ -121,7 +121,7 @@ public class MCClient implements Runnable{
 //envia mensagens para o server
 class SecMultGClient implements Runnable{
     //atributos
-    private String messag;
+    private String message;
     private Boolean Connected;
     private VoteTerminal voteTerminal;
 
@@ -135,16 +135,16 @@ class SecMultGClient implements Runnable{
         SecMultGClient.cliente = cliente;
         SecMultGClient.thread_eleitor = thread_eleitor;
         this.voteTerminal = new VoteTerminal();
-        this.messag = "";
+        this.message = "";
         this.Connected = false;
         thread = new Thread(this,threadname);
     }
     
     public VoteTerminal getVoteTerminal() { return voteTerminal; }
-    public String getMessage() { return messag; }
+    public String getMessage() { return message; }
     public Boolean getConnected() { return Connected; }
 
-    public void setMessage(String messag) { this.messag = messag; }
+    public void setMessage(String message) { this.message = message; }
 
     public void run(){
         String ip_port= ReadWrite.check_client_connect("TerminalVote.txt",getVoteTerminal().getNome_depar());

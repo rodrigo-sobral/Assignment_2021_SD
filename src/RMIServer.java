@@ -3,8 +3,8 @@
 
     //  RMI
     import java.rmi.*;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.server.*;
+    import java.rmi.registry.LocateRegistry;
+    import java.rmi.server.*;
     import java.time.LocalDateTime;
     import java.util.ArrayList;
     import java.util.Scanner;
@@ -545,7 +545,7 @@ import java.rmi.server.*;
         public void run() {
             int client_id=0, admin_id=0;
             while (true) {
-                try { Thread.sleep(100); }
+                try { Thread.sleep(10); }
                 catch (Exception e) { }
                 
                 //  PING CLIENTS
@@ -613,7 +613,7 @@ import java.rmi.server.*;
             int unstarted_id=0, running_id=0;
             Election temp_elec;
             while (true) {
-                try { Thread.sleep(100); }
+                try { Thread.sleep(10); }
                 catch (Exception e) { }
                 LocalDateTime now= LocalDateTime.now();
 
