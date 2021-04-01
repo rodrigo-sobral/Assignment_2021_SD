@@ -1,28 +1,12 @@
 javac MCServer.java MCClient.java VoteDeskData.java VoteTerminal.java AdminConsole.java
 
 
-mensagens:
-
-type|envia_id;id|5
-type|RmiVerification;cc|5448422451 -> type RmiVerification cc 45444
-type|Connection;id|4
-type|login;username|qwev;password|vdfgbv;id|8
-type|login;sucessed
-
-
-type|ListaEleicoes;lista1;lista2;lista3
-type|Resultado;OpcaoVoto|2;id|4
-
-as mensagens que vao para o server têm de ter SEMPRE A IDENTIFICACAO para o server
-saber com qual cliente esta a comunicar 
-
-
 SERVER->CLIENTE
 type|login;status|sucessed;id|4
 type|login;status|unsucessed;id|4
 type|connected;id|4
 type|listaeleicoes;lista1;lista2;lista3;...;id|6
-
+type|envia_id;received;id|4
 
 CLIENTE->SERVER
 type|envia_id;id|5

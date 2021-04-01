@@ -635,10 +635,10 @@ class Inputs {
             catch (Exception e2) { System.out.println("500: Nao ha servers"); return "";}
         }
 
-        //  There's no registed Departments
+        //  THERE'S NO REGISTED DEPARTMENTS
         if (available_departments.isEmpty()) { messageToWait("Erro: Nao existem Departamentos registados!\n"); return ""; }
         
-        //  Removing Departments already registed
+        //  REMOVING DEPARTMENTS ALREADY REGISTED
         if (!voting_table) for (String temp_depart : department_restrictions) available_departments.remove(temp_depart);
         
         System.out.println("Insira o Departamento onde ocorrera a Eleicao");
