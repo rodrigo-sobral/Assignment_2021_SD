@@ -17,6 +17,9 @@ public class Department implements Serializable {
     public Department(String name, String college, User new_user) {
         this.name = name;
         this.college= college;
+        this.vote_table= false;
+        this.activated_vote_table= false;
+        this.vote_terminals= 0;
         if (new_user.getUser_type().compareTo("Estudante")==0) this.getStudents().add(new_user);
         else if (new_user.getUser_type().compareTo("Professor")==0) this.getTeachers().add(new_user);
         else if (new_user.getUser_type().compareTo("Funcionario")==0) this.getStaff().add(new_user);
