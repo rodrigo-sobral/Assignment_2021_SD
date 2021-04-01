@@ -568,7 +568,7 @@ class Inputs {
     public String askVariable(Scanner keyboard, String message, int input_type) {
         String str;
         while (true) {
-            System.out.print(message);
+            System.out.println(message);
             str= keyboard.nextLine();
             if (input_type==0 && this.checkString(str)) return str;
             if (input_type==1 && this.checkPassword(str)) return str;
