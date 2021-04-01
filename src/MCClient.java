@@ -3,7 +3,7 @@ import java.net.MulticastSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.io.IOException;
-import java.util.Scanner;
+import java.util.*;
 
 
 public class MCClient implements Runnable{
@@ -16,15 +16,18 @@ public class MCClient implements Runnable{
     //threads
     private static SecMultGClient cliente2;
     private static MCClient cliente;
-    //private static Eleitor_Connected thread_eleitor;
+    private static Eleitor_Connected thread_eleitor;
+    //thread para contar o tempo em que o terminal esta inativo
 
 
     //construtor
-    public MCClient(String threadname){
+    public MCClient(String threadname,Eleitor_Connected thread_eleitor,SecMultGClient cliente2){
         this.vote_terminal = new VoteTerminal();
         this.messag = "";
         this.Connected = false;
         thread = new Thread(this,threadname);
+        MCClient.cliente2 = cliente2;
+        MCClient.thread_eleitor = thread_eleitor;
     }
 
     //getter
@@ -37,55 +40,77 @@ public class MCClient implements Runnable{
     public void setConnected(Boolean connected) { Connected = connected; }
 
     public static void main(String[] args) {
-        cliente = new MCClient("cliente");
-        cliente2 = new SecMultGClient("cliente2");
-        Inputs inpu = new Inputs();
-        
-        Scanner scanner = new Scanner(System.in);
         String depar;
+        Inputs inpu = new Inputs();
+        Scanner scanner = new Scanner(System.in);
+        cliente = new MCClient("cliente",thread_eleitor,cliente2);
+        cliente2 = new SecMultGClient("cliente2",cliente,thread_eleitor);
+        thread_eleitor = new Eleitor_Connected("thread_eleitor", cliente2, cliente,inpu,scanner);
         depar = inpu.askVariable(scanner,"Insert the department to which the desk vote belongs: " , 0);
-        cliente2.getMcclient().getVote_terminal().setNome_depar(depar);
+        cliente2.getVoteTerminal().setNome_depar(depar);
 
         //SERVER->CLIENT
-        ReadWrite.read_ip_port("VoteDesk.txt", depar, cliente);
+        ReadWrite.read_ip_port("MCServerData.txt", depar, cliente);
         if (cliente.vote_terminal.getNome_depar().compareTo("")==0){
             System.out.println("There is no desk vote open in that department");
         }
-        cliente2.getMcclient().getVote_terminal().setId_terminal(Integer.parseInt(Gerar_Numeros.gerar_port(100, 1)));
-        cliente.getVote_terminal().setId_terminal(cliente2.getMcclient().getVote_terminal().getId_terminal());
-        cliente2.getMcclient().setMessag("type|envia_id;id|"+cliente2.getMcclient().getVote_terminal().getId_terminal());
-        
-        scanner.close();
+        //gerar numero aleatorio para atribuir um id ao terminal
+        //para o cliente2 (envia as mensagens do server) ter o id associado
+        cliente2.getVoteTerminal().setId_terminal(Integer.parseInt(Gerar_Numeros.gerar_port(100, 1)));
+        //para o client1 (recebe as mensagens do server) ter o id associado
+        cliente.getVote_terminal().setId_terminal(cliente2.getVoteTerminal().getId_terminal());
+        System.out.println("ID DO TERMINAL: "+cliente.getVote_terminal().getId_terminal()+" "+cliente2.getVoteTerminal().getId_terminal());
+        //enviar a mensagem para o servidor com o id (quer dizer que esta livre)
+        cliente2.setMessag("type|envia_id;id|"+cliente2.getVoteTerminal().getId_terminal());
         //terminal_voto.start();
-        cliente2.start();
-        //MulticastUser user = new MulticastUser();
-        //user.start();
+        cliente2.thread.start();
+        cliente.thread.start();
     }
+
 
 
     //recebe mensagens do server
     public void run() {
         MulticastSocket socket = null;
+        String messag_lida;
         try {
+            
+            System.out.println("server->cliente");
             socket = new MulticastSocket(Integer.parseInt(getVote_terminal().getPort()));  // create socket and bind it
             InetAddress group = InetAddress.getByName(getVote_terminal().getIp());
             socket.joinGroup(group);
+            byte[] buffer = new byte[256];
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             while (true) {
-                byte[] buffer = new byte[256];
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                try {Thread.sleep(1000);} catch (InterruptedException e){}
                 socket.receive(packet);
                 System.out.print("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
                 String message = new String(packet.getData(), 0, packet.getLength());
                 System.out.println(message);
-
-                if (Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal()).compareTo("Choose")==0){
-                    System.out.println("É este o terminal de voto escolhido");
+                cliente.setMessag(messag);
+                messag_lida = Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal());
+                System.out.println("Mensagem lida: "+messag_lida);
+                if (messag_lida.compareTo("choose")==0){
+                    System.out.println("Terminal Escolhido");
                     setConnected(true);
                     //Eleitor_Connected thread_connected = new Eleitor_Connected(secgm_terminal_voto, terminal_voto);
-                    //thread_connected.start();
+                    thread_eleitor.thread.start();
                 }
-                else if(Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal()).compareTo("LoginSucess")==0){
-                    cliente.notify();
+                else if(messag_lida.compareTo("sucessed")==0){
+                    //do something
+                }
+                else if(messag_lida.compareTo("unsucessed")==0){
+                    //do something
+                }
+                else if(messag_lida.compareTo("false")==0){
+                    //do something
+                    continue;
+                }
+                //lista eleicoes
+                else{
+                    cliente.setMessag(messag_lida);
+                    Thread.currentThread().notify();
+
                 }
             }
         } catch (IOException e) { e.printStackTrace(); } 
@@ -93,36 +118,64 @@ public class MCClient implements Runnable{
     }
 }
 
-class SecMultGClient extends Thread{
-    
-    //atributos
-    private MCClient mcclient;
 
+//envia mensagens para o server
+class SecMultGClient implements Runnable{
+    //atributos
+    private String messag;
+    private Boolean Connected;
+    private VoteTerminal voteTerminal;
+
+    //threads
+    private static Eleitor_Connected thread_eleitor;
+    private static MCClient cliente;
+
+    public Thread thread;
   
-    public SecMultGClient(String threadname) {
-        this.mcclient = new MCClient(threadname);
-   
+    public SecMultGClient(String threadname,MCClient cliente,Eleitor_Connected thread_eleitor) {
+        SecMultGClient.cliente = cliente;
+        SecMultGClient.thread_eleitor = thread_eleitor;
+        this.voteTerminal = new VoteTerminal();
+        this.messag = "";
+        this.Connected = false;
+        thread = new Thread(this,threadname);
     }
     
-    public MCClient getMcclient() { return mcclient; }
+    public VoteTerminal getVoteTerminal() { return voteTerminal; }
+    public String getMessag() { return messag; }
+    public Boolean getConnected() { return Connected; }
+
+    public void setMessag(String messag) { this.messag = messag; }
 
     public void run(){
-        getMcclient().getVote_terminal().setIp(Gerar_Numeros.gerar_ip());
-        getMcclient().getVote_terminal().setPort(Gerar_Numeros.gerar_port(1000,100));
-        ReadWrite.Write("TerminalVote.txt", getMcclient().getVote_terminal().getNome_depar(), getMcclient().getVote_terminal().getIp(), getMcclient().getVote_terminal().getPort());
-        //gerar numero aleatorio para o id do terminal de voto
+        String ip_port= ReadWrite.check_client_connect("TerminalVote.txt",getVoteTerminal().getNome_depar());
+        String [] val;  
+        System.out.println("cliente->server");
+        System.out.println(getVoteTerminal().getNome_depar());
+        if (ip_port.compareTo("")!=0){
+            val = ip_port.split(" ");
+            getVoteTerminal().setIp(val[0]);
+            getVoteTerminal().setPort(val[1]);
+        }
+        else{
+            getVoteTerminal().setIp(Gerar_Numeros.gerar_ip());
+            getVoteTerminal().setPort(Gerar_Numeros.gerar_port(1000,100));
+            ReadWrite.Write("TerminalVote.txt", getVoteTerminal().getNome_depar(), getVoteTerminal().getIp(), getVoteTerminal().getPort());
+            //gerar numero aleatorio para o id do terminal de voto
+        }
         while (true){
+            try {Thread.sleep(1000);} catch (InterruptedException e){}
             MulticastSocket socket = null;
-            if (getMcclient().getMessag().compareTo("")!=0){
+            if (getMessag().compareTo("")!=0){
                 try {
                     socket = new MulticastSocket();  // create socket without binding it (only for sending)
-                    byte[] buffer = getMcclient().getMessag().getBytes();
-                    InetAddress group = InetAddress.getByName(getMcclient().getVote_terminal().getIp());
-                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getMcclient().getVote_terminal().getPort()));
+                    byte[] buffer = getMessag().getBytes();
+                    InetAddress group = InetAddress.getByName(getVoteTerminal().getIp());
+                    System.out.println("mensagem a enviar: "+getMessag());
+                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getVoteTerminal().getPort()));
                     socket.send(packet);
-                    getMcclient().setMessag("");
+                    setMessag("");
                     
-                    try { sleep((long) (Math.random() * 1000)); } catch (InterruptedException e) { }        
                 } catch (IOException e) { e.printStackTrace(); } 
                 finally { socket.close(); }
             }
@@ -131,27 +184,54 @@ class SecMultGClient extends Thread{
 }
 
 class Eleitor_Connected implements Runnable {
-    private static SecMultGClient secgm_terminal_voto;
-    //private static MCClient terminal_voto ;
+    private static SecMultGClient cliente2;
+    private static MCClient cliente;
+    public Thread thread;
+    private Inputs inpu;
+    private Scanner scanner;
 
-    public Eleitor_Connected(SecMultGClient secgm_terminal_voto,MCClient terminal_voto){
-        Eleitor_Connected.secgm_terminal_voto= secgm_terminal_voto;
-        //Eleitor_Connected.terminal_voto = terminal_voto;
+    public Eleitor_Connected(String threadname,SecMultGClient cliente2,MCClient cliente,Inputs inpu,Scanner scanner){
+        thread = new Thread(this,threadname);
+        Eleitor_Connected.cliente2 = cliente2;
+        Eleitor_Connected.cliente = cliente;
+        this.inpu=inpu;
+        this.scanner = scanner;
     }
+    
+    public Inputs getInpu() { return inpu; }
+    public Scanner getScanner() { return scanner; }
     
     public void run(){
-        Scanner scanner = new Scanner(System.in);
-        Inputs inpu = new Inputs();
-        String username,password;
-        username = inpu.askVariable(scanner,"Username: " , 0);
-        password = inpu.askVariable(scanner,"Password: " , 2);
-        secgm_terminal_voto.getMcclient().setMessag("type|login;username|"+username+";password|"+password);
-        try { secgm_terminal_voto.wait(); }
-        catch (Exception e) { }
-    
+        synchronized (Thread.currentThread()) {
+            while(true){
+                String username,password;
+                username = getInpu().askVariable(scanner,"Username: " , 0);
+                password = inpu.askVariable(scanner,"Password: " , 1);
+                cliente2.setMessag("type|login;username|"+username+";password|"+password+";id|"+cliente.getVote_terminal().getId_terminal());
+                try {
+                    System.out.println("entrou");
+                    Thread.currentThread().wait(); 
+                    System.out.println("saiu");
+                    break;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }   
+        }
+        ListaEleicoes(cliente.getMessag(), inpu, scanner);
     }
    
-    public static void ListaEleicoes(String message){
+    public static void ListaEleicoes(String message,Inputs inpu,Scanner scanner){
+        message+="Voto Nulo;Voto Branco";
+        String [] lista_eleicoes = message.split(";");
+        int opcao;
+        System.out.println("|==========================================|");
+        System.out.println("|             Listas para votar            |");
+        for (int i = 0; i < lista_eleicoes.length; i++) {
+            System.out.println(i+": Lista "+lista_eleicoes[0]);
+        }
+        opcao = inpu.checkIntegerOption(scanner,"Insira a opção da lista que pretende votar",0,lista_eleicoes.length-1 );
+        cliente2.setMessag("type|resultado;OpcaoVoto|"+Integer.toString(opcao)+";id|"+cliente.getVote_terminal().getId_terminal());
     }
 }
 
