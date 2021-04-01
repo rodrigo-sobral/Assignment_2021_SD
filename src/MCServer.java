@@ -49,6 +49,9 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         String messag = "";
         int cont = 0,ind;
         Random alea = new Random();
+        System.out.println("ola");
+        //rmi_connection = new RMIClient();
+        //rmi_connection.connect2Servers(scanner);
         
         rmi_connection = new RMIClient();
         rmi_connection.connect2Servers(scanner);
@@ -94,19 +97,15 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                         for (int i = 0; i < mesa_voto.getDesk().getArray_id().size(); i++) {
                             System.out.println("Elemento "+i+" "+mesa_voto.getDesk().getArray_id().get(i));
                         }
-                        //formar mensagem para enviar ao client
-                        System.out.println(mesa_voto.getDesk().getArray_id().get(ind));
-                        mesa_voto.setMensagens("type|connected;id|"+mesa_voto.getDesk().getArray_id().get(ind));
-                        System.out.println("Mensagem a enviar para o cliente: "+mesa_voto.getMensagens());
-                        System.out.println("----Conectado com o terminal de voto com id: "+mesa_voto.getDesk().getArray_id().get(ind)+"----");
-                        mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));
                         
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
             }
+            
+            
+            
         }
     }
         
@@ -133,14 +132,14 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                         socket.send(packet);
                         conection = mesa_voto.getMensagens().split(";");
                         aux = conection[0].split("\\|");
-                        if(aux[1].compareTo("connected")==0){
+                        /*if(aux[1].compareTo("connected")==0){
                             synchronized (mesa_voto.thread) {
                                 System.out.println("Parte de notify");
                                 mesa_voto.thread.notify();
                                 System.out.println("notificou");
                             }
                             
-                        }
+                        }*/
                         mesa_voto.setMensagens("");
                         
                     }
