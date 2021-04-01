@@ -136,9 +136,8 @@ import java.rmi.server.*;
         synchronized public String subscribeNewClient(RMIClient_I new_client, String depart_name) throws RemoteException {
             if (depart_name==null) { 
                 admins_list.add(new_client);
-                //  TODO: corrigir bug do administrador se desconectar
                 System.out.println("Novo Administrador Conectado ["+(admins_list.size()-1)+"]"); 
-                }
+            }
             else { 
                 Department selected_depart= getUniqueDepartment(depart_name);
                 if (!selected_depart.getVoteTable()) return "400: "+depart_name+" nao tem Mesa de Voto!\n";
@@ -557,10 +556,11 @@ import java.rmi.server.*;
                         if (clients.get(client_id)!=null) { clients.get(client_id).ping(); client_id++; } 
                         else client_id++;
                     } catch (Exception e1) {
-                        try { turnOffVoteTable(associated_deps_list.get(client_id)); }
-                        catch (Exception e2) { }
-                        clients.set(client_id, null);
-                        System.out.println("O Cliente ["+(client_id++)+"] desconectou-se!");
+                        try {
+                            turnOffVoteTable(associated_deps_list.get(client_id)); 
+                            clients.set(client_id, null);
+                            System.out.println("O Cliente ["+(client_id++)+"] desconectou-se!");
+                        } catch (Exception e2) { }
                     }
                 }
 
@@ -572,11 +572,6 @@ import java.rmi.server.*;
                         if (admins.get(admin_id)!=null) { admins.get(admin_id).ping(); admin_id++; } 
                         else admin_id++;
                     } catch (Exception e) {
-                        try {
-                            //Naming.lookup(admins.get(admin_id))    
-                        } catch (Exception e1) {
-                        
-                        }
                         admins.set(admin_id, null);
                         System.out.println("O Administrador ["+(admin_id++)+"] desconectou-se!");
                     }

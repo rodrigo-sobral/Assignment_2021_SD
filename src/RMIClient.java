@@ -10,7 +10,6 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
     private RMIServer_I server1, server2;
 	private int port=1099;
 	private String rmiregistry1="rmiconnection1", rmiregistry2="rmiconnection2";
-    private String my_rmi_ip, remoted_rmi_ip;
 
     RMIClient() throws RemoteException { 
         super();
@@ -34,7 +33,6 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
             } return true;
         } catch (Exception e1) { 
             try {
-                //String full_ip= "rmi://192.168.1.37:1099/rmiconnection2";
                 String full_ip= getRegistryFromIP(server1_ip, rmiregistry2);
                 server1 = (RMIServer_I) Naming.lookup(full_ip);
                 server1.setMy_rmi_ip(full_ip);
@@ -59,11 +57,8 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
                 System.out.println(result);
             } catch (Exception e2) { System.out.println("Servidor 2 Fechado."); return false; }
 		}
-        if (depart_name!=null && result!=null) {
-            String[] http_code= result.split(":");
-            if (http_code[0].compareTo("200")==0) return true;
-            else return false;
-        } return false;
+       if (result.split(":")[0].compareTo("200")==0) return true;
+       return false;
     }
 
 	public RMIServer_I getServer1() { return server1; }
@@ -71,11 +66,5 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
     private String getRegistryFromIP(String ip, String registryName) { return "rmi://"+ip+":"+port+"/"+registryName; }
 
     synchronized public String ping() throws RemoteException { return "ACK"; }
-
-    public String getMyRmiIp() throws RemoteException { return my_rmi_ip; }
-    public String getRemotedRmiIp() throws RemoteException { return remoted_rmi_ip; }
-
-    public void setMyRmiIp(String my_rmi_ip) throws RemoteException { this.my_rmi_ip = my_rmi_ip; }
-    public void setRemotedRmiIp(String remoted_rmi_ip) throws RemoteException { this.remoted_rmi_ip = remoted_rmi_ip; }
 
 }
