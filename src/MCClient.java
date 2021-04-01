@@ -31,22 +31,22 @@ public class MCClient implements Runnable{
     }
 
     //getter
-    public String getMessag() { return messag; }
+    public String getMessage() { return messag; }
     public VoteTerminal getVote_terminal() { return vote_terminal; }
     public Boolean getConnected() { return Connected; }    
     
     //setter
-    public void setMessag(String messag) { this.messag = messag; }
+    public void setMessage(String messag) { this.messag = messag; }
     public void setConnected(Boolean connected) { Connected = connected; }
 
     public static void main(String[] args) {
         String depar;
-        Inputs inpu = new Inputs();
+        Inputs input = new Inputs();
         Scanner scanner = new Scanner(System.in);
         cliente = new MCClient("cliente",thread_eleitor,cliente2);
         cliente2 = new SecMultGClient("cliente2",cliente,thread_eleitor);
-        thread_eleitor = new Eleitor_Connected("thread_eleitor", cliente2, cliente,inpu,scanner);
-        depar = inpu.askVariable(scanner,"Insert the department to which the desk vote belongs: " , 0);
+        thread_eleitor = new Eleitor_Connected("thread_eleitor", cliente2, cliente,input,scanner);
+        depar = input.askVariable(scanner,"Insert the department to which the desk vote belongs: " , 0);
         cliente2.getVoteTerminal().setNome_depar(depar);
 
         //SERVER->CLIENT
@@ -58,7 +58,7 @@ public class MCClient implements Runnable{
         cliente.getVote_terminal().setId_terminal(cliente2.getVoteTerminal().getId_terminal());
         System.out.println("ID TERMINAL: "+cliente.getVote_terminal().getId_terminal());
         //enviar a mensagem para o servidor com o id (quer dizer que esta livre)
-        cliente2.setMessag("type|envia_id;id|"+cliente2.getVoteTerminal().getId_terminal());
+        cliente2.setMessage("type|envia_id;id|"+cliente2.getVoteTerminal().getId_terminal());
         //terminal_voto.start();
         cliente2.thread.start();
         cliente.thread.start();
@@ -154,10 +154,10 @@ class SecMultGClient implements Runnable{
     }
     
     public VoteTerminal getVoteTerminal() { return voteTerminal; }
-    public String getMessag() { return messag; }
+    public String getMessage() { return messag; }
     public Boolean getConnected() { return Connected; }
 
-    public void setMessag(String messag) { this.messag = messag; }
+    public void setMessage(String messag) { this.messag = messag; }
 
     public void run(){
         String ip_port= ReadWrite.check_client_connect("TerminalVote.txt",getVoteTerminal().getNome_depar());
@@ -168,8 +168,7 @@ class SecMultGClient implements Runnable{
             val = ip_port.split(" ");
             getVoteTerminal().setIp(val[0]);
             getVoteTerminal().setPort(val[1]);
-        }
-        else{
+        } else {
             getVoteTerminal().setIp(Gerar_Numeros.gerar_ip());
             getVoteTerminal().setPort(Gerar_Numeros.gerar_port(1000,100));
             ReadWrite.Write("TerminalVote.txt", getVoteTerminal().getNome_depar(), getVoteTerminal().getIp(), getVoteTerminal().getPort());
@@ -178,12 +177,12 @@ class SecMultGClient implements Runnable{
         while (true){
             try {Thread.sleep(1000);} catch (InterruptedException e){}
             MulticastSocket socket = null;
-            if (getMessag().compareTo("")!=0){
+            if (getMessage().compareTo("")!=0){
                 try {
                     socket = new MulticastSocket();  // create socket without binding it (only for sending)
-                    byte[] buffer = getMessag().getBytes();
+                    byte[] buffer = getMessage().getBytes();
                     InetAddress group = InetAddress.getByName(getVoteTerminal().getIp());
-                    System.out.println("mensagem a enviar: "+getMessag());
+                    System.out.println("mensagem a enviar: "+getMessage());
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getVoteTerminal().getPort()));
                     socket.send(packet);
                     val = getMessag().split(";");
@@ -211,18 +210,18 @@ class Eleitor_Connected implements Runnable {
     private static SecMultGClient cliente2;
     private static MCClient cliente;
     public Thread thread;
-    private Inputs inpu;
+    private Inputs input;
     private Scanner scanner;
 
-    public Eleitor_Connected(String threadname,SecMultGClient cliente2,MCClient cliente,Inputs inpu,Scanner scanner){
+    public Eleitor_Connected(String threadname,SecMultGClient cliente2,MCClient cliente,Inputs input,Scanner scanner){
         thread = new Thread(this,threadname);
         Eleitor_Connected.cliente2 = cliente2;
         Eleitor_Connected.cliente = cliente;
-        this.inpu=inpu;
+        this.input=input;
         this.scanner = scanner;
     }
     
-    public Inputs getInpu() { return inpu; }
+    public Inputs getInpu() { return input; }
     public Scanner getScanner() { return scanner; }
     
     public void run(){
@@ -230,32 +229,30 @@ class Eleitor_Connected implements Runnable {
             while(true){
                 String username,password;
                 username = getInpu().askVariable(scanner,"Username: " , 0);
-                password = inpu.askVariable(scanner,"Password: " , 1);
-                cliente2.setMessag("type|login;username|"+username+";password|"+password+";id|"+cliente.getVote_terminal().getId_terminal());
+                password = input.askVariable(scanner,"Password: " , 1);
+                cliente2.setMessage("type|login;username|"+username+";password|"+password+";id|"+cliente.getVote_terminal().getId_terminal());
                 try {
                     System.out.println("entrou");
                     Thread.currentThread().wait(); 
                     System.out.println("saiu");
                     break;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                } catch (InterruptedException e) { e.printStackTrace(); }
             }   
-        }
-        ListaEleicoes(cliente.getMessag(), inpu, scanner);
+        } 
+        ListaEleicoes(cliente.getMessage(), input, scanner);
     }
    
-    public static void ListaEleicoes(String message,Inputs inpu,Scanner scanner){
-        message+="Voto Nulo;Voto Branco";
+    public static void ListaEleicoes(String message,Inputs input,Scanner scanner){
+        message+="Voto Nulo; Voto Branco";
         String [] lista_eleicoes = message.split(";");
         int opcao;
         System.out.println("|==========================================|");
         System.out.println("|             Listas para votar            |");
-        for (int i = 0; i < lista_eleicoes.length; i++) {
-            System.out.println(i+": Lista "+lista_eleicoes[0]);
-        }
-        opcao = inpu.checkIntegerOption(scanner,"Insira a opção da lista que pretende votar",0,lista_eleicoes.length-1 );
-        cliente2.setMessag("type|resultado;OpcaoVoto|"+Integer.toString(opcao)+";id|"+cliente.getVote_terminal().getId_terminal());
+        System.out.println("|==========================================|");
+        for (int i = 0; i < lista_eleicoes.length; i++) System.out.println((i+1)+ ": Lista " + lista_eleicoes[i]);
+
+        opcao = input.checkIntegerOption(scanner,"Insira a opção da lista que pretende votar", 1, lista_eleicoes.length );
+        cliente2.setMessage("type|resultado;OpcaoVoto|" + Integer.toString(opcao) + ";id|" + cliente.getVote_terminal().getId_terminal());
     }
 }
 

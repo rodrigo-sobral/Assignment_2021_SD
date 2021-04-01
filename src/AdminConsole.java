@@ -27,9 +27,9 @@ public class AdminConsole extends RMIClient {
         Scanner keyboard= new Scanner(System.in);
 
 		admin = new AdminConsole();
-        admin.connect2Servers(keyboard);
-        admin.subscribe2Servers(admin, null);
-		admin.adminMenu(keyboard);
+        while (!admin.connect2Servers(keyboard));
+        while (!admin.subscribe2Servers(admin, null));
+        admin.adminMenu(keyboard);
         System.exit(0);
     }
 
@@ -520,7 +520,13 @@ public class AdminConsole extends RMIClient {
                 try { available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(true); } 
                 catch (Exception e2) { System.out.println("500: Nao ha servers!\n"); }
             }
-            if (available_deps.isEmpty()) { input_manage.messageToWait("Erro: Nao existem Mesas de Voto Disponiveis!"); return; };
+            if (available_deps.isEmpty()) { 
+                input_manage.messageToWait("Erro: Nao existem Mesas de Voto Disponiveis!"); 
+                pressed_enter.stop(); 
+                try { pressed_enter.enter_thread.join(); }
+                catch (InterruptedException e) { }
+                return; 
+            }
 
             //  ASK DEPARTMENT FROM THE ONES WHICH HAVE NOT VOTE TABLE 
             System.out.println("----------------------------------------");
@@ -743,6 +749,7 @@ class GetEnterKey implements Runnable {
     Scanner keyboard;
     Inputs input;
     Thread enter_thread;
+    boolean exit=false;
 
     public GetEnterKey(String threadname, Scanner keyboard, Inputs input) {
         this.keyboard= keyboard;
@@ -752,14 +759,14 @@ class GetEnterKey implements Runnable {
     }
 
     public void run() {
-        while (true) {
-            //try { Thread.sleep(100); }
-            //catch (Exception e) { }
+        while (!exit) {
             try {
                 String enter= keyboard.nextLine();
                 if (enter.isEmpty()) return;
             } catch (Exception e) { }
         }
     }
+
+    public void stop() { exit = true; }
 }
 
