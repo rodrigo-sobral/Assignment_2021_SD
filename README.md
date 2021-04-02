@@ -1,16 +1,4 @@
 # Assignment_2021_SD
-### TODO
-- Criar uma thread para verificar constantemente as datas das eleicoes e quando uma eleicao acabar passa-a para a `finished_election`
-
-### DOING
-
-### DONE
-- Transferir uma faculdade->departamento->user do admin console para o rmi server
-- Criar funcoes pra ler ficheiros das faculdades->departamentos->users e eleicoes->candidaturas
-- Criar Eleicao e Candidatura e transferi-la para o RMI Server 
-- Para criar a candidatura precisamos de pedir a lista de eleicoes ATIVAS
-
-___
 
 ## CHECKLIST
 
@@ -32,9 +20,9 @@ Votar (escolher, uma só vez, uma lista no terminal de voto) | 3
 Editar propriedades de uma eleição | 3 (X)
 Saber em que local votou cada eleitor | 3
 Consola de administração mostra mesas de voto on/off e votantes | 3
-Consola de administração atualizada em tempo real nas eleições | 3
-Eleição termina corretamente na data, hora e minuto marcados | 7
-Consultar resultados detalhados de todas as eleições passadas | 3
+Consola de administração atualizada em tempo real nas eleições | 3 (X)
+Eleição termina corretamente na data, hora e minuto marcados | 7 (X)
+Consultar resultados detalhados de todas as eleições passadas | 3 (X)
 -- | 
 **Tratamento de Exceções** | 24
 Avaria de um servidor RMI não tem qualquer efeito nos clientes | 4
