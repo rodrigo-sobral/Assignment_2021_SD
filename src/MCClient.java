@@ -46,9 +46,15 @@ public class MCClient implements Runnable{
         cliente = new MCClient("cliente",thread_eleitor,cliente2);
         cliente2 = new SecMultGClient("cliente2",cliente,thread_eleitor);
         thread_eleitor = new Eleitor_Connected("thread_eleitor", cliente2, cliente,input,scanner);
-        depar = input.askVariable(scanner,"Insert the department to which the desk vote belongs: " , 0);
-        cliente2.getVoteTerminal().setNome_depar(depar);
-
+        while(true){
+            depar = input.askVariable(scanner,"Insira o deparmento a que o terminal de voto pertence: " , 0);
+            cliente2.getVoteTerminal().setNome_depar(depar);
+            ReadWrite.read_ip_port("MCServerData.txt", cliente2.getVoteTerminal().getNome_depar(), cliente);
+            if (cliente.vote_terminal.getNome_depar().compareTo("")==0){
+                System.out.println("Nao existe nenhuma mesa aberta nesse departamento");
+            }
+            else break;
+        }
         //SERVER->CLIENT
         
         //gerar numero aleatorio para atribuir um id ao terminal
@@ -59,7 +65,6 @@ public class MCClient implements Runnable{
         System.out.println("ID TERMINAL: "+cliente.getVote_terminal().getId_terminal());
         //enviar a mensagem para o servidor com o id (quer dizer que esta livre)
         cliente2.setMessage("type|envia_id;id|"+cliente2.getVoteTerminal().getId_terminal());
-        //terminal_voto.start();
         cliente2.thread.start();
         cliente.thread.start();
     }
@@ -70,10 +75,7 @@ public class MCClient implements Runnable{
     public void run() {
         MulticastSocket socket = null;
         String messag_lida;
-        ReadWrite.read_ip_port("MCServerData.txt", cliente2.getVoteTerminal().getNome_depar(), cliente);
-        if (cliente.vote_terminal.getNome_depar().compareTo("")==0){
-            System.out.println("There is no desk vote open in that department");
-        }
+
         while(true){
             try {Thread.sleep(1000);} catch (InterruptedException e){}
             ReadWrite.read_ip_port("MCServerData.txt", cliente2.getVoteTerminal().getNome_depar(), cliente);

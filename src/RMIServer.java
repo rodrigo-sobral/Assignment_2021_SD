@@ -3,8 +3,8 @@
 
     //  RMI
     import java.rmi.*;
-    import java.rmi.registry.LocateRegistry;
-    import java.rmi.server.*;
+        import java.rmi.registry.LocateRegistry;
+        import java.rmi.server.*;
     import java.time.LocalDateTime;
     import java.util.ArrayList;
     import java.util.Scanner;
