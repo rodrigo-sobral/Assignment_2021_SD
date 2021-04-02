@@ -149,10 +149,13 @@ public class AdminConsole extends RMIClient {
         new_user.setDepartment(new_department);
 
         //  SEND NEW USER TO RMI SERVER
-        try { System.out.println(admin.getServer1().registUser(new_college, new_department, new_user)); } 
-        catch (Exception e1) {
-            try { System.out.println(admin.getServer2().registUser(new_college, new_department, new_user)); } 
-            catch (Exception e2) { System.out.println("500: Nao ha servers.\n"); }
+        String result=null;
+        while (result==null) {
+            try { result= admin.getServer1().registUser(new_college, new_department, new_user); } 
+            catch (Exception e1) {
+                try { result= admin.getServer2().registUser(new_college, new_department, new_user); } 
+                catch (Exception e2) { result=null; }
+            }
         }
     }
     private void addElection(Scanner keyboard) {
@@ -235,7 +238,7 @@ public class AdminConsole extends RMIClient {
         try { available_elections = admin.getServer1().getUnstartedElections(); } 
         catch (Exception e1) {
             try { available_elections = admin.getServer2().getUnstartedElections(); } 
-            catch (Exception e2) { System.out.println("500: Nao ha servers"); }
+            catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
         }
         if (available_elections.isEmpty()) { input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); return; }
         
@@ -275,25 +278,36 @@ public class AdminConsole extends RMIClient {
             
         }
 
-        //  GET USERS AVAILABLE FROM SPECIFIC COLLEGES
-        for (String college : collegs_restricts) {
-            try { 
-                for (Department department : admin.getServer1().getUniqueCollege(college).getDepartments()) 
-                    users_restricts.addAll(department.getUsersWithType(user_type_restrics));
-            } catch (Exception e1) {
-                try {
-                    for (Department department : admin.getServer2().getUniqueCollege(college).getDepartments()) 
-                    users_restricts.addAll(department.getUsersWithType(user_type_restrics));
-                } catch (Exception e2) { System.out.println("500: Nao ha servers"); }
-            }
-        }
-
-        //  GET USERS AVAILABLE FROM SPECIFIC DEPARTMENTS
-        for (String department : deps_restricts) {
-            try { users_restricts.addAll(admin.getServer1().getUniqueDepartment(department).getUsersWithType(user_type_restrics)); } 
+        if (collegs_restricts.isEmpty() && deps_restricts.isEmpty()) {
+            ArrayList<College> all_colleges= null;
+            try { all_colleges= admin.getServer1().getColleges(); } 
             catch (Exception e1) {
-                try { users_restricts.addAll(admin.getServer2().getUniqueDepartment(department).getUsersWithType(user_type_restrics)); } 
-                catch (Exception e2) { System.out.println("500: Nao ha servers"); }
+                try { all_colleges= admin.getServer1().getColleges(); } 
+                catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
+            }
+            for (College college : all_colleges)
+                for (Department department : college.getDepartments()) users_restricts.addAll(department.getUsersWithType(user_type_restrics));
+        } else {
+            //  GET USERS AVAILABLE FROM SPECIFIC COLLEGES
+            for (String college : collegs_restricts) {
+                try { 
+                    for (Department department : admin.getServer1().getUniqueCollege(college).getDepartments()) 
+                        users_restricts.addAll(department.getUsersWithType(user_type_restrics));
+                } catch (Exception e1) {
+                    try {
+                        for (Department department : admin.getServer2().getUniqueCollege(college).getDepartments()) 
+                        users_restricts.addAll(department.getUsersWithType(user_type_restrics));
+                    } catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
+                }
+            }
+
+            //  GET USERS AVAILABLE FROM SPECIFIC DEPARTMENTS
+            for (String department : deps_restricts) {
+                try { users_restricts.addAll(admin.getServer1().getUniqueDepartment(department).getUsersWithType(user_type_restrics)); } 
+                catch (Exception e1) {
+                    try { users_restricts.addAll(admin.getServer2().getUniqueDepartment(department).getUsersWithType(user_type_restrics)); } 
+                    catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
+                }
             }
         }
 
@@ -321,11 +335,11 @@ public class AdminConsole extends RMIClient {
         for (Integer integer : options) new_candidature.getCandidates().add(users_restricts.get(integer-1));
         
         //  SEND SELECTED UPDATED ELECTION TO RMI SERVER
-        selected_election.getCandidatures_to_election().add(new_candidature);
+        selected_election.getCandidatures_to_election().add(new_candidature);   
         try { System.out.println(admin.getServer1().setUpdatedElection(selected_election, true)); } 
         catch (Exception e1) {
             try { System.out.println(admin.getServer1().setUpdatedElection(selected_election, true)); } 
-            catch (Exception e2) { System.out.println("500: Nao ha servers"); }
+            catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
         }
     }
     private void addVoteTable(Scanner keyboard) {
@@ -401,7 +415,7 @@ public class AdminConsole extends RMIClient {
         try { available_elections = admin.getServer1().getUnstartedElections(); 
         } catch (Exception e1) {
             try { available_elections = admin.getServer2().getUnstartedElections(); 
-            } catch (Exception e2) { System.out.println("500: Nao ha servers"); }
+            } catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
         }
         if (available_elections.isEmpty()) { System.out.println("Erro: Nao ha Eleicoes registadas!"); return; }
 
@@ -462,7 +476,7 @@ public class AdminConsole extends RMIClient {
         try { available_elections = admin.getServer1().getFinishedElections(); } 
         catch (Exception e1) {
             try { available_elections = admin.getServer2().getFinishedElections(); } 
-            catch (Exception e2) { System.out.println("500: Nao ha servers"); }
+            catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
         }
         if (available_elections.isEmpty()) { input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); return; }
         

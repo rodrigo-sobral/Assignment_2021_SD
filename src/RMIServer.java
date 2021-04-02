@@ -641,7 +641,7 @@
                         if (temp_elec.getStarting().compareTo(now)<=0) {
                             server.running_elections.add(temp_elec);
                             server.unstarted_elections.remove(unstarted_id); 
-                            if (server.getPinger()!=null) {
+                            if (server.getPinger()!=null && server.isMainServer()) {
                                 server.getPinger().setUnstarted_elections(server.unstarted_elections);
                                 server.getPinger().setRunning_elections(server.running_elections); 
                             }
@@ -660,7 +660,7 @@
                         if (temp_elec.getEnding().compareTo(now)<0) { 
                             server.finished_elections.add(temp_elec);
                             server.running_elections.remove(running_id); 
-                            if (server.getPinger()!=null) {
+                            if (server.getPinger()!=null && server.isMainServer()) {
                                 server.getPinger().setRunning_elections(server.running_elections);
                                 server.getPinger().setFinished_elections(server.finished_elections);
                             }

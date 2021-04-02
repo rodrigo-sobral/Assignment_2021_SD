@@ -29,7 +29,7 @@ Avaria de um servidor RMI não tem qualquer efeito nos clientes | 4
 Não se perde/duplica votos se os servidores RMI falharem | 4
 Não se perde/duplica votos se a comunicação Multicast tiver falhas | 4
 Avarias temporárias (<30s) dos 2 RMIs são invisíveis para clientes | 4
-Terminal de voto bloqueado automaticamente após 60s sem uso | 4
+Terminal de voto bloqueado automaticamente após 60s sem uso | 4 (X)
 Crash de terminal de voto é recuperado | 4
 -- | 
 **Failover** | 24
