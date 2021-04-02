@@ -1,13 +1,13 @@
 SERVER->CLIENTE
 type|login;status|sucessed;id|4
 type|login;status|unsucessed;id|4
-type|connected;id|4
-type|listaeleicoes;lista1;lista2;lista3;...;id|6
+type|connected;id|4 -> conectar um eleitor a um servidor
+type|listacandidaturas;lista1;lista2;lista3;...;id|6
 type|envia_id;received;id|4
 
 CLIENTE->SERVER
 type|envia_id;id|5
 type|login;username|qwev;password|vdfgbv;id|5
-type|resultado;opcaovoto|2;id|4
+type|resultado;opcaovoto|btg;cc|123654789;id|4
 
 ask listas eleicoes

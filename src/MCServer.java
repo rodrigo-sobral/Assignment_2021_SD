@@ -62,7 +62,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         }
 
         mesa_voto = new MCServer(mesa_voto2,"mesa_voto",Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
-        mesa_voto2 = new SecMultServer(mesa_voto,"mesa_voto2","", "", depar);
+        mesa_voto2 = new SecMultServer(rmi_connection,mesa_voto,"mesa_voto2","", "", depar);
 
         ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort());
         System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");
@@ -85,12 +85,19 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     mesa_voto.thread.wait();
                     System.out.println("SAIU DO WAIT");
                     System.out.println("---A adquirir um terminal para o eleitor---");
+                    System.out.println("...Esperar que mais terminais de voto se conectem...");
+                    try {Thread.sleep(10000);} catch (InterruptedException e) { }
                     if(mesa_voto.getDesk().getArray_id().size() !=0){
                         if (mesa_voto.getDesk().getArray_id().size()==1) ind = 0;
                         else ind = alea.nextInt((mesa_voto.getDesk().getArray_id().size()) + 1);
                         for (int i = 0; i < mesa_voto.getDesk().getArray_id().size(); i++) 
                             System.out.println("Elemento "+i+" "+mesa_voto.getDesk().getArray_id().get(i));
+                        System.out.println("Terminal de voto com id"+mesa_voto.getDesk().getArray_id().get(ind)+"selecionado");
+                        mesa_voto.setMensagens("type|connected;id|"+mesa_voto.getDesk().getArray_id().get(ind));
+                        mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));   
+                        mesa_voto.printar_array_id_conectados();
                     }
+
                 } catch (Exception e) { e.printStackTrace(); }
             }
         }
@@ -116,8 +123,8 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                         packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getDesk().getPort()));
                         socket.send(packet);
                         conection = mesa_voto.getMensagens().split(";");
-                        aux = conection[0].split("\\|");
-                        if(aux[1].compareTo("received")==0){
+                        //aux = conection[0].split("\\|");
+                        if(conection[1].compareTo("received")==0){
                             synchronized (mesa_voto.thread) {
                                 System.out.println("Parte de notify");
                                 mesa_voto.thread.notify();
@@ -142,12 +149,14 @@ class SecMultServer implements Runnable {
 
     public Thread thread;
     private static MCServer mesa_voto;
+    private static RMIClient rmi_connection;
 
 
-    public SecMultServer(MCServer mesa_voto,String threadname,String ip, String port,String depar) throws RemoteException {
+    public SecMultServer(RMIClient rmi_connection,MCServer mesa_voto,String threadname,String ip, String port,String depar) throws RemoteException {
         this.desk = new MCServerData(ip, port, depar);
         SecMultServer.mesa_voto = mesa_voto;
         thread = new Thread(this,threadname);
+        SecMultServer.rmi_connection = rmi_connection;
     }
     
     public MCServerData getDesk() { return desk; }
@@ -175,7 +184,8 @@ class SecMultServer implements Runnable {
                             System.out.println("(Server)Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
                             String message = new String(packet.getData(), 0, packet.getLength());
                             System.out.println(message);
-                            Handler_Message.typeMessage(message, mesa_voto);
+                            Handler_Message.typeMessage(message, mesa_voto,rmi_connection);
+                            
 
                         }
                     } catch (IOException e) { e.printStackTrace();
@@ -188,8 +198,11 @@ class SecMultServer implements Runnable {
 }
 
 class Handler_Message{
+    private static boolean authenticateUser;
+
+
     //trata das mensagens que o server recebe
-    public static Boolean typeMessage(String mensagem,MCServer mesa_voto){
+    public static Boolean typeMessage(String mensagem,MCServer mesa_voto,RMIClient rmi_connection){
         String [] sublista;
         String[] lista = mensagem.split(";");
         Random alea = new Random();
@@ -228,10 +241,20 @@ class Handler_Message{
             for (int i = 1; i < lista.length-2; i++) {
                 sublista = lista[i].split("\\|");
                 add_mensagens.add(sublista[1]);
-                //enviar para o rmi para verificar o username e o login 
+                //enviar para o rmi para verificar o username e o login    
             }
             sublista = lista[lista.length -1].split("\\|");
             id = sublista[1];
+            try {
+                if (rmi_connection.getServer1().authenticateUser(add_mensagens.get(0), add_mensagens.get(1)) == true){
+                    mesa_voto.setMensagens("type|login;status|sucessed;id|"+id);
+                }else{
+                    mesa_voto.setMensagens("type|login;status|unsucessed;id|"+id);
+                }
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            
 
             add_mensagens.clear();
             return true;
