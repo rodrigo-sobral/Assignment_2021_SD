@@ -33,12 +33,12 @@ Terminal de voto bloqueado automaticamente após 60s sem uso | 4
 Crash de terminal de voto é recuperado | 4
 -- | 
 **Failover** | 24
-O servidor RMI secundário testa periodicamente o primário | 4 
-Em caso de avaria longa os servidores Multicast ligam ao secundário | 4
-Servidor RMI secundário substitui o primário em caso de avaria | 4
-Os dados são os mesmos em ambos os servidores RMI | 4
+O servidor RMI secundário testa periodicamente o primário | 4 (X)
+Em caso de avaria longa os servidores Multicast ligam ao secundário | 4 (X)
+Servidor RMI secundário substitui o primário em caso de avaria | 4 (X)
+Os dados são os mesmos em ambos os servidores RMI | 4 
 O failover é invisível para clientes/eleitores (não perdem a sessão) | 4
-O servidor original, quando recupera, torna-se secundário | 4
+O servidor original, quando recupera, torna-se secundário | 4 (X)
 -- | 
 **Relatório**	| 8
 Detalhes do funcionamento do servidor Multicast (protocolo, etc.) | 2

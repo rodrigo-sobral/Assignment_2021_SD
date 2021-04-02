@@ -1,4 +1,7 @@
 import java.util.ArrayList;
+
+import classes.Election;
+
 import java.net.MulticastSocket;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -43,22 +46,26 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
     }
     public static void main(String[] args) throws RemoteException, InterruptedException {
         Scanner scanner = new Scanner(System.in);
-        String cart, depar;
+        String cart, depar="";
         Inputs input = new Inputs();
         String messag = "";
         int cont = 0, ind;
         Random alea = new Random();
-        //rmi_connection = new RMIClient();
-        //rmi_connection.connect2Servers(scanner);
         
         rmi_connection = new RMIClient();
         while (!rmi_connection.connect2Servers(scanner));
-        
-        ArrayList<String> test= rmi_connection.getServer1().getCollegesNames();
-        for (String string : test) System.out.println(string);
-        while (true) {
-            depar = input.askDepartment(rmi_connection, scanner, new ArrayList<>(), true);
-            if (!depar.isEmpty()) break;
+
+        Election current_election=null;
+        while (current_election==null) {
+            while (true) {
+                depar = input.askDepartment(rmi_connection, scanner, new ArrayList<>(), true);
+                if (!depar.isEmpty()) break;
+            }
+            try { current_election= rmi_connection.getServer1().getElectionToVoteTable(depar); }
+            catch (Exception e1) {
+                try { current_election= rmi_connection.getServer2().getElectionToVoteTable(depar); }
+                catch (Exception e2) { }
+            }
         }
 
         mesa_voto = new MCServer(mesa_voto2,"mesa_voto",Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);

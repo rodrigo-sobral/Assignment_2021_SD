@@ -1,5 +1,6 @@
 
 import java.net.MulticastSocket;
+import java.net.SocketTimeoutException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.io.IOException;
@@ -126,7 +127,9 @@ public class MCClient implements Runnable{
     
                         }
                     }
-                } catch (IOException e) { e.printStackTrace(); } 
+                } 
+                catch(SocketTimeoutException se) { System.out.println("Aviso: Excedeu o tempo limite, o Terminal de Voto ira encerrar!"); }
+                catch (IOException e) { e.printStackTrace(); } 
                 finally { socket.close(); }
             }
             
@@ -165,7 +168,7 @@ class SecMultGClient implements Runnable{
 
     public void setMessage(String message) { this.message = message; }
 
-    public void run(){
+    public void run() {
         String ip_port= ReadWrite.check_client_connect("TerminalVote.txt",getVoteTerminal().getNome_depar());
         String [] val;  
         System.out.println("cliente->server");
@@ -228,14 +231,14 @@ class Eleitor_Connected implements Runnable {
         this.scanner = scanner;
     }
     
-    public Inputs getInpu() { return input; }
+    public Inputs getInput() { return input; }
     public Scanner getScanner() { return scanner; }
     
     public void run(){
         synchronized (Thread.currentThread()) {
             while(true){
                 String username,password;
-                username = getInpu().askVariable(scanner,"Username: " , 0);
+                username = getInput().askVariable(scanner,"Username: " , 0);
                 password = input.askVariable(scanner,"Password: " , 1);
                 cliente2.setMessage("type|login;username|"+username+";password|"+password+";id|"+cliente.getVote_terminal().getId_terminal());
                 try {
@@ -262,4 +265,3 @@ class Eleitor_Connected implements Runnable {
         cliente2.setMessage("type|resultado;OpcaoVoto|" + Integer.toString(opcao) + ";id|" + cliente.getVote_terminal().getId_terminal());
     }
 }
-

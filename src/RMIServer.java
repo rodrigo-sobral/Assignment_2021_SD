@@ -311,6 +311,18 @@
             } return available_departments;
         }
 
+        synchronized public Election getElectionToVoteTable(String depart_name) throws RemoteException {
+            for (Election running_election : running_elections) {
+                for (String college_name : running_election.getCollege_restrictions()) {
+                    College college= getUniqueCollege(college_name);
+                    for (Department department : college.getDepartments())
+                        if (department.getName().compareTo(depart_name)==0) return running_election;
+                }
+                for (String department_name : running_election.getDepartment_restrictions()) 
+                    if (department_name.compareTo(depart_name)==0) return running_election;
+            } return null;
+        }
+
         //  ===========================================================================================================
         //  COMUNICATIONS WITH MULTICAST SERVERS
         //  ===========================================================================================================
@@ -341,19 +353,23 @@
         }
 
         synchronized public void setColleges(ArrayList<College> colleges) throws RemoteException { 
-            System.out.println("Informacao dos Eleitores recebida do Servidor Primario!");
+            if (!isMainServer()) System.out.println("Informacao dos Eleitores recebida do Servidor Primario!");
+            else System.out.println("Informacao dos Eleitores recebida do Servidor Secundario!");
             this.colleges = colleges; 
         }
         synchronized public void setUnstarted_elections(ArrayList<Election> unstarted_elections) throws RemoteException { 
-            System.out.println("Informacao das Eleicoes Nao Comecadas recebida do Servidor Primario!");
+            if (!isMainServer()) System.out.println("Informacao das Eleicoes Nao Comecadas recebida do Servidor Primario!");
+            else System.out.println("Informacao das Eleicoes Nao Comecadas recebida do Servidor Secundario!");
             this.unstarted_elections = unstarted_elections; 
         }
         synchronized public void setRunning_elections(ArrayList<Election> running_elections) throws RemoteException { 
-            System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Primario!");
+            if (!isMainServer()) System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Primario!");
+            else System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Scundario!");
             this.running_elections = running_elections; 
         }
         synchronized public void setFinished_elections(ArrayList<Election> finished_elections) throws RemoteException { 
-            System.out.println("Informacao das Eleicoes Acabadas recebida do Servidor Primario!");
+            if (!isMainServer()) System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Primario!");
+            else System.out.println("Informacao das Eleicoes Acabadas recebida do Servidor Secundario!");
             this.finished_elections = finished_elections;
         }
         
@@ -503,13 +519,11 @@
                         else if (error_response==5 && server.isMainServer()) { server.setPinger(null); error_response=0; }
 
                         if (im_the_main_now) {
-                            try {
-                                try { 
-                                    server.setPinger((RMIServer_I) Naming.lookup(server.getRemoted_server_ip())); 
-                                    server.getPinger().changeServerPriority();
-                                    im_the_main_now=!im_the_main_now; 
-                                } catch (Exception e2) { }
-                            } catch (Exception e1) { }
+                            try { 
+                                server.setPinger((RMIServer_I) Naming.lookup(server.getRemoted_server_ip())); 
+                                server.getPinger().changeServerPriority();
+                                im_the_main_now=!im_the_main_now; 
+                            } catch (Exception e2) { }
                         }
                     }
                 } catch (RemoteException e0) { }
