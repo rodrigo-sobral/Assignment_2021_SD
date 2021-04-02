@@ -59,25 +59,40 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         rmi_connection = new RMIClient();
         while (!rmi_connection.connect2Servers(scanner));
 
-        Election current_election=null;
-        while (current_election==null) {
+        ArrayList<Election> available_elections=null;
+        int election_option=0;
+        while (available_elections==null) {
             while (true) {
                 depar = input.askDepartment(rmi_connection, scanner, new ArrayList<>(), true);
                 if (!depar.isEmpty()) break;
             }
-            try { current_election= rmi_connection.getServer1().getElectionToVoteTable(rmi_connection, depar); }
+            try { available_elections= rmi_connection.getServer1().getElectionToVoteTable(rmi_connection, depar); }
             catch (Exception e1) {
-                try { current_election= rmi_connection.getServer2().getElectionToVoteTable(rmi_connection, depar); }
+                try { available_elections= rmi_connection.getServer2().getElectionToVoteTable(rmi_connection, depar); }
                 catch (Exception e2) { }
             }
-            if (current_election==null) { System.out.println("400: Nao existe uma Eleicao para esse Departamento!"); }
+            if (available_elections==null) { System.out.println("400: Nao existe uma Eleicao para esse Departamento!"); continue; }
+            
+            //  ASK ELECTION TO THE CANDIDATURE 
+            System.out.println("----------------------------------------");
+            System.out.println("Eleicoes Disponiveis [0 para Voltar]");
+            System.out.println("----------------------------------------");
+            for (int i = 0; i < available_elections.size(); i++) 
+                System.out.println(i+1+": "+available_elections.get(i).getTitle()+"\t"+available_elections.get(i).getStartingDateString()+"\t"+available_elections.get(i).getEndingDateString()+"\t"+available_elections.get(i).getDescription());
+            System.out.println("----------------------------------------");
+            election_option= input.checkIntegerOption(scanner, "Opcao: ", 0, available_elections.size())-1;
+            
+            if (election_option==-1) { available_elections=null; continue; }
         }
+
+        //  ASK TO CHANGE A VARIABLE
+        Election selected_election= available_elections.get(election_option);
 
         mesa_voto = new MCServer(mesa_voto2,"mesa_voto",Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
         mesa_voto2 = new SecMultServer(rmi_connection,mesa_voto,"mesa_voto2","", "", depar);
 
-        //current_election.registVote(voter_choice, voter_cc);
-        for (Candidature string : current_election.getCandidatures_to_election()) {
+        //selected_election.registVote(voter_choice, voter_cc);
+        for (Candidature string : selected_election.getCandidatures_to_election()) {
             mesa_voto.getArray_candidature().add(string.getCandidature_name());
         }
         

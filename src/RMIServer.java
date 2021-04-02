@@ -311,27 +311,27 @@
             } return available_departments;
         }
 
-        synchronized public Election getElectionToVoteTable(RMIClient client, String depart_name) throws RemoteException {
+        synchronized public ArrayList<Election> getElectionToVoteTable(RMIClient client, String depart_name) throws RemoteException {
+            ArrayList<Election> available_elections= new ArrayList<>();
             for (Election running_election : running_elections) {
+                System.out.println(depart_name+"\t"+running_election.getTitle());            
+                if (running_election.getCollege_restrictions().isEmpty() && running_election.getDepartment_restrictions().isEmpty()) 
+                    available_elections.add(running_election);
                 for (String college_name : running_election.getCollege_restrictions()) {
                     College college= getUniqueCollege(college_name);
                     for (Department department : college.getDepartments())
-                        if (department.getName().compareTo(depart_name)==0) {
-                            boolean result=false;
-                            try { result= client.subscribe2Servers(client, depart_name); } 
-                            catch (Exception e1) { return null; }
-                            if (!result) return null;
-                            return running_election;
-                        }
-                } for (String department_name : running_election.getDepartment_restrictions()) 
-                    if (department_name.compareTo(depart_name)==0) {
-                        boolean result=false;
-                        try { result= client.subscribe2Servers(client, depart_name); } 
-                        catch (Exception e1) { return null; }
-                        if (!result) return null;
-                        return running_election;
-                    }
-            } return null;
+                        if (department.getName().compareTo(depart_name)==0) available_elections.add(running_election);
+                } 
+                for (String department_name : running_election.getDepartment_restrictions()) 
+                    if (department_name.compareTo(depart_name)==0) available_elections.add(running_election);
+            } 
+            if (!available_elections.isEmpty()) {
+                boolean result=false;
+                try { result= client.subscribe2Servers(client, depart_name); } 
+                catch (Exception e1) { return null; }
+                if (!result) return null;
+                else return available_elections;
+            } else return null;
         }
 
         //  ===========================================================================================================
