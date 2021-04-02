@@ -51,7 +51,7 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
             result = server1.subscribeNewClient(client, depart_name);
             System.out.println(result); 
         } catch (Exception e1) {
-            System.out.println("Servidor 1 Fechado");
+            System.out.println("Servidor 1 Fechado.");
 			try { 
                 result = server2.subscribeNewClient(client, depart_name);
                 System.out.println(result);
