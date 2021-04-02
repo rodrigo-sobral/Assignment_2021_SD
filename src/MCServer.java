@@ -117,14 +117,14 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                         socket.send(packet);
                         conection = mesa_voto.getMensagens().split(";");
                         aux = conection[0].split("\\|");
-                        /*if(aux[1].compareTo("connected")==0){
+                        if(aux[1].compareTo("received")==0){
                             synchronized (mesa_voto.thread) {
                                 System.out.println("Parte de notify");
                                 mesa_voto.thread.notify();
                                 System.out.println("notificou");
                             }
                             
-                        }*/
+                        }
                         mesa_voto.setMensagens("");
                     }
                 }
@@ -207,11 +207,7 @@ class Handler_Message{
             mesa_voto.getDesk().getArray_id().add(Integer.parseInt(sublista[1]));
             mesa_voto.setMensagens("type|envia_id;received;id|"+sublista[1]);
             mesa_voto.printar_array_id_conectados();
-            synchronized (mesa_voto.thread) {
-                System.out.println("Parte de notify->ja tem pelo menos 1 terminal de voto associado");
-                mesa_voto.thread.notify();
-                System.out.println("notificou");
-            }
+            
             /*(mesa_voto.getDesk().getArray_id().size()==1){
                 ind = 0;
             }

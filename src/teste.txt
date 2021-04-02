@@ -1,6 +1,3 @@
-javac MCServer.java MCClient.java VoteDeskData.java VoteTerminal.java AdminConsole.java
-
-
 SERVER->CLIENTE
 type|login;status|sucessed;id|4
 type|login;status|unsucessed;id|4
@@ -13,3 +10,4 @@ type|envia_id;id|5
 type|login;username|qwev;password|vdfgbv;id|5
 type|resultado;opcaovoto|2;id|4
 
+ask listas eleicoes

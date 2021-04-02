@@ -8,7 +8,7 @@ admin:
 	java AdminConsole
 
 mcserver:
-	javac MCServer.java RMIClient.java RMIServer.java AdminConsole.java VoteDeskData.java
+	javac MCServer.java RMIClient.java RMIServer.java AdminConsole.java MCServerData.java
 	java MCServer
 
 mcclient:
