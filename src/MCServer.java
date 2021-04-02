@@ -29,7 +29,6 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         thread = new Thread(this,threadname);
     }
 
-
     public Thread getThread() { return thread; }
     public MCServerData getDesk() { return desk; }
     public String getMensagens() { return mensagens; }
@@ -47,14 +46,13 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         String cart, depar;
         Inputs input = new Inputs();
         String messag = "";
-        int cont = 0,ind;
+        int cont = 0, ind;
         Random alea = new Random();
-        System.out.println("ola");
         //rmi_connection = new RMIClient();
         //rmi_connection.connect2Servers(scanner);
         
         rmi_connection = new RMIClient();
-        rmi_connection.connect2Servers(scanner);
+        while (!rmi_connection.connect2Servers(scanner));
         
         ArrayList<String> test= rmi_connection.getServer1().getCollegesNames();
         for (String string : test) System.out.println(string);
@@ -68,8 +66,8 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
 
         ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort());
         System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");
-        while(true){
-            try {Thread.sleep(1000);} catch (InterruptedException e){}
+        while(true) {
+            try {Thread.sleep(1000);} catch (InterruptedException e) { }
             cart  = input.askVariable(scanner, "Insira o Numero do seu CC: ", 2);
             try {
                 if (!rmi_connection.getServer1().authorizeUser(cart)) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
@@ -88,32 +86,19 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     System.out.println("SAIU DO WAIT");
                     System.out.println("---A adquirir um terminal para o eleitor---");
                     if(mesa_voto.getDesk().getArray_id().size() !=0){
-                        if (mesa_voto.getDesk().getArray_id().size()==1){
-                            ind = 0;
-                        }
-                        else{
-                            ind = alea.nextInt((mesa_voto.getDesk().getArray_id().size()) + 1);
-                        }
-                        for (int i = 0; i < mesa_voto.getDesk().getArray_id().size(); i++) {
+                        if (mesa_voto.getDesk().getArray_id().size()==1) ind = 0;
+                        else ind = alea.nextInt((mesa_voto.getDesk().getArray_id().size()) + 1);
+                        for (int i = 0; i < mesa_voto.getDesk().getArray_id().size(); i++) 
                             System.out.println("Elemento "+i+" "+mesa_voto.getDesk().getArray_id().get(i));
-                        }
-                        
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
-                }
+                } catch (Exception e) { e.printStackTrace(); }
             }
-            
-            
-            
         }
     }
         
-
-        
     public void run () {
-        String []conection;
-        String []aux;
+        String[] conection;
+        String[] aux;
         Scanner keyboardScanner= new Scanner(System.in);
         InetAddress group;
         DatagramPacket packet;
@@ -141,7 +126,6 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                             
                         }*/
                         mesa_voto.setMensagens("");
-                        
                     }
                 }
             } catch (IOException e) { e.printStackTrace(); } 
