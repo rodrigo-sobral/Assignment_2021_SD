@@ -42,7 +42,7 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
                     server1.setRemoted_server_ip(server1.getRemoted_server_ip());
                     server2.setMy_rmi_ip(server1.getRemoted_server_ip());
                 } return true;
-            } catch (Exception e) { System.out.println("Inseriu um IP errado!"); return false;}
+            } catch (Exception e) { System.out.println("Inseriu um IP errado!\n"+e); return false;}
         }
 	}
     protected boolean subscribe2Servers(RMIClient client, String depart_name) {
