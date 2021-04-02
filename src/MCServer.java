@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 
+import classes.Candidature;
 import classes.Election;
 
 import java.net.MulticastSocket;
@@ -18,6 +19,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
 
     private MCServerData desk;
     private String mensagens;
+    private ArrayList<String> array_candidature;
 
     //threads
     private static MCServer mesa_voto;
@@ -30,8 +32,10 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         this.desk = new MCServerData(ip,port,depar);
         MCServer.mesa_voto2 = mesa_voto2;
         thread = new Thread(this,threadname);
+        this.array_candidature = new ArrayList<>();
     }
 
+    public ArrayList<String> getArray_candidature() { return array_candidature; }
     public Thread getThread() { return thread; }
     public MCServerData getDesk() { return desk; }
     public String getMensagens() { return mensagens; }
@@ -61,16 +65,22 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                 depar = input.askDepartment(rmi_connection, scanner, new ArrayList<>(), true);
                 if (!depar.isEmpty()) break;
             }
-            try { current_election= rmi_connection.getServer1().getElectionToVoteTable(depar); }
+            try { current_election= rmi_connection.getServer1().getElectionToVoteTable(rmi_connection, depar); }
             catch (Exception e1) {
-                try { current_election= rmi_connection.getServer2().getElectionToVoteTable(depar); }
+                try { current_election= rmi_connection.getServer2().getElectionToVoteTable(rmi_connection, depar); }
                 catch (Exception e2) { }
             }
+            if (current_election==null) { System.out.println("400: Nao existe uma Eleicao para esse Departamento!"); }
         }
 
         mesa_voto = new MCServer(mesa_voto2,"mesa_voto",Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
         mesa_voto2 = new SecMultServer(rmi_connection,mesa_voto,"mesa_voto2","", "", depar);
 
+        //current_election.registVote(voter_choice, voter_cc);
+        for (Candidature string : current_election.getCandidatures_to_election()) {
+            mesa_voto.getArray_candidature().add(string.getCandidature_name());
+        }
+        
         ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort());
         System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");
         while(true) {
@@ -100,7 +110,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                         for (int i = 0; i < mesa_voto.getDesk().getArray_id().size(); i++) 
                             System.out.println("Elemento "+i+" "+mesa_voto.getDesk().getArray_id().get(i));
                         System.out.println("Terminal de voto com id"+mesa_voto.getDesk().getArray_id().get(ind)+"selecionado");
-                        mesa_voto.setMensagens("type|connected;id|"+mesa_voto.getDesk().getArray_id().get(ind));
+                        mesa_voto.setMensagens("type|connected;cc|"+cart+";id|"+mesa_voto.getDesk().getArray_id().get(ind));
                         mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));   
                         mesa_voto.printar_array_id_conectados();
                     }
@@ -211,6 +221,7 @@ class Handler_Message{
     //trata das mensagens que o server recebe
     public static Boolean typeMessage(String mensagem,MCServer mesa_voto,RMIClient rmi_connection){
         String [] sublista;
+        String [] aux;
         String[] lista = mensagem.split(";");
         Random alea = new Random();
         String message_client = "";
@@ -218,16 +229,12 @@ class Handler_Message{
         int ind;
         String id;
         sublista= lista[0].split("\\|");
-        if (sublista[1].compareTo("RmiVerification")==0){
-            //fazer algo
-        }
-
-        else if(sublista[1].compareTo("envia_id")==0){
+        if(sublista[1].compareTo("envia_id")==0){
             sublista= lista[1].split("\\|");
             mesa_voto.getDesk().getArray_id().add(Integer.parseInt(sublista[1]));
             mesa_voto.setMensagens("type|envia_id;received;id|"+sublista[1]);
             mesa_voto.printar_array_id_conectados();
-            
+        
             /*(mesa_voto.getDesk().getArray_id().size()==1){
                 ind = 0;
             }
@@ -244,11 +251,21 @@ class Handler_Message{
             mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));
         */
         }
+        else if(sublista[1].compareTo("ask")==0){
+            sublista = lista[1].split("\\|");
+            message_client = "type|listacandidaturas";
+            for (int i = 0; i < mesa_voto.getArray_candidature().size(); i++) {
+                message_client+=mesa_voto.getArray_candidature().get(i);
+                message_client+=";";
+            }
+            message_client+="id|";
+            message_client+=sublista[1];
+            mesa_voto.setMensagens(message_client);
+        }
         else if(sublista[1].compareTo("login")==0){
             for (int i = 1; i < lista.length-2; i++) {
                 sublista = lista[i].split("\\|");
                 add_mensagens.add(sublista[1]);
-                //enviar para o rmi para verificar o username e o login    
             }
             sublista = lista[lista.length -1].split("\\|");
             id = sublista[1];
@@ -288,7 +305,11 @@ class Handler_Message{
                 else return "unsucessed";
             }
             else if(lista[1].compareTo("received")==0) return "connected_server";
-            else if(sublista[1].compareTo("connected")==0)return "choose";
+            else if(sublista[1].compareTo("connected")==0){
+                sublista = lista[1].split("\\|");
+                message = "choose|"+sublista[1];
+                return message;
+            }
             else if(sublista[1].compareTo("listaeleicoes")==0){
                 for (int i = 1; i < lista.length-1; i++) {
                     message+=lista[i]+";";

@@ -3,8 +3,8 @@
 
     //  RMI
     import java.rmi.*;
-        import java.rmi.registry.LocateRegistry;
-        import java.rmi.server.*;
+    import java.rmi.registry.LocateRegistry;
+    import java.rmi.server.*;
     import java.time.LocalDateTime;
     import java.util.ArrayList;
     import java.util.Scanner;
@@ -311,15 +311,26 @@
             } return available_departments;
         }
 
-        synchronized public Election getElectionToVoteTable(String depart_name) throws RemoteException {
+        synchronized public Election getElectionToVoteTable(RMIClient client, String depart_name) throws RemoteException {
             for (Election running_election : running_elections) {
                 for (String college_name : running_election.getCollege_restrictions()) {
                     College college= getUniqueCollege(college_name);
                     for (Department department : college.getDepartments())
-                        if (department.getName().compareTo(depart_name)==0) return running_election;
-                }
-                for (String department_name : running_election.getDepartment_restrictions()) 
-                    if (department_name.compareTo(depart_name)==0) return running_election;
+                        if (department.getName().compareTo(depart_name)==0) {
+                            boolean result=false;
+                            try { result= client.subscribe2Servers(client, depart_name); } 
+                            catch (Exception e1) { return null; }
+                            if (!result) return null;
+                            return running_election;
+                        }
+                } for (String department_name : running_election.getDepartment_restrictions()) 
+                    if (department_name.compareTo(depart_name)==0) {
+                        boolean result=false;
+                        try { result= client.subscribe2Servers(client, depart_name); } 
+                        catch (Exception e1) { return null; }
+                        if (!result) return null;
+                        return running_election;
+                    }
             } return null;
         }
 

@@ -14,7 +14,10 @@ public class MCClient implements Runnable{
     private Boolean Connected;
     private Boolean login_sucessed;
     public Thread thread;
+    private Inputs inpu;
+    private Scanner scanner;
     boolean exit=false;
+
     
     private String cc;
 
@@ -26,7 +29,7 @@ public class MCClient implements Runnable{
 
 
     //construtor
-    public MCClient(String threadname,Eleitor_Connected thread_eleitor,SecMultGClient cliente2){
+    public MCClient(String threadname,Eleitor_Connected thread_eleitor,SecMultGClient cliente2,Inputs inpu, Scanner scanner){
         this.vote_terminal = new VoteTerminal();
         this.message = "";
         this.Connected = false;
@@ -35,6 +38,8 @@ public class MCClient implements Runnable{
         MCClient.thread_eleitor = thread_eleitor;
         this.login_sucessed=false;
         this.cc = "";
+        this.inpu = inpu;
+        this.scanner = scanner;
     }
 
     //getter
@@ -43,7 +48,8 @@ public class MCClient implements Runnable{
     public Boolean getConnected() { return Connected; }    
     public Boolean getLogin_sucessed() { return login_sucessed; }
     public String getCc() { return cc; }
-    
+    public Inputs getInpu() { return inpu; }
+    public Scanner getScanner() { return scanner; }
     
     //setter
     public void setMessage(String message) { this.message = message; }
@@ -56,7 +62,7 @@ public class MCClient implements Runnable{
         Inputs input = new Inputs();
         Scanner scanner = new Scanner(System.in);
 
-        cliente = new MCClient("cliente",thread_eleitor,cliente2);
+        cliente = new MCClient("cliente",thread_eleitor,cliente2,input,scanner);
         cliente2 = new SecMultGClient("cliente2",cliente,thread_eleitor);
         thread_eleitor = new Eleitor_Connected("thread_eleitor", cliente2, cliente,input,scanner);
         while(true){
@@ -85,6 +91,9 @@ public class MCClient implements Runnable{
                 System.out.println("wait na main");
                 cliente2.thread.wait();
                 System.out.println("Saiu da main");
+                thread_eleitor.stop();
+                cliente.stop();
+                cliente2.stop();
             }catch (Exception e) { e.printStackTrace(); }
         }
     }
@@ -95,7 +104,7 @@ public class MCClient implements Runnable{
     public void run() {
         MulticastSocket socket = null;
         String messag_lida;
-
+        String []aux;
         while(true){
             try {Thread.sleep(1000);} catch (InterruptedException e){}
             ReadWrite.read_ip_port("MCServerData.txt", cliente2.getVoteTerminal().getNome_depar(), cliente);
@@ -118,43 +127,48 @@ public class MCClient implements Runnable{
                         
                         messag_lida = Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal());
                         System.out.println("Mensagem lida: "+messag_lida);
-                        if (messag_lida.compareTo("choose")==0){
+                        aux = messag_lida.split("\\|");
+                        if (aux[0].compareTo("choose")==0){
                             System.out.println("Terminal Escolhido");
-                            setConnected(true);
+                            //setConnected(true);
+                            cliente.setCc(aux[1]);
                             //Eleitor_Connected thread_connected = new Eleitor_Connected(secgm_terminal_voto, terminal_voto);
                             thread_eleitor.thread.start();
-                        }
-                        else if(messag_lida.compareTo("sucessed")==0){
-                            cliente.setLogin_sucessed(true);
-                            synchronized (cliente.thread) {
-                                System.out.println("Parte de notify");
-                                cliente.thread.notify();
-                                System.out.println("notificou");
+                        }else{
+                            if(messag_lida.compareTo("sucessed")==0){
+                                cliente.setLogin_sucessed(true);
+                                synchronized (cliente.thread) {
+                                    System.out.println("Parte de notify");
+                                    cliente.thread.notify();
+                                    System.out.println("notificou");
+                                }
+                            }
+                            else if(messag_lida.compareTo("unsucessed")==0){
+                                cliente.setLogin_sucessed(false);
+                                synchronized (cliente.thread) {
+                                    System.out.println("Parte de notify");
+                                    cliente.thread.notify();
+                                    System.out.println("notificou");
+                                }
+                            }
+                            else if(messag_lida.compareTo("false")==0){
+                                //do something
+                                continue;
+                            }
+                            else if(messag_lida.compareTo("connected_server")==0){
+                                //feito em baixo
+                                
+                            }
+                            //lista eleicoes
+                            else{
+                                System.out.println("AHHHHH");
+                                Eleitor_Connected.ListaCandidaturas(cliente2, message, cliente.getInpu(), cliente.getScanner());
+                                //cliente.setMessage(messag_lida);
+                                //Thread.currentThread().notify();
+        
                             }
                         }
-                        else if(messag_lida.compareTo("unsucessed")==0){
-                            cliente.setLogin_sucessed(false);
-                            synchronized (cliente.thread) {
-                                System.out.println("Parte de notify");
-                                cliente.thread.notify();
-                                System.out.println("notificou");
-                            }
-                        }
-                        else if(messag_lida.compareTo("false")==0){
-                            //do something
-                            continue;
-                        }
-                        else if(messag_lida.compareTo("connected_server")==0){
-                            //feito em baixo
-                            
-                        }
-                        //lista eleicoes
-                        else{
-                            System.out.println("AHHHHH");
-                            cliente.setMessage(messag_lida);
-                            Thread.currentThread().notify();
-    
-                        }
+                        
                     }
                 } 
                 catch(SocketTimeoutException se) { System.out.println("Aviso: Excedeu o tempo limite, o Terminal de Voto ira encerrar!"); }
@@ -299,7 +313,8 @@ class Eleitor_Connected implements Runnable {
             }   
         } 
         System.out.println("saiu do while (user e pass corret)");
-        ListaCandidaturas(cliente2,cliente.getMessage(), input, scanner);
+        cliente.setMessage("type|ask;id|"+cliente.getVote_terminal().getId_terminal());
+        //ListaCandidaturas(cliente2,cliente.getMessage(), input, scanner);
     }
     
     public static void ListaCandidaturas(SecMultGClient cliente2,String message,Inputs input,Scanner scanner){
@@ -321,8 +336,10 @@ class Eleitor_Connected implements Runnable {
         }else{
             //voto nulo
             cliente2.setMessage("type|resultado;OpcaoVoto|Nulo;cc|"+cliente.getCc()+";id|" + cliente.getVote_terminal().getId_terminal());
+            ReadWrite.remove_line("TerminalVote.txt",cliente.getVote_terminal().getNome_depar());
         }       
        
     }
     public void stop() { exit = true; }
+
 }

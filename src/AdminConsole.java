@@ -649,13 +649,7 @@ class Inputs {
 
         //  VERIFY IF THE SELECTED DEPARTMENT ALREADY HAS A VOTE TABLE ASSOCIATED
         //  IF TRUE RETURNS ERROR, OTHERWISE, SETS A VOTE TABLE
-        String selected_dep=available_departments.get(option);
-        boolean result=false;
-        if (voting_table) {
-            try { result= client.subscribe2Servers(client, selected_dep); } 
-            catch (Exception e1) { return ""; }
-            if (!result) return "";
-        } return selected_dep;
+        return available_departments.get(option);
     }
     public String askCCNumber(RMIClient client, Scanner keyboard) {
         boolean result=false;
