@@ -224,8 +224,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         }
     
         synchronized public String registElection(Election new_election) throws RemoteException {
-            if (getUniqueElection(new_election.getTitle(), "unstarted")==null && getUniqueElection(new_election.getTitle(), "running")==null && getUniqueElection(new_election.getTitle(), "finished")==null) 
-                return "400: Uma Eleicao com esse Titulo ja foi registada!";
+            for (Election election : unstarted_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
+            for (Election election : running_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
+            for (Election election : finished_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
+
             unstarted_elections.add(new_election);
             file_manage.saveElectionsFile(unstarted_elections, "unstarted");
             if (server.getPinger()!=null) server.getPinger().setUnstarted_elections(unstarted_elections);

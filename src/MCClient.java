@@ -11,8 +11,8 @@ public class MCClient implements Runnable{
 
     private VoteTerminal vote_terminal;
     private String message;
-    private Boolean Connected;
-    private Boolean login_sucessed;
+    private boolean Connected;
+    private boolean login_sucessed;
     public Thread thread;
     private Inputs inpu;
     private Scanner scanner;
@@ -329,24 +329,13 @@ class Eleitor_Connected implements Runnable {
     public static void ListaCandidaturas(SecMultGClient cliente2,String message,Inputs input,Scanner scanner){
         String [] lista_candidaturas = message.split(";");
         String opcao;
-        System.out.println("|==========================================|");
-        System.out.println("|             Listas para votar            |");
-        System.out.println("|==========================================|");
-        for (int i = 1; i < lista_candidaturas.length-1; i++) System.out.println((i)+ ": Lista " + lista_candidaturas[i]);
+        System.out.println("|=================================================|");
+        System.out.println("|             Candidaturas disponiveis            |");
+        System.out.println("|=================================================|");
+        for (int i = 1; i < lista_candidaturas.length-1; i++) System.out.println((i)+ ": Candidatura " + lista_candidaturas[i]);
         System.out.println("Insira a opcao que pretende votar: ");
         opcao = scanner.nextLine();
-        cliente2.setMessage(message);
-        if (opcao.compareTo("")==0){
-            //voto branco
-            cliente2.setMessage("type|resultado;OpcaoVoto|Branco;cc|"+cliente.getCc()+";id|" + cliente.getVote_terminal().getId_terminal());
-        }else if (input.checkStringInteger(opcao) ==true){
-            if (Integer.parseInt(opcao)>=1 && Integer.parseInt(opcao)<lista_candidaturas.length){
-                cliente2.setMessage("type|resultado;opcaovoto|" + Integer.toString(Integer.parseInt(opcao)-1) +";cc|"+cliente.getCc()+ ";id|" + cliente.getVote_terminal().getId_terminal());
-            }
-        }else{
-            //voto nulo
-            cliente2.setMessage("type|resultado;OpcaoVoto|Nulo;cc|"+cliente.getCc()+";id|" + cliente.getVote_terminal().getId_terminal());
-        } 
+        cliente2.setMessage("type|resultado;OpcaoVoto|"+opcao+";cc|"+cliente.getCc()+";id|" + cliente.getVote_terminal().getId_terminal());
         ReadWrite.remove_line("TerminalVote.txt",cliente.getVote_terminal().getNome_depar());      
        
     }
