@@ -8,7 +8,7 @@ import java.util.*;
 
 public class MCClient2 implements Runnable{
 
-    private VoteTerminal vote_terminal;
+    private MCServerData vote_terminal;
     private String message;
     private boolean Connected;
     private boolean login_sucessed;
@@ -29,7 +29,7 @@ public class MCClient2 implements Runnable{
 
     //construtor
     public MCClient2(String threadname,Eleitor_Connected thread_eleitor,SecMultGClient cliente2,Inputs inpu, Scanner scanner){
-        this.vote_terminal = new VoteTerminal();
+        this.vote_terminal = new MCServerData();
         this.message = "";
         this.Connected = false;
         thread = new Thread(this,threadname);
@@ -43,7 +43,7 @@ public class MCClient2 implements Runnable{
 
     //getter
     public String getMessage() { return message; }
-    public VoteTerminal getVote_terminal() { return vote_terminal; }
+    public MCServerData getVote_terminal() { return vote_terminal; }
     public Boolean getConnected() { return Connected; }    
     public Boolean getLogin_sucessed() { return login_sucessed; }
     public String getCc() { return cc; }
