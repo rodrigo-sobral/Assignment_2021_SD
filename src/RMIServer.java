@@ -140,6 +140,7 @@
             }
             else { 
                 Department selected_depart= getUniqueDepartment(depart_name);
+                System.out.println(selected_depart.getVoteTable()+"\t"+selected_depart.getActivatedVoteTable());
                 if (!selected_depart.getVoteTable()) return "400: "+depart_name+" nao tem Mesa de Voto!\n";
                 if (selected_depart.getActivatedVoteTable()) return "400: Ja existe uma Mesa de Voto associada ao "+depart_name+"!\n";
                 selected_depart.turnOnVoteTable();
@@ -276,7 +277,7 @@
             for (Election election : unstarted_elections)
                 if (election.getTitle().compareTo(updated_election.getTitle())==0) {
                     unstarted_elections.set(unstarted_elections.indexOf(election), updated_election);
-                    file_manage.saveCollegesFile(colleges);
+                    file_manage.saveElectionsFile(unstarted_elections, "unstarted");
                     if (server.getPinger()!=null) server.getPinger().setUnstarted_elections(unstarted_elections);
                     if (is_candidature) { System.out.println("Nova Candidatura Submetida pela Consola de Administrador"); return "200: Candidatura Submetida com Sucesso"; }
                     else { System.out.println("Eleicao "+election.getTitle()+" alterada pela Consola de Administrador"); return "200: Eleicao Editada com Sucesso"; }
@@ -311,12 +312,12 @@
             } return available_departments;
         }
 
-        synchronized public ArrayList<Election> getElectionToVoteTable(RMIClient client, String depart_name) throws RemoteException {
+        synchronized public ArrayList<Election> getElectionToVoteTable(String depart_name) throws RemoteException {
             ArrayList<Election> available_elections= new ArrayList<>();
             for (Election running_election : running_elections) {
-                System.out.println(depart_name+"\t"+running_election.getTitle());            
-                if (running_election.getCollege_restrictions().isEmpty() && running_election.getDepartment_restrictions().isEmpty()) 
-                    available_elections.add(running_election);
+                if (running_election.getCollege_restrictions().isEmpty() && running_election.getDepartment_restrictions().isEmpty()) {
+                    available_elections.add(running_election); continue;
+                }
                 for (String college_name : running_election.getCollege_restrictions()) {
                     College college= getUniqueCollege(college_name);
                     for (Department department : college.getDepartments())
@@ -325,13 +326,7 @@
                 for (String department_name : running_election.getDepartment_restrictions()) 
                     if (department_name.compareTo(depart_name)==0) available_elections.add(running_election);
             } 
-            if (!available_elections.isEmpty()) {
-                boolean result=false;
-                try { result= client.subscribe2Servers(client, depart_name); } 
-                catch (Exception e1) { return null; }
-                if (!result) return null;
-                else return available_elections;
-            } else return null;
+            return available_elections;
         }
 
         //  ===========================================================================================================
@@ -372,16 +367,19 @@
             if (!isMainServer()) System.out.println("Informacao das Eleicoes Nao Comecadas recebida do Servidor Primario!");
             else System.out.println("Informacao das Eleicoes Nao Comecadas recebida do Servidor Secundario!");
             this.unstarted_elections = unstarted_elections; 
+            file_manage.saveElectionsFile(running_elections, "unstarted");
         }
         synchronized public void setRunning_elections(ArrayList<Election> running_elections) throws RemoteException { 
             if (!isMainServer()) System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Primario!");
             else System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Scundario!");
             this.running_elections = running_elections; 
+            file_manage.saveElectionsFile(running_elections, "running");
         }
         synchronized public void setFinished_elections(ArrayList<Election> finished_elections) throws RemoteException { 
             if (!isMainServer()) System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Primario!");
             else System.out.println("Informacao das Eleicoes Acabadas recebida do Servidor Secundario!");
             this.finished_elections = finished_elections;
+            file_manage.saveElectionsFile(running_elections, "finished");
         }
         
     }
@@ -620,6 +618,7 @@
     class ElectionsState implements Runnable {
         public Thread thread;
         RMIServer server;
+        FilesManagement file_manage= new FilesManagement();
 
         /**
          * @param threadname Name of the Thread
@@ -652,6 +651,8 @@
                         if (temp_elec.getStarting().compareTo(now)<=0) {
                             server.running_elections.add(temp_elec);
                             server.unstarted_elections.remove(unstarted_id); 
+                            file_manage.saveElectionsFile(server.unstarted_elections, "unstarted");
+                            file_manage.saveElectionsFile(server.running_elections, "running");
                             if (server.getPinger()!=null && server.isMainServer()) {
                                 server.getPinger().setUnstarted_elections(server.unstarted_elections);
                                 server.getPinger().setRunning_elections(server.running_elections); 
@@ -671,6 +672,8 @@
                         if (temp_elec.getEnding().compareTo(now)<0) { 
                             server.finished_elections.add(temp_elec);
                             server.running_elections.remove(running_id); 
+                            file_manage.saveElectionsFile(server.running_elections, "running");
+                            file_manage.saveElectionsFile(server.finished_elections, "finished");
                             if (server.getPinger()!=null && server.isMainServer()) {
                                 server.getPinger().setRunning_elections(server.running_elections);
                                 server.getPinger().setFinished_elections(server.finished_elections);

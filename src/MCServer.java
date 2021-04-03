@@ -35,19 +35,6 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         this.array_candidature = new ArrayList<>();
     }
 
-    public ArrayList<String> getArray_candidature() { return array_candidature; }
-    public Thread getThread() { return thread; }
-    public MCServerData getDesk() { return desk; }
-    public String getMensagens() { return mensagens; }
-    public void setMensagens(String mensagens) { this.mensagens = mensagens; }
-
-
-    public void printar_array_id_conectados(){
-        System.out.println("Printar Array ID Conectado");
-        for (int i = 0; i < mesa_voto.getDesk().getArray_id().size(); i++) {
-            System.out.println(mesa_voto.getDesk().getArray_id().get(i)+" ");
-        }
-    }
     public static void main(String[] args) throws RemoteException, InterruptedException {
         Scanner scanner = new Scanner(System.in);
         String cart, depar="";
@@ -61,19 +48,26 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         rmi_connection = new RMIClient();
         while (!rmi_connection.connect2Servers(scanner));
 
-        ArrayList<Election> available_elections=null;
+        ArrayList<Election> available_elections= new ArrayList<>();
         int election_option=0;
-        while (available_elections==null) {
+        while (available_elections.isEmpty()) {
             while (true) {
                 depar = input.askDepartment(rmi_connection, scanner, new ArrayList<>(), true);
                 if (!depar.isEmpty()) break;
             }
-            try { available_elections= rmi_connection.getServer1().getElectionToVoteTable(rmi_connection, depar); }
+            try { available_elections= rmi_connection.getServer1().getElectionToVoteTable(depar); } 
             catch (Exception e1) {
-                try { available_elections= rmi_connection.getServer2().getElectionToVoteTable(rmi_connection, depar); }
+                try { available_elections= rmi_connection.getServer2().getElectionToVoteTable(depar); }
                 catch (Exception e2) { }
             }
-            if (available_elections==null) { System.out.println("400: Nao existe uma Eleicao para esse Departamento!"); continue; }
+
+            if (available_elections.isEmpty()) { System.out.println("400: Nao existe uma Eleicao para esse Departamento!"); continue; }
+            System.out.println("Ligando aos Servidores...");
+            boolean result=false;
+            while (!result) {
+                try { result= rmi_connection.subscribe2Servers(rmi_connection, null); } 
+                catch (Exception e1) { }
+            }
             
             //  ASK ELECTION TO THE CANDIDATURE 
             System.out.println("----------------------------------------");
@@ -138,6 +132,20 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         //}
     }
         
+    public ArrayList<String> getArray_candidature() { return array_candidature; }
+    public Thread getThread() { return thread; }
+    public MCServerData getDesk() { return desk; }
+    public String getMensagens() { return mensagens; }
+    public void setMensagens(String mensagens) { this.mensagens = mensagens; }
+
+
+    public void printar_array_id_conectados(){
+        System.out.println("Printar Array ID Conectado");
+        for (int i = 0; i < mesa_voto.getDesk().getArray_id().size(); i++) {
+            System.out.println(mesa_voto.getDesk().getArray_id().get(i)+" ");
+        }
+    }
+
     public void run () {
         String[] conection;
         String[] aux;
