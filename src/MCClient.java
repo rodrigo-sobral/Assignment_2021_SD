@@ -84,9 +84,9 @@ public class MCClient implements Runnable{
         System.out.println("ID TERMINAL: "+cliente.getVote_terminal().getId_terminal());
         //enviar a mensagem para o servidor com o id (quer dizer que esta livre)
         cliente2.setMessage("type|envia_id;id|"+cliente2.getVoteTerminal().getId_terminal());
-        cliente2.thread.start();
+        //cliente2.thread.start();
         cliente.thread.start();
-        synchronized(cliente2.thread){
+        /*synchronized(cliente2.thread){
             try{
                 System.out.println("wait na main");
                 cliente2.thread.wait();
@@ -94,9 +94,9 @@ public class MCClient implements Runnable{
                 cliente.stop();
                 cliente2.stop();
             }catch (Exception e) { e.printStackTrace(); }
-        }
-        thread_eleitor.stop();
-        System.exit(0);
+        }*/
+        //thread_eleitor.stop();
+        //System.exit(0);
     }
 
 
@@ -107,11 +107,11 @@ public class MCClient implements Runnable{
         String messag_lida;
         String []aux;
         while(true){
-            try {Thread.sleep(1000);} catch (InterruptedException e){}
+            
             ReadWrite.read_ip_port("MCServerData.txt", cliente2.getVoteTerminal().getNome_depar(), cliente);
             if(cliente.vote_terminal.getNome_depar().compareTo("")!=0){
                 try {
-                
+                    System.out.println("entrou aqui");
                     System.out.println("server->cliente");
                     socket = new MulticastSocket(Integer.parseInt(getVote_terminal().getPort()));  // create socket and bind it
                     InetAddress group = InetAddress.getByName(getVote_terminal().getIp());
@@ -119,74 +119,83 @@ public class MCClient implements Runnable{
                     byte[] buffer = new byte[256];
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                     while (!exit) {
-                        try {Thread.sleep(1000);} catch (InterruptedException e){}
-                        socket.receive(packet);
-                        System.out.print("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
-                        String message = new String(packet.getData(), 0, packet.getLength());
-                        System.out.println("e a mensagem"+message);
-                        cliente.setMessage(message);
-                        
-                        messag_lida = Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal());
-                        System.out.println("Mensagem lida: "+messag_lida);
-                        aux = messag_lida.split("\\|");
-                        if (aux[0].compareTo("choose")==0){
-                            System.out.println("Terminal Escolhido");
-                            //setConnected(true);
-                            cliente.setCc(aux[1]);
-                            //Eleitor_Connected thread_connected = new Eleitor_Connected(secgm_terminal_voto, terminal_voto);
-                            thread_eleitor.thread.start();
-                        }else{
-                            if(messag_lida.compareTo("sucessed")==0){
-                                cliente2.setMessage("");
-                                cliente.setLogin_sucessed(true);
-                                synchronized (thread_eleitor.thread) {
-                                    System.out.println("Parte de notify");
-                                    thread_eleitor.thread.notify();
-                                    System.out.println("notificou");
+                        try {
+                            try {Thread.sleep(1000);} catch (InterruptedException e){}
+                            socket.receive(packet);
+                            System.out.print("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
+                            String message = new String(packet.getData(), 0, packet.getLength());
+                            System.out.println("e a mensagem"+message);
+                            buffer = "ola".getBytes();
+                            packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getVote_terminal().getPort()));
+                            socket.send(packet);
+                            cliente.setMessage(message);
+                            /*
+                            messag_lida = Handler_Message.typeMessage_Client(message, getVote_terminal().getId_terminal());
+                            System.out.println("Mensagem lida: "+messag_lida);
+                            aux = messag_lida.split("\\|");
+                            if (aux[0].compareTo("choose")==0){
+                                System.out.println("Terminal Escolhido");
+                                //setConnected(true);
+                                cliente.setCc(aux[1]);
+                                //Eleitor_Connected thread_connected = new Eleitor_Connected(secgm_terminal_voto, terminal_voto);
+                                thread_eleitor.thread.start();
+                            }else{
+                                if(messag_lida.compareTo("sucessed")==0){
+                                    cliente2.setMessage("");
+                                    cliente.setLogin_sucessed(true);
+                                    synchronized (thread_eleitor.thread) {
+                                        System.out.println("Parte de notify");
+                                        thread_eleitor.thread.notify();
+                                        System.out.println("notificou");
+                                    }
                                 }
-                            }
-                            else if(messag_lida.compareTo("unsucessed")==0){
-                                cliente2.setMessage("");
-                                cliente.setLogin_sucessed(false);
-                                synchronized (thread_eleitor.thread) {
-                                    System.out.println("Parte de notify");
-                                    thread_eleitor.thread.notify();
-                                    System.out.println("notificou");
+                                else if(messag_lida.compareTo("unsucessed")==0){
+                                    cliente2.setMessage("");
+                                    cliente.setLogin_sucessed(false);
+                                    synchronized (thread_eleitor.thread) {
+                                        System.out.println("Parte de notify");
+                                        thread_eleitor.thread.notify();
+                                        System.out.println("notificou");
+                                    }
                                 }
-                            }
-                            else if(messag_lida.compareTo("false")==0){
-                                //do something
-                                continue;
-                            }
-                            else if(messag_lida.compareTo("connected_server")==0){
-                                //feito em baixo
-                                cliente2.setMessage("");
-                                
-                            }
-                            else if(messag_lida.compareTo("")==0){
-                                System.out.println("Ignorar mensagem");
-                            }
-                            //lista eleicoes
-                            else{
-                                System.out.println("AHHHHH");
-                                cliente2.setMessage("");
-                                Eleitor_Connected.ListaCandidaturas(cliente2, message, cliente.getInpu(), cliente.getScanner());
-                                
-                                //Thread.currentThread().notify();
-        
-                            }
+                                else if(messag_lida.compareTo("false")==0){
+                                    //do something
+                                    continue;
+                                }
+                                else if(messag_lida.compareTo("connected_server")==0){
+                                    //feito em baixo
+                                    cliente2.setMessage("");
+                                    
+                                }
+                                else if(messag_lida.compareTo("")==0){
+                                    System.out.println("Ignorar mensagem");
+                                }
+                                //lista eleicoes
+                                else{
+                                    System.out.println("AHHHHH");
+                                    cliente2.setMessage("");
+                                    Eleitor_Connected.ListaCandidaturas(cliente2, message, cliente.getInpu(), cliente.getScanner());
+                                    
+                                    //Thread.currentThread().notify();
+            
+                                }*/
                         }
-                        
+                        catch (IOException e) { e.printStackTrace(); } 
+                        finally { socket.close(); }
                     }
+                        
+                    
                 } 
                 catch(SocketTimeoutException se) { System.out.println("Aviso: Excedeu o tempo limite, o Terminal de Voto ira encerrar!"); }
                 catch (IOException e) { e.printStackTrace(); } 
                 finally { socket.close(); }
             }
-            
         }
+            
+        
         
     }
+
     public void stop() { exit = true; }
         
 }
