@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 import classes.Candidature;
 import classes.Election;
 import classes.User;
+import classes.Vote;
 
 
 public class AdminConsole extends RMIClient {
@@ -84,15 +85,17 @@ public class AdminConsole extends RMIClient {
             System.out.println("|====================================|");
             System.out.println("|  1: Registar Eleicao               |");
             System.out.println("|  2: Editar Eleicao                 |");
-            System.out.println("|  3: Consultar Eleicoes Passadas    |");
+            System.out.println("|  3: Consultar Eleicoes Atuais      |");
+            System.out.println("|  4: Consultar Eleicoes Acabadas    |");
             System.out.println("|  0: Voltar                         |");
             System.out.println("|====================================|");
-            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 3);
+            option= input_manage.checkIntegerOption(keyboard, "| Opcao: ", 0, 4);
             if (option!=-1) break;
         }
         if (option==1) addElection(keyboard);
         else if (option==2) editElection(keyboard);
-        else if (option==3) consultPassedElections(keyboard);
+        else if (option==3) consultRunningElections(keyboard);
+        else if (option==4) consultFinishedElections(keyboard);
         else { input_manage.messageToWait("Voltando para o Menu Admin..."); return ; }
     }
     private void manageCandidatures(Scanner keyboard) {
@@ -468,7 +471,68 @@ public class AdminConsole extends RMIClient {
         }
     }
     
-    private void consultPassedElections(Scanner keyboard) {
+    private void consultRunningElections(Scanner keyboard) {
+        ArrayList<Election> available_elections= new ArrayList<>();
+        int option;
+
+        //  GET ELECTION TO THE NEW CANDIDATURE
+        try { available_elections = admin.getServer1().getRunningElections(); } 
+        catch (Exception e1) {
+            try { available_elections = admin.getServer2().getRunningElections(); } 
+            catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
+        }
+        if (available_elections.isEmpty()) { input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); return; }
+        
+        //  ASK ELECTION 
+        System.out.println("----------------------------------------");
+        System.out.println("Eleicoes Atuais [0 Para Voltar]");
+        System.out.println("----------------------------------------");
+        for (int i = 0; i < available_elections.size(); i++) {
+            Election aux= available_elections.get(i);
+            System.out.println(i+1+": "+aux.getTitle()+"\t"+aux.getStartingDateString()+"\t"+aux.getEndingDateString()+aux.getCandidatures_to_election().size()+"\t"+aux.getDescription());
+        } System.out.println("----------------------------------------");
+        option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 0, available_elections.size())-1;
+        if (option==-1) { input_manage.messageToWait("Voltando para o Menu Admin..."); return; }
+
+        String selected_election_title= available_elections.get(option).getTitle();
+        GetEnterKey pressed_enter= new GetEnterKey("pressed_enter", keyboard, input_manage);
+        Election selected_election;
+        boolean success;
+        while (true) {
+            selected_election= null;
+            success=false;
+            try { selected_election= admin.getServer1().getUniqueElection(selected_election_title, "running"); success=true; } 
+            catch (Exception e1) {
+                try { selected_election= admin.getServer2().getUniqueElection(selected_election_title, "running"); success=true; } 
+                catch (Exception e2) { }
+            }
+            if (selected_election==null && !success) { 
+                input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); 
+                pressed_enter.stop(); 
+                try { pressed_enter.enter_thread.join(); }
+                catch (InterruptedException e) { }
+                return; 
+            }
+
+            //  CLEAR CONSOLE
+            try { Thread.sleep(100); }
+            catch (Exception e) { }
+            System.out.print("\033[H\033[2J");  
+            System.out.flush(); 
+
+            System.out.println("----------------------------------------");
+            System.out.println(selected_election.getTitle()+" acaba dia "+selected_election.getEndingDateString()+" as "+selected_election.getEndingHourString());
+            System.out.println("----------------------------------------");
+            for (Vote vote : selected_election.getVoters())  System.out.println(vote.getVoter_cc()+"\t"+vote.getVoter_depart());
+            System.out.println("----------------------------------------");
+            System.out.println("Pressione Enter para Voltar...");
+
+            if (!pressed_enter.enter_thread.isAlive()) break;
+            try { pressed_enter.enter_thread.join(1000); } 
+            catch (InterruptedException e) { break; }
+        }
+    }
+    private void consultFinishedElections(Scanner keyboard) {
         ArrayList<Election> available_elections= new ArrayList<>();
         int option;
 
@@ -546,6 +610,7 @@ public class AdminConsole extends RMIClient {
             System.out.println("----------------------------------------");
             System.out.println("Mesas de Voto Disponiveis");
             System.out.println("----------------------------------------");
+            System.out.println("Faculdade\tDepartamento\tAtividade\tTerminais");
             for (int i = 0; i < available_deps.size(); i++) {
                 Department aux= available_deps.get(i);
                 if (aux.getActivatedVoteTable()) System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tAtiva\t"+aux.getVoteTerminals());

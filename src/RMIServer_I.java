@@ -42,6 +42,8 @@ public interface RMIServer_I extends Remote {
 	public ArrayList<Election> getFinishedElections() throws RemoteException; 
 	public ArrayList<Election> getUnstartedElections() throws RemoteException;
 	public ArrayList<String> getElectionNames(String election_state) throws RemoteException;
+	public Election getUniqueElection(String election_name, String election_state) throws RemoteException;
+
 	public String setUpdatedElection(Election updated_election, boolean is_candidature) throws RemoteException;
 	public ArrayList<Election> getElectionToVoteTable(String depart_name) throws RemoteException;
 

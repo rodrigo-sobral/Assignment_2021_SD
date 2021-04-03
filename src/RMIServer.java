@@ -1,24 +1,21 @@
-    //  Default
-    import java.io.*;
+//  Default
+import java.io.*;
+//  RMI
+import java.rmi.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.server.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.stream.IntStream;
 
-    //  RMI
-    import java.rmi.*;
-    import java.rmi.registry.LocateRegistry;
-    import java.rmi.server.*;
-    import java.time.LocalDateTime;
-    import java.util.ArrayList;
-    import java.util.Scanner;
-    import java.util.stream.IntStream;
+//  CUSTOM 
+import classes.User;
+import classes.Election;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 
-    //  CUSTOM 
-    import classes.Election;
-    import classes.User;
-
-    import java.net.DatagramSocket;
-    import java.net.InetAddress;
-
-
-    public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runnable {   
+public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runnable {   
         private static final long serialVersionUID = 1L;
 
         //  CONNECTION DATA
@@ -227,10 +224,8 @@
         }
     
         synchronized public String registElection(Election new_election) throws RemoteException {
-            for (Election election : unstarted_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
-            for (Election election : running_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
-            for (Election election : finished_elections) if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
-
+            if (getUniqueElection(new_election.getTitle(), "unstarted")==null && getUniqueElection(new_election.getTitle(), "running")==null && getUniqueElection(new_election.getTitle(), "finished")==null) 
+                return "400: Uma Eleicao com esse Titulo ja foi registada!";
             unstarted_elections.add(new_election);
             file_manage.saveElectionsFile(unstarted_elections, "unstarted");
             if (server.getPinger()!=null) server.getPinger().setUnstarted_elections(unstarted_elections);
@@ -272,7 +267,19 @@
             else if (election_state=="unstarted") for (Election election : unstarted_elections) names.add(election.getTitle());
             return names;
         }
-        
+        synchronized public Election getUniqueElection(String election_name, String election_state) throws RemoteException { 
+            if (election_state=="unstarted") {
+                for (Election election : server.getUnstartedElections())
+                    if (election.getTitle().compareTo(election_name)==0) return election;
+            } else if (election_state=="running") {
+                for (Election election : server.getRunningElections())
+                    if (election.getTitle().compareTo(election_name)==0) return election;
+            } else if (election_state=="finished") {
+                for (Election election : server.getFinishedElections())
+                    if (election.getTitle().compareTo(election_name)==0) return election;
+            } return null;
+        }
+
         synchronized public String setUpdatedElection(Election updated_election, boolean is_candidature) throws RemoteException { 
             for (Election election : unstarted_elections)
                 if (election.getTitle().compareTo(updated_election.getTitle())==0) {
@@ -382,7 +389,7 @@
             file_manage.saveElectionsFile(running_elections, "finished");
         }
         
-    }
+}
 
 
     /**
