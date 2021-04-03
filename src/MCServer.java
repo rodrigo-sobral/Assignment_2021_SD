@@ -52,12 +52,10 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
     }
     public static void main(String[] args) throws RemoteException, InterruptedException {
         Scanner scanner = new Scanner(System.in);
-        String cart, depar="";
+        String depar="";
         Inputs input = new Inputs();
-        String messag = "";
         int cont = 0, ind;
         Random alea = new Random();
-        //considerar 
         
         int n_max_terminais=2 ;
         
@@ -82,8 +80,10 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             System.out.println("----------------------------------------");
             System.out.println("Eleicoes Disponiveis [0 para Voltar]");
             System.out.println("----------------------------------------");
-            for (int i = 0; i < available_elections.size(); i++) 
-                System.out.println(i+1+": "+available_elections.get(i).getTitle()+"\t"+available_elections.get(i).getStartingDateString()+"\t"+available_elections.get(i).getEndingDateString()+"\t"+available_elections.get(i).getDescription());
+            for (int i = 0; i < available_elections.size(); i++)  {
+                Election temp_election= available_elections.get(i);
+                System.out.println(i+1+": "+temp_election.getElection_type()+"\t"+temp_election.getTitle()+"\t"+temp_election.getStartingDateString()+"\t"+temp_election.getEndingDateString()+"\t"+temp_election.getDescription());
+            }
             System.out.println("----------------------------------------");
             election_option= input.checkIntegerOption(scanner, "Opcao: ", 0, available_elections.size())-1;
             
@@ -96,15 +96,14 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         mesa_voto = new MCServer(n_max_terminais,mesa_voto2,"mesa_voto",Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
         mesa_voto2 = new SecMultServer(mesa_voto.getEleitor_cc(),selected_election,rmi_connection,mesa_voto,"mesa_voto2","", "", depar);
 
-        for (Candidature string : selected_election.getCandidatures_to_election()) {
-            mesa_voto.getArray_candidature().add(string.getCandidature_name());
-        }
+        for (Candidature string : selected_election.getCandidatures_to_election()) mesa_voto.getArray_candidature().add(string.getCandidature_name());
         
         ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort(),true);
-        System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");
         
         while(true) {
-            //try {Thread.sleep(1000);} catch (InterruptedException e) { }*/
+            System.out.print("\033[H\033[2J");  
+            System.out.flush(); 
+            System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");
             mesa_voto.getEleitor_cc().add(input.askVariable(scanner, "Insira o Numero do seu CC: ", 2)); 
             try {
                 if (!rmi_connection.getServer1().authorizeUser(mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1))) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
@@ -113,72 +112,49 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     if (!rmi_connection.getServer2().authorizeUser(mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1))) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
                 } catch (RemoteException e1) { }
             }
-            if(cont ==0){
+            
+            if(cont==0) {
                 mesa_voto.thread.start();
                 mesa_voto2.thread.start();
                 cont++;
             }
             
-            
             synchronized (mesa_voto.thread) {
                 try {
-                    System.out.println("WAIT");
                     mesa_voto.thread.wait();
-                    System.out.println("SAIU DO WAIT");
-                    System.out.println("---A adquirir um terminal para o eleitor---");
-                    System.out.println("...Esperar que mais terminais de voto se conectem...");
-                    try {Thread.sleep(10000);} catch (InterruptedException e) { }
                     if(mesa_voto.getDesk().getArray_id().size() !=0){
                         if (mesa_voto.getDesk().getArray_id().size()==1) ind = 0;
                         else ind = alea.nextInt((mesa_voto.getDesk().getArray_id().size()-1) + 1);
-                        System.out.println("tgggg"+ind);
-                        for (int i = 0; i < mesa_voto.getDesk().getArray_id().size(); i++) 
-                            System.out.println("Elemento "+i+" "+mesa_voto.getDesk().getArray_id().get(i));
-                        System.out.println("Terminal de voto com id"+mesa_voto.getDesk().getArray_id().get(ind)+"selecionado");
                         mesa_voto.setMensagens("type|connected;cc|"+mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1)+";id|"+mesa_voto.getDesk().getArray_id().get(ind));
                         mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));   
                         mesa_voto.printar_array_id_conectados();
                     }
-
                 } catch (Exception e) { e.printStackTrace(); }
             }
-
         }
     }
         
     public void run () {
         synchronized(Thread.currentThread()){
             String[] conection;
-            String[] aux;
-            int ind;
             Scanner keyboardScanner= new Scanner(System.in);
             InetAddress group;
             DatagramPacket packet;
-            Random alea = new Random();
-            System.out.println("entrei server->client");
             while(true){
                 MulticastSocket socket = null;
                 try {
                     socket = new MulticastSocket();  // create socket without binding it (only for sending)                
                     while (true) {
-                        try {Thread.sleep(1000);} catch (InterruptedException e){}
-                        if (mesa_voto.getMensagens().compareTo("")!=0){
-                            System.out.println("mesa voto envia para o client: "+mesa_voto.getMensagens());
+                        try {Thread.sleep(1000);} catch (InterruptedException e) { }
+                        if (mesa_voto.getMensagens().compareTo("")!=0) {
                             byte[] buffer = mesa_voto.getMensagens().getBytes();
                             group = InetAddress.getByName(getDesk().getIp());
                             packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getDesk().getPort()));
                             socket.send(packet);
                             conection = mesa_voto.getMensagens().split(";");
-                            //aux = conection[0].split("\\|");
-                            if(conection[1].compareTo("received")==0){
-                                if(mesa_voto.getDesk().getArray_id().size() ==mesa_voto.n_max_terminais )
-                                    synchronized (mesa_voto.thread) {
-                                        
-                                        System.out.println("Parte de notify");
-                                        mesa_voto.thread.notify();
-                                        System.out.println("notificou");
-                                    }
-                                
+                            if (conection[1].compareTo("received")==0) {
+                                if (mesa_voto.getDesk().getArray_id().size()==mesa_voto.n_max_terminais)
+                                    synchronized (mesa_voto.thread) { mesa_voto.thread.notify(); }
                             }
                             mesa_voto.setMensagens("");
                         }
@@ -187,7 +163,6 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                 finally { socket.close(); keyboardScanner.close(); }
             }  
         }
-        
     }  
 }
 
@@ -208,9 +183,7 @@ class SecMultServer implements Runnable {
         thread = new Thread(this,threadname);
         SecMultServer.rmi_connection = rmi_connection;
         this.selected_election = selected_election;
-        this.eleitor_cc = eleitor_cc;
-
-        
+        this.eleitor_cc = eleitor_cc;   
     }
     
     public ArrayList<String> getEleitor_cc() { return eleitor_cc; }
@@ -256,36 +229,27 @@ class SecMultServer implements Runnable {
 }
 
 class Handler_Message{
-    private static boolean authenticateUser;
-
-
     //trata das mensagens que o server recebe
     public static Boolean typeMessage(Election selected_election,String mensagem,MCServer mesa_voto,RMIClient rmi_connection){
         String [] sublista;
-        String [] aux;
         String[] lista = mensagem.split(";");
         String voto,cc;
-        Random alea = new Random();
         String message_client = "";
         ArrayList <String> add_mensagens = new ArrayList<>();
-        int ind;
         String id;
         sublista= lista[0].split("\\|");
-        if(sublista[1].compareTo("envia_id")==0){
+
+        if (sublista[1].compareTo("envia_id")==0) {
             sublista= lista[1].split("\\|");
             mesa_voto.getDesk().getArray_id().add(Integer.parseInt(sublista[1]));
             mesa_voto.setMensagens("type|envia_id;received;id|"+sublista[1]);
             mesa_voto.printar_array_id_conectados();
-        }
-        else if(sublista[1].compareTo("ask")==0){
+        } else if(sublista[1].compareTo("ask")==0) {
             sublista = lista[1].split("\\|");
             message_client = "type|listacandidaturas;";
-            for (int i = 0; i < mesa_voto.getArray_candidature().size(); i++) {
-                message_client+=mesa_voto.getArray_candidature().get(i);
-                message_client+=";";
-            }
-            message_client+="id|";
-            message_client+=sublista[1];
+            for (int i = 0; i < mesa_voto.getArray_candidature().size(); i++) message_client+=mesa_voto.getArray_candidature().get(i)+";";
+            
+            message_client+="id|"+sublista[1];
             mesa_voto.setMensagens(message_client);
         }
         else if(sublista[1].compareTo("login")==0){
@@ -293,51 +257,42 @@ class Handler_Message{
                 sublista = lista[i].split("\\|");
                 add_mensagens.add(sublista[1]);
             }
-            System.out.println("username: "+add_mensagens.get(0)+" password: "+add_mensagens.get(1));
+            
             sublista = lista[lista.length -1].split("\\|");
             id = sublista[1];
-            try {
-                
-                if (rmi_connection.getServer1().authenticateUser(add_mensagens.get(0), add_mensagens.get(1)) == true){
+            try {    
+                if (rmi_connection.getServer1().authenticateUser(add_mensagens.get(0), add_mensagens.get(1)) == true)
                     mesa_voto.setMensagens("type|login;status|sucessed;id|"+id);
-                }else{
-                    mesa_voto.setMensagens("type|login;status|unsucessed;id|"+id);
-                }
-            } catch (RemoteException e) {
-                //e.printStackTrace();
-            }
-            
+                else mesa_voto.setMensagens("type|login;status|unsucessed;id|"+id);
+            } catch (RemoteException e) { } 
 
             add_mensagens.clear();
             return true;
-        }else if(sublista[1].compareTo("resultado")==0){
+        } else if(sublista[1].compareTo("resultado")==0) {
             sublista = lista[1].split("\\|");
-            if (sublista.length ==1){
-                voto = "";
-            }else voto = sublista[1];
+            
+            if (sublista.length ==1) voto = "";
+            else voto = sublista[1];
+
             sublista = lista[2].split("\\|");
             cc = sublista[1];
-            System.out.println("Voto: "+voto+"CC: "+cc);
             selected_election.registVote(voto, cc,mesa_voto.getDesk().getDeparNome());
-
         }
-
         return false;
     }
-
 
     //trata das mensagens que o cliente recebe
     public static String typeMessage_Client(String mensagem, int id){
         System.out.println("chegou esta mesangem"+mensagem);
-        String [] sublista;
         String message="";
         String[] lista = mensagem.split(";");
-        sublista= lista[lista.length-1].split("\\|");
-        //verificar se e o terminal que queremos
-        if (id == Integer.parseInt(sublista[1])){
+        String [] sublista= lista[lista.length-1].split("\\|");
+
+        //  verificar se e o terminal que queremos
+        if (id == Integer.parseInt(sublista[1])) {
             sublista = lista[0].split("\\|");
             if (sublista[1].compareTo("login")==0){
-                //verificar status
+                //  verificar status
                 sublista = lista[1].split("\\|");
                 if (sublista[1].compareTo("sucessed")==0) return "sucessed";    
                 else return "unsucessed";
@@ -347,8 +302,7 @@ class Handler_Message{
                 sublista = lista[1].split("\\|");
                 message = "choose|"+sublista[1];
                 return message;
-            }
-            else if(sublista[1].compareTo("listacandidaturas")==0){
+            } else if(sublista[1].compareTo("listacandidaturas")==0){
                 for (int i = 1; i < lista.length-1; i++) {
                     message+=lista[i]+";";
                     if (i==lista.length-1) message+=lista[i];
@@ -371,32 +325,9 @@ class Gerar_Numeros {
             else ip+=Integer.toString(end);
             max = 255;
             min = 0;
-        }
-        return ip;
+        } return ip;
     }
 
     public static String gerar_port(int max, int min) { return Integer.toString(new Random().nextInt((max - min) + 1) + min); }
 }
 
-/*
-class Ask_Info_Eleitor implements Runnable{
-    public Thread thread;
-    private Scanner scanner;
-    private Inputs input;
-    private static MCServer mesa_voto;
-
-    public Ask_Info_Eleitor(MCServer mesa_voto,String threadname,Scanner scanner,Inputs input){
-        thread = new Thread(this,threadname);
-        this.scanner = scanner;
-        this.input = input;
-        Ask_Info_Eleitor.mesa_voto=mesa_voto;
-    }
-    public static MCServer getMesa_voto() { return mesa_voto; }
-
-    public void run(){
-        String cart;
-        System.out.println("entrou aqui\n");
-        
-    }
-
-}*/

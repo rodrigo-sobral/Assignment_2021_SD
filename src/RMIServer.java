@@ -302,7 +302,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
                 file_manage.saveCollegesFile(colleges);
                 if (server.getPinger()!=null) server.getPinger().setColleges(colleges);
                 if (new_vote_table) { 
-                    System.out.println("Mesa de Voto Registada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()+" com "+updated_department.getVoteTerminals()+" terminais de voto"); 
+                    System.out.println("Mesa de Voto Registada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()+" com "+updated_department.getMCServerDatas()+" terminais de voto"); 
                     return "200: Mesa de Voto Registada com Sucesso"; 
                 } else {
                     System.out.println("Mesa de Voto Eliminada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()); 
