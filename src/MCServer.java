@@ -35,6 +35,19 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         this.array_candidature = new ArrayList<>();
     }
 
+    public ArrayList<String> getArray_candidature() { return array_candidature; }
+    public Thread getThread() { return thread; }
+    public MCServerData getDesk() { return desk; }
+    public String getMensagens() { return mensagens; }
+    public void setMensagens(String mensagens) { this.mensagens = mensagens; }
+
+
+    public void printar_array_id_conectados(){
+        System.out.println("Printar Array ID Conectado");
+        for (int i = 0; i < mesa_voto.getDesk().getArray_id().size(); i++) {
+            System.out.println(mesa_voto.getDesk().getArray_id().get(i)+" ");
+        }
+    }
     public static void main(String[] args) throws RemoteException, InterruptedException {
         Scanner scanner = new Scanner(System.in);
         String cart, depar="";
@@ -42,32 +55,24 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         String messag = "";
         int cont = 0, ind;
         Random alea = new Random();
-        System.out.println("Insira um departamento: ");
-        depar = scanner.nextLine();
-        /*
+
+        
         rmi_connection = new RMIClient();
         while (!rmi_connection.connect2Servers(scanner));
 
-        ArrayList<Election> available_elections= new ArrayList<>();
+        ArrayList<Election> available_elections=null;
         int election_option=0;
-        while (available_elections.isEmpty()) {
+        while (available_elections==null) {
             while (true) {
                 depar = input.askDepartment(rmi_connection, scanner, new ArrayList<>(), true);
                 if (!depar.isEmpty()) break;
             }
-            try { available_elections= rmi_connection.getServer1().getElectionToVoteTable(depar); } 
+            try { available_elections= rmi_connection.getServer1().getElectionToVoteTable(depar); }
             catch (Exception e1) {
                 try { available_elections= rmi_connection.getServer2().getElectionToVoteTable(depar); }
                 catch (Exception e2) { }
             }
-
-            if (available_elections.isEmpty()) { System.out.println("400: Nao existe uma Eleicao para esse Departamento!"); continue; }
-            System.out.println("Ligando aos Servidores...");
-            boolean result=false;
-            while (!result) {
-                try { result= rmi_connection.subscribe2Servers(rmi_connection, null); } 
-                catch (Exception e1) { }
-            }
+            if (available_elections==null) { System.out.println("400: Nao existe uma Eleicao para esse Departamento!"); continue; }
             
             //  ASK ELECTION TO THE CANDIDATURE 
             System.out.println("----------------------------------------");
@@ -83,28 +88,28 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
 
         //  ASK TO CHANGE A VARIABLE
         Election selected_election= available_elections.get(election_option);
-*/
+
         mesa_voto = new MCServer(mesa_voto2,"mesa_voto",Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
         mesa_voto2 = new SecMultServer(rmi_connection,mesa_voto,"mesa_voto2","", "", depar);
-/*
+
         //selected_election.registVote(voter_choice, voter_cc);
         for (Candidature string : selected_election.getCandidatures_to_election()) {
             mesa_voto.getArray_candidature().add(string.getCandidature_name());
-        }*/
+        }
         
-        ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort());
+        ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort(),true);
         System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");
-        /*
+        
         while(true) {
             //try {Thread.sleep(1000);} catch (InterruptedException e) { }*/
             cart  = input.askVariable(scanner, "Insira o Numero do seu CC: ", 2);
-            /*try {
+            try {
                 if (!rmi_connection.getServer1().authorizeUser(cart)) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
             } catch (RemoteException e) {
                 try {
                     if (!rmi_connection.getServer2().authorizeUser(cart)) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
                 } catch (RemoteException e1) { }
-            }*/
+            }
             mesa_voto.thread.start();
             mesa_voto2.thread.start();
             
@@ -119,6 +124,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     if(mesa_voto.getDesk().getArray_id().size() !=0){
                         if (mesa_voto.getDesk().getArray_id().size()==1) ind = 0;
                         else ind = alea.nextInt((mesa_voto.getDesk().getArray_id().size()) + 1);
+                        System.out.println("tgggg"+ind);
                         for (int i = 0; i < mesa_voto.getDesk().getArray_id().size(); i++) 
                             System.out.println("Elemento "+i+" "+mesa_voto.getDesk().getArray_id().get(i));
                         System.out.println("Terminal de voto com id"+mesa_voto.getDesk().getArray_id().get(ind)+"selecionado");
@@ -129,23 +135,9 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
 
                 } catch (Exception e) { e.printStackTrace(); }
             }
-        //}
-    }
-        
-    public ArrayList<String> getArray_candidature() { return array_candidature; }
-    public Thread getThread() { return thread; }
-    public MCServerData getDesk() { return desk; }
-    public String getMensagens() { return mensagens; }
-    public void setMensagens(String mensagens) { this.mensagens = mensagens; }
-
-
-    public void printar_array_id_conectados(){
-        System.out.println("Printar Array ID Conectado");
-        for (int i = 0; i < mesa_voto.getDesk().getArray_id().size(); i++) {
-            System.out.println(mesa_voto.getDesk().getArray_id().get(i)+" ");
         }
     }
-
+        
     public void run () {
         String[] conection;
         String[] aux;
@@ -260,8 +252,8 @@ class Handler_Message{
             mesa_voto.getDesk().getArray_id().add(Integer.parseInt(sublista[1]));
             mesa_voto.setMensagens("type|envia_id;received;id|"+sublista[1]);
             mesa_voto.printar_array_id_conectados();
-        
-            /*(mesa_voto.getDesk().getArray_id().size()==1){
+            /*
+            if(mesa_voto.getDesk().getArray_id().size()==1){
                 ind = 0;
             }
             else{
@@ -275,11 +267,11 @@ class Handler_Message{
             mesa_voto.setMensagens("type|connected;id|"+mesa_voto.getDesk().getArray_id().get(ind));
             System.out.println("Mensagem a enviar para o cliente: "+mesa_voto.getMensagens());
             mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));
-        cccccccc->apahgar*/
+        */
         }
         else if(sublista[1].compareTo("ask")==0){
             sublista = lista[1].split("\\|");
-            message_client = "type|listacandidaturas";
+            message_client = "type|listacandidaturas;";
             for (int i = 0; i < mesa_voto.getArray_candidature().size(); i++) {
                 message_client+=mesa_voto.getArray_candidature().get(i);
                 message_client+=";";
@@ -289,23 +281,23 @@ class Handler_Message{
             mesa_voto.setMensagens(message_client);
         }
         else if(sublista[1].compareTo("login")==0){
-            for (int i = 1; i < lista.length-2; i++) {
+            for (int i = 1; i < lista.length-1; i++) {
                 sublista = lista[i].split("\\|");
                 add_mensagens.add(sublista[1]);
             }
+            System.out.println("username: "+add_mensagens.get(0)+" password: "+add_mensagens.get(1));
             sublista = lista[lista.length -1].split("\\|");
             id = sublista[1];
-           // try {
-                /*
+            try {
+                
                 if (rmi_connection.getServer1().authenticateUser(add_mensagens.get(0), add_mensagens.get(1)) == true){
                     mesa_voto.setMensagens("type|login;status|sucessed;id|"+id);
                 }else{
                     mesa_voto.setMensagens("type|login;status|unsucessed;id|"+id);
-                }*/
-                mesa_voto.setMensagens("type|login;status|sucessed;id|"+id);
-            //} catch (RemoteException e) {
+                }
+            } catch (RemoteException e) {
                 //e.printStackTrace();
-            //}
+            }
             
 
             add_mensagens.clear();

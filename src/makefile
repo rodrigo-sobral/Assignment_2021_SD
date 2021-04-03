@@ -4,11 +4,11 @@ rmiserver:
 	java RMIServer
 	
 admin:
-	javac AdminConsole.java RMIClient.java RMIServer.java
+	javac AdminConsole.java RMIClient.java RMIServer.java 
 	java AdminConsole
 
 mcserver:
-	javac MCServer.java RMIClient.java RMIServer.java AdminConsole.java MCServerData.java
+	javac MCServer.java RMIClient.java RMIServer.java AdminConsole.java MCServerData.java ReadWrite.java
 	java MCServer
 
 mcclient:

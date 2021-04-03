@@ -8,9 +8,9 @@ public class ReadWrite implements Serializable{
     private static final long serialVersionUID = 1L;
 
     //escrever no ficheiro txt os ips do departamento
-    public static void Write (String filename,String depar,String ip,String port){
+    public static void Write (String filename,String depar,String ip,String port,boolean flag){
         try {
-            FileWriter fp = new FileWriter(filename,true);
+            FileWriter fp = new FileWriter(filename,flag);
             fp.write(depar+" "+ip+" "+port+"\n");
             fp.close();
         } catch (IOException e) {
@@ -107,12 +107,12 @@ public class ReadWrite implements Serializable{
         }else{
             JOptionPane.showMessageDialog(null, "[VoteDesk.txt]: Erro, o ficheiro não existe", "ERRO!", JOptionPane.ERROR_MESSAGE);
         }
-
-        f.delete();
+        ReadWrite.Write(filename, "", "", "",false);
         for (int i = 0; i < new_list.size(); i++) {
             String lista[] = new_list.get(i).split(" ");
-            ReadWrite.Write(filename, lista[0], lista[1], lista[2]);
+            ReadWrite.Write(filename, lista[0], lista[1], lista[2],true);
         }
+
     }
 
 

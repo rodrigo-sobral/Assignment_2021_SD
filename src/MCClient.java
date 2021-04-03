@@ -91,11 +91,12 @@ public class MCClient implements Runnable{
                 System.out.println("wait na main");
                 cliente2.thread.wait();
                 System.out.println("Saiu da main");
-                thread_eleitor.stop();
                 cliente.stop();
                 cliente2.stop();
             }catch (Exception e) { e.printStackTrace(); }
         }
+        thread_eleitor.stop();
+        System.exit(0);
     }
 
 
@@ -117,7 +118,7 @@ public class MCClient implements Runnable{
                     socket.joinGroup(group);
                     byte[] buffer = new byte[256];
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                    while (true) {
+                    while (!exit) {
                         try {Thread.sleep(1000);} catch (InterruptedException e){}
                         socket.receive(packet);
                         System.out.print("Received packet from " + packet.getAddress().getHostAddress() + ":" + packet.getPort() + " with message:");
@@ -136,6 +137,7 @@ public class MCClient implements Runnable{
                             thread_eleitor.thread.start();
                         }else{
                             if(messag_lida.compareTo("sucessed")==0){
+                                cliente2.setMessage("");
                                 cliente.setLogin_sucessed(true);
                                 synchronized (thread_eleitor.thread) {
                                     System.out.println("Parte de notify");
@@ -144,10 +146,11 @@ public class MCClient implements Runnable{
                                 }
                             }
                             else if(messag_lida.compareTo("unsucessed")==0){
+                                cliente2.setMessage("");
                                 cliente.setLogin_sucessed(false);
-                                synchronized (cliente.thread) {
+                                synchronized (thread_eleitor.thread) {
                                     System.out.println("Parte de notify");
-                                    cliente.thread.notify();
+                                    thread_eleitor.thread.notify();
                                     System.out.println("notificou");
                                 }
                             }
@@ -160,11 +163,15 @@ public class MCClient implements Runnable{
                                 cliente2.setMessage("");
                                 
                             }
+                            else if(messag_lida.compareTo("")==0){
+                                System.out.println("Ignorar mensagem");
+                            }
                             //lista eleicoes
                             else{
                                 System.out.println("AHHHHH");
+                                cliente2.setMessage("");
                                 Eleitor_Connected.ListaCandidaturas(cliente2, message, cliente.getInpu(), cliente.getScanner());
-                                //cliente.setMessage(messag_lida);
+                                
                                 //Thread.currentThread().notify();
         
                             }
@@ -228,10 +235,10 @@ class SecMultGClient implements Runnable{
         } else {
             getVoteTerminal().setIp(Gerar_Numeros.gerar_ip());
             getVoteTerminal().setPort(Gerar_Numeros.gerar_port(1000,100));
-            ReadWrite.Write("TerminalVote.txt", getVoteTerminal().getNome_depar(), getVoteTerminal().getIp(), getVoteTerminal().getPort());
+            ReadWrite.Write("TerminalVote.txt", getVoteTerminal().getNome_depar(), getVoteTerminal().getIp(), getVoteTerminal().getPort(),true);
             //gerar numero aleatorio para o id do terminal de voto
         }
-        while (true){
+        while (!exit){
             try {Thread.sleep(3000);} catch (InterruptedException e){}
             MulticastSocket socket = null;
             if (getMessage().compareTo("")!=0){
@@ -248,6 +255,7 @@ class SecMultGClient implements Runnable{
                         getMessage().compareTo("");
                     }else if (aux[1].compareTo("resultado")==0){
                         //terminar sockets
+                        setMessage("");
                         System.out.println("....a fechar o terminal....");
                         synchronized (Thread.currentThread()) {
                             System.out.println("Parte de notify");
@@ -298,7 +306,7 @@ class Eleitor_Connected implements Runnable {
     
     public void run(){
         synchronized (Thread.currentThread()) {
-            while(true){
+            while(!exit){
                 String username,password;
                 username = getInput().askVariable(scanner,"Username: " , 0);
                 password = input.askVariable(scanner,"Password: " , 1);
@@ -324,7 +332,7 @@ class Eleitor_Connected implements Runnable {
         System.out.println("|==========================================|");
         System.out.println("|             Listas para votar            |");
         System.out.println("|==========================================|");
-        for (int i = 0; i < lista_candidaturas.length; i++) System.out.println((i+1)+ ": Lista " + lista_candidaturas[i]);
+        for (int i = 1; i < lista_candidaturas.length-1; i++) System.out.println((i)+ ": Lista " + lista_candidaturas[i]);
         System.out.println("Insira a opcao que pretende votar: ");
         opcao = scanner.nextLine();
         if (opcao.compareTo("")==0){
@@ -332,13 +340,13 @@ class Eleitor_Connected implements Runnable {
             cliente2.setMessage("type|resultado;OpcaoVoto|Branco;cc|"+cliente.getCc()+";id|" + cliente.getVote_terminal().getId_terminal());
         }else if (input.checkStringInteger(opcao) ==true){
             if (Integer.parseInt(opcao)>=0 && Integer.parseInt(opcao)<lista_candidaturas.length){
-                cliente2.setMessage("type|resultado;opcaovoto|" + lista_candidaturas[Integer.parseInt(opcao)] +";cc|"+cliente.getCc()+ ";id|" + cliente.getVote_terminal().getId_terminal());
+                cliente2.setMessage("type|resultado;opcaovoto|" + opcao +";cc|"+cliente.getCc()+ ";id|" + cliente.getVote_terminal().getId_terminal());
             }
         }else{
             //voto nulo
             cliente2.setMessage("type|resultado;OpcaoVoto|Nulo;cc|"+cliente.getCc()+";id|" + cliente.getVote_terminal().getId_terminal());
-            ReadWrite.remove_line("TerminalVote.txt",cliente.getVote_terminal().getNome_depar());
-        }       
+        } 
+        ReadWrite.remove_line("TerminalVote.txt",cliente.getVote_terminal().getNome_depar());      
        
     }
     public void stop() { exit = true; }

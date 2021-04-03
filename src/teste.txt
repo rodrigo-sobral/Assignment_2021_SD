@@ -10,4 +10,13 @@ type|envia_id;id|5
 type|login;username|qwev;password|vdfgbv;id|5
 type|resultado;opcaovoto|btg;cc|123654789;id|4
 type|ask;id|852;  ->pede ao server a lista de candidaturas
-ask listas eleicoes
+
+
+quando se faz ctrc na mesa de voto, remover a linha no ficheiro MCServerData.txt
+
+
+//numero maximo de terminais de voto, e ai, fazer o notify
+
+7895856->teresa
+
+52369874->cremilde
