@@ -137,9 +137,9 @@ public class MCClient implements Runnable{
                         }else{
                             if(messag_lida.compareTo("sucessed")==0){
                                 cliente.setLogin_sucessed(true);
-                                synchronized (cliente.thread) {
+                                synchronized (thread_eleitor.thread) {
                                     System.out.println("Parte de notify");
-                                    cliente.thread.notify();
+                                    thread_eleitor.thread.notify();
                                     System.out.println("notificou");
                                 }
                             }
@@ -157,6 +157,7 @@ public class MCClient implements Runnable{
                             }
                             else if(messag_lida.compareTo("connected_server")==0){
                                 //feito em baixo
+                                cliente2.setMessage("");
                                 
                             }
                             //lista eleicoes
@@ -231,7 +232,7 @@ class SecMultGClient implements Runnable{
             //gerar numero aleatorio para o id do terminal de voto
         }
         while (true){
-            try {Thread.sleep(2000);} catch (InterruptedException e){}
+            try {Thread.sleep(3000);} catch (InterruptedException e){}
             MulticastSocket socket = null;
             if (getMessage().compareTo("")!=0){
                 try {
@@ -313,7 +314,7 @@ class Eleitor_Connected implements Runnable {
             }   
         } 
         System.out.println("saiu do while (user e pass corret)");
-        cliente.setMessage("type|ask;id|"+cliente.getVote_terminal().getId_terminal());
+        cliente2.setMessage("type|ask;id|"+cliente.getVote_terminal().getId_terminal());
         //ListaCandidaturas(cliente2,cliente.getMessage(), input, scanner);
     }
     

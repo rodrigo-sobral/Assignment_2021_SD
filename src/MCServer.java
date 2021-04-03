@@ -55,7 +55,9 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         String messag = "";
         int cont = 0, ind;
         Random alea = new Random();
-        
+        System.out.println("Insira um departamento: ");
+        depar = scanner.nextLine();
+        /*
         rmi_connection = new RMIClient();
         while (!rmi_connection.connect2Servers(scanner));
 
@@ -87,27 +89,28 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
 
         //  ASK TO CHANGE A VARIABLE
         Election selected_election= available_elections.get(election_option);
-
+*/
         mesa_voto = new MCServer(mesa_voto2,"mesa_voto",Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
         mesa_voto2 = new SecMultServer(rmi_connection,mesa_voto,"mesa_voto2","", "", depar);
-
+/*
         //selected_election.registVote(voter_choice, voter_cc);
         for (Candidature string : selected_election.getCandidatures_to_election()) {
             mesa_voto.getArray_candidature().add(string.getCandidature_name());
-        }
+        }*/
         
         ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort());
         System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");
+        /*
         while(true) {
-            try {Thread.sleep(1000);} catch (InterruptedException e) { }
+            //try {Thread.sleep(1000);} catch (InterruptedException e) { }*/
             cart  = input.askVariable(scanner, "Insira o Numero do seu CC: ", 2);
-            try {
+            /*try {
                 if (!rmi_connection.getServer1().authorizeUser(cart)) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
             } catch (RemoteException e) {
                 try {
                     if (!rmi_connection.getServer2().authorizeUser(cart)) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
                 } catch (RemoteException e1) { }
-            }
+            }*/
             mesa_voto.thread.start();
             mesa_voto2.thread.start();
             
@@ -132,7 +135,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
 
                 } catch (Exception e) { e.printStackTrace(); }
             }
-        }
+        //}
     }
         
     public void run () {
@@ -284,15 +287,17 @@ class Handler_Message{
             }
             sublista = lista[lista.length -1].split("\\|");
             id = sublista[1];
-            try {
+           // try {
+                /*
                 if (rmi_connection.getServer1().authenticateUser(add_mensagens.get(0), add_mensagens.get(1)) == true){
                     mesa_voto.setMensagens("type|login;status|sucessed;id|"+id);
                 }else{
                     mesa_voto.setMensagens("type|login;status|unsucessed;id|"+id);
-                }
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
+                }*/
+                mesa_voto.setMensagens("type|login;status|sucessed;id|"+id);
+            //} catch (RemoteException e) {
+                //e.printStackTrace();
+            //}
             
 
             add_mensagens.clear();
