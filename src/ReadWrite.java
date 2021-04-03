@@ -11,8 +11,11 @@ public class ReadWrite implements Serializable{
     public static void Write (String filename,String depar,String ip,String port,boolean flag){
         try {
             FileWriter fp = new FileWriter(filename,flag);
-            fp.write(depar+" "+ip+" "+port+"\n");
-            fp.close();
+            if(depar.compareTo("")!=0 && ip.compareTo("")!=0 && port.compareTo("")!=0){
+                fp.write(depar+" "+ip+" "+port+"\n");
+                fp.close();
+            }
+            else fp.close();
         } catch (IOException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
@@ -57,14 +60,22 @@ public class ReadWrite implements Serializable{
                 FileReader fr = new FileReader(f);
                 BufferedReader br= new BufferedReader(fr);
                 String line;
+                
                 while((line=br.readLine()) !=null){
-                    String lista[] = line.split(" ");
-                    if(lista[0].compareTo(mesa.getDeparNome())==0){
-                        //linha correta
-                        mesa.setDepar(mesa.getDeparNome());
-                        mesa.setPort(lista[2]);
-                        mesa.setIp(lista[1]);
+                    System.out.println("Print: "+line);
+                    if(line.compareTo("")==0){
+                        
+                        break;
+                    }else{
+                        String lista[] = line.split(" ");
+                        if(lista[0].compareTo(mesa.getDeparNome())==0){
+                            //linha correta
+                            mesa.setDepar(mesa.getDeparNome());
+                            mesa.setPort(lista[2]);
+                            mesa.setIp(lista[1]);
+                        }
                     }
+                    
                 }
                 br.close();
                 fr.close();
@@ -107,11 +118,19 @@ public class ReadWrite implements Serializable{
         }else{
             JOptionPane.showMessageDialog(null, "[VoteDesk.txt]: Erro, o ficheiro não existe", "ERRO!", JOptionPane.ERROR_MESSAGE);
         }
-        ReadWrite.Write(filename, "", "", "",false);
-        for (int i = 0; i < new_list.size(); i++) {
-            String lista[] = new_list.get(i).split(" ");
-            ReadWrite.Write(filename, lista[0], lista[1], lista[2],true);
+        
+        if (new_list.size()==0){
+            ReadWrite.Write(filename, "", "", "",false);
         }
+        else{
+            for (int i = 0; i < new_list.size(); i++) {
+                String lista[] = new_list.get(i).split(" ");
+                if (i==0) ReadWrite.Write(filename, lista[0], lista[1], lista[2],false);
+                else  ReadWrite.Write(filename, lista[0], lista[1], lista[2],true);
+                
+            }
+        }
+        
 
     }
 
