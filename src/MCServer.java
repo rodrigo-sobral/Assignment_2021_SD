@@ -267,7 +267,7 @@ class Handler_Message{
             mesa_voto.setMensagens("type|connected;id|"+mesa_voto.getDesk().getArray_id().get(ind));
             System.out.println("Mensagem a enviar para o cliente: "+mesa_voto.getMensagens());
             mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));
-        */
+        cccccccc->apahgar*/
         }
         else if(sublista[1].compareTo("ask")==0){
             sublista = lista[1].split("\\|");
