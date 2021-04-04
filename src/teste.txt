@@ -11,7 +11,15 @@ type|login;username|qwev;password|vdfgbv;id|5
 type|resultado;opcaovoto|Branco;cc|123654789;id|4
 type|ask;id|852;  ->pede ao server a lista de candidaturas
 
+ordem:
+multicast encontrar terminais de voto
+cliente->server type|envia_id;id|5
+server->cliente type|mult;123.32.51.21;512;depar;id|7554
+cliente->server type|wait;id|5
+server->cliente type|connected;cc|85412048512;id|4
+type|ask;id|852;
 
+multicast passagem da votação
 quando se faz ctrc na mesa de voto, remover a linha no ficheiro MCServerData.txt
 
 

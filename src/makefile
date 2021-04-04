@@ -12,7 +12,7 @@ mcserver:
 	java MCServer
 
 mcclient:
-	javac MCServer.java MCClient.java VoteTerminal.java AdminConsole.java
+	javac MCServer.java MCClient.java MCServerData.java AdminConsole.java
 	java MCClient
 
 clear:

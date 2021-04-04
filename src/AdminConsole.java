@@ -394,8 +394,8 @@ public class AdminConsole extends RMIClient {
         System.out.println("----------------------------------------");
         for (int i = 0; i < available_deps.size(); i++) {
             Department aux= available_deps.get(i);
-            if (aux.getActivatedVoteTable()) System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tAtiva\t"+aux.getVoteTerminals());
-            else System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tInativa\t"+aux.getVoteTerminals());
+            if (aux.getActivatedVoteTable()) System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tAtiva\t"+aux.getMCServerDatas());
+            else System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tInativa\t"+aux.getMCServerDatas());
         }
         System.out.println("----------------------------------------");
         option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 0, available_deps.size())-1;
@@ -613,8 +613,8 @@ public class AdminConsole extends RMIClient {
             System.out.println("Faculdade\tDepartamento\tAtividade\tTerminais");
             for (int i = 0; i < available_deps.size(); i++) {
                 Department aux= available_deps.get(i);
-                if (aux.getActivatedVoteTable()) System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tAtiva\t"+aux.getVoteTerminals());
-                else System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tInativa\t"+aux.getVoteTerminals());
+                if (aux.getActivatedVoteTable()) System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tAtiva\t"+aux.getMCServerDatas());
+                else System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tInativa\t"+aux.getMCServerDatas());
             }
             System.out.println("----------------------------------------");
             System.out.println("Pressione Enter para Voltar...");

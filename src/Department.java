@@ -30,7 +30,7 @@ public class Department implements Serializable {
     public String getCollege() { return college; }
     public boolean getVoteTable() { return vote_table; }
     public boolean getActivatedVoteTable() { return activated_vote_table; }
-    public int getVoteTerminals() { return vote_terminals; }
+    public int getMCServerDatas() { return vote_terminals; }
     public ArrayList<User> getStudents() { return students; }
     public ArrayList<User> getTeachers() { return teachers; }
     public ArrayList<User> getStaff() { return staff; }
