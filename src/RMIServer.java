@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 
 //  CUSTOM 
 import classes.User;
+import classes.Vote;
 import classes.Election;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -345,6 +346,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         //  ===========================================================================================================
 
         synchronized public boolean authorizeUser(String cc_number, Election voting_election) throws RemoteException {
+            for (Vote voter : voting_election.getVoters())
+                if (voter.getVoter_cc().compareTo(cc_number)==0) return false;
             for (College college : colleges) {
                 if (voting_election.getCollege_restrictions().isEmpty() || voting_election.getCollege_restrictions().contains(college.getName())) {
                     for (Department department : college.getDepartments()) {

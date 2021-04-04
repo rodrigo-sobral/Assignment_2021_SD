@@ -108,10 +108,10 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             String inputed_cc= input.askVariable(scanner, "Insira o Numero do seu CC: ", 2);
             mesa_voto.getEleitor_cc().add(inputed_cc); 
             try {
-                if (!rmi_connection.getServer1().authorizeUser(inputed_cc, selected_election)) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
+                if (!rmi_connection.getServer1().authorizeUser(inputed_cc, selected_election)) { System.out.println("403: Nao esta autorizado a votar nesta Eleicao!"); continue; }
             } catch (RemoteException e) {
                 try {
-                    if (!rmi_connection.getServer2().authorizeUser(inputed_cc, selected_election)) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
+                    if (!rmi_connection.getServer2().authorizeUser(inputed_cc, selected_election)) { System.out.println("403: Nao esta autorizado a votar nesta Eleicao!"); continue; }
                 } catch (RemoteException e1) { }
             }
             input.messageToWait("Sera reencaminhado para um Terminal de Voto...");
