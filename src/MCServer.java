@@ -101,6 +101,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         ReadWrite.Write("MCServerData.txt", mesa_voto.desk.getDeparNome(), mesa_voto.desk.getIp(),mesa_voto.desk.getPort(),true);
         
         while(true) {
+            try {Thread.sleep(100);} catch (InterruptedException e) { }
             System.out.print("\033[H\033[2J");  
             System.out.flush(); 
             System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");

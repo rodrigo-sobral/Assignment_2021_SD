@@ -464,10 +464,14 @@ public class AdminConsole extends RMIClient {
         } 
 
         //  SEND NEW ELECTION TO RMI SERVER
-        try { System.out.println(admin.getServer1().setUpdatedElection(updated_election, false)); } 
-        catch (Exception e1) {
-            try { System.out.println(admin.getServer2().setUpdatedElection(updated_election, false)); } 
-            catch (Exception e2) { System.out.println("500: Nao ha servers\n"); }
+        boolean sended=false;
+        System.out.println("A Enviar Eleicao Atualizada...");
+        while (!sended) {
+            try { System.out.println(admin.getServer1().setUpdatedElection(updated_election, false)); sended=true; } 
+            catch (Exception e1) {
+                try { System.out.println(admin.getServer2().setUpdatedElection(updated_election, false)); sended=true; } 
+                catch (Exception e2) { }
+            }
         }
     }
     
@@ -506,8 +510,10 @@ public class AdminConsole extends RMIClient {
                 try { selected_election= admin.getServer2().getUniqueElection(selected_election_title, "running"); success=true; } 
                 catch (Exception e2) { }
             }
-            if (selected_election==null && !success) { 
-                input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); 
+            //  PROBLEMS GETTING THE ELECTION
+            if (selected_election==null) { 
+                if (!success) input_manage.messageToWait("500: Os Servidores foram encerrados!"); 
+                else input_manage.messageToWait("Aviso: A Eleicao acabou! Agora pode consulta-la na opcao 4 do Menu Gerir Eleicoes"); 
                 pressed_enter.stop(); 
                 try { pressed_enter.enter_thread.join(); }
                 catch (InterruptedException e) { }
@@ -807,8 +813,8 @@ class Inputs {
             if (i==2 && Character.compare(s.charAt(2),'-')!=0) return false;
             else if (i!=2 && !Character.isDigit(s.charAt(i))) return false;
         } 
-        int aux= Integer.parseInt(s.split("-")[0]);
-        if (aux>0 && aux<=12) return true;
+        int aux0= Integer.parseInt(s.split("-")[0]), aux1= Integer.parseInt(s.split("-")[1]);
+        if (aux0>0 && aux0<=12 && aux1>=21) return true;
         else return false;
     }
 
