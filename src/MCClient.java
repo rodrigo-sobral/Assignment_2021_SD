@@ -95,15 +95,17 @@ public class MCClient implements Runnable{
         cliente2.thread.start();
         cliente2_received.thread.start();
         cliente.thread.start();
-        synchronized(cliente2.thread){
+        synchronized(cliente.thread){
             try{
                 System.out.println("wait na main");
-                cliente2.thread.wait();
+                cliente.thread.wait();
                 System.out.println("Saiu da main");
-                //cliente.stop();
+                cliente2.stop();
+                cliente2_received.stop();
                 //cliente2.stop();
             }catch (Exception e) { e.printStackTrace(); }
         }
+        cliente.stop();
         thread_eleitor.stop();
         System.exit(0);
     }
@@ -113,10 +115,11 @@ public class MCClient implements Runnable{
         MulticastSocket socket = null;
         String messag_lida;
         String []aux;
+        String[] string1;
         String mensagem;
         String string;
 
-        while(true){
+        while(!exit){
             //System.out.println("thread ->votos");
             try {Thread.sleep(1000);} catch (InterruptedException e){}
             if (getVote_terminal().getIp().compareTo("")!=0){
@@ -129,6 +132,11 @@ public class MCClient implements Runnable{
                         byte[] buf = getMessage().getBytes();
                         DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getVote_terminal().getPort()));
                         socket.send(mesgOut);
+                        aux = getMessage().split(";");
+                        string1 = aux[0].split("\\|");
+                        if (string1[1].compareTo("resultado")==0){
+                            synchronized (Thread.currentThread()) { Thread.currentThread().notify(); } 
+                        }
                         ////
                         socket.joinGroup(group);
                         byte[] inBuf = new byte[8*1024];
@@ -172,7 +180,6 @@ public class MCClient implements Runnable{
                 
             }
         }
-       
     }                    
 
 /*while (!exit) {
@@ -261,7 +268,7 @@ class Cliente_Received implements Runnable{
         String messag_lida;
         String []aux;
 
-        while(true){
+        while(!exit){
             try {Thread.sleep(1000);} catch (InterruptedException e){}
             try {
                 socket = new MulticastSocket(Integer.parseInt(cliente2.getMCServerData().getPort()));  // create socket and bind it
@@ -335,11 +342,13 @@ class Cliente_Received implements Runnable{
                 catch(SocketTimeoutException se) { System.out.println("Aviso: Excedeu o tempo limite, o Terminal de Voto ira encerrar!"); }
                 catch (IOException e) { e.printStackTrace(); } 
                 finally { socket.close(); }
-            }
-            
         }
-  
+            
     }
+
+    public void stop() { exit = true; }
+  
+}
 
 
 
@@ -472,7 +481,7 @@ class Eleitor_Connected implements Runnable {
         System.out.println("Insira a opcao que pretende votar: ");
         opcao = scanner.nextLine();
         cliente.setMessage("type|resultado;OpcaoVoto|"+opcao+";cc|"+cliente.getCc()+";id|" + cliente.getVote_terminal().getN_terminal_vote());
-        //ReadWrite.remove_line("TerminalVote.txt",cliente.getVote_terminal().getDeparNome());      
+        ReadWrite.remove_line("TerminalVote.txt",cliente.getVote_terminal().getDeparNome());      
     }
 
     public void stop() { exit = true; }

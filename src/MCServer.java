@@ -146,7 +146,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             try {Thread.sleep(1000);} catch (InterruptedException e) { }
             //System.out.print("\033[H\033[2J");  
             //System.out.flush(); 
-            mesa_voto.getEleitor_cc().add(input.askVariable(scanner, "Insira o Numero do seu CC: ", 2));
+            mesa_voto.getEleitor_cc().add(input.askVariable(scanner, "-------Insira o Numero do seu CC: ---------", 2));
             //System.out.println(cart);
             //mesa_voto.getEleitor_cc().add(input.askVariable(scanner, "Insira o Numero do seu CC: ", 2)); 
             /*try {
@@ -156,21 +156,26 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     if (!rmi_connection.getServer2().authorizeUser(mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1))) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
                 } catch (RemoteException e1) { }
             }*/
-                
+            if (cont ==0){    
                 mesa_voto.thread.start();
                 mesa_voto2.thread.start();
-            
+                cont++;
+            } 
             System.out.println("aqui");
             while(true){
                 System.out.println("entrou aqui");
                 try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
                 if (mesa_voto.getReady() == true){
+                    System.out.println("ENTROU PARA ESCOLHER");
+                    mesa_voto.printar_array_id_conectados();
+                    try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
                     mesa_voto.printar_array_id_conectados();
                     if (mesa_voto.getDesk().getArray_id().size()==1) ind = 0;
                     else ind = alea.nextInt((mesa_voto.getDesk().getArray_id().size()-1) + 1);
                     mesa_voto.setMessage_envia("type|connected;cc|"+mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1)+";id|"+mesa_voto.getDesk().getArray_id().get(ind));
                     mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));   
                     mesa_voto.printar_array_id_conectados();
+                    try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
                     break;
                 }else{
                     continue;
@@ -239,10 +244,9 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                             socket.send(mesgOut);
                             lista = getMessage_envia().split(";");
                             sublista = lista[0].split("\\|");
+                            
+
                             setMessage_envia("");
-                            if (sublista[1].compareTo("mult")==0){
-                                //synchronized (mesa_voto.thread) { mesa_voto.thread.notify(); }
-                            }
                             break;
                         }
                         
@@ -251,7 +255,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     //setMessage_envia("");
                 }catch (Exception e) { e.printStackTrace(); }
             }          
-       // }
+        //}
         
     }
 }
