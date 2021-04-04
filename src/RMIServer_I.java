@@ -51,6 +51,6 @@ public interface RMIServer_I extends Remote {
 
 
 	//	AUTHENTICATIONS
-	public boolean authorizeUser(String cc_number) throws RemoteException;
+	public boolean authorizeUser(String cc_number, Election voting_election) throws RemoteException;
 	public boolean authenticateUser(String username, String password) throws RemoteException;
 }

@@ -105,15 +105,17 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             System.out.print("\033[H\033[2J");  
             System.out.flush(); 
             System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");
-            mesa_voto.getEleitor_cc().add(input.askVariable(scanner, "Insira o Numero do seu CC: ", 2)); 
+            String inputed_cc= input.askVariable(scanner, "Insira o Numero do seu CC: ", 2);
+            mesa_voto.getEleitor_cc().add(inputed_cc); 
             try {
-                if (!rmi_connection.getServer1().authorizeUser(mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1))) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
+                if (!rmi_connection.getServer1().authorizeUser(inputed_cc, selected_election)) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
             } catch (RemoteException e) {
                 try {
-                    if (!rmi_connection.getServer2().authorizeUser(mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1))) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
+                    if (!rmi_connection.getServer2().authorizeUser(inputed_cc, selected_election)) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
                 } catch (RemoteException e1) { }
             }
-            
+            input.messageToWait("Sera reencaminhado para um Terminal de Voto...");
+
             if(cont==0) {
                 mesa_voto.thread.start();
                 mesa_voto2.thread.start();

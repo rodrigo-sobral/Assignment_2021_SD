@@ -344,15 +344,19 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         //  COMUNICATIONS WITH MULTICAST SERVERS
         //  ===========================================================================================================
 
-        synchronized public boolean authorizeUser(String cc_number) throws RemoteException {
+        synchronized public boolean authorizeUser(String cc_number, Election voting_election) throws RemoteException {
             for (College college : colleges) {
-                for (Department department : college.getDepartments()) {
-                    for (User student : department.getStudents())
-                        if (student.getCc_number().compareTo(cc_number)==0) return true;
-                    for (User teacher : department.getTeachers())
-                        if (teacher.getCc_number().compareTo(cc_number)==0) return true;
-                    for (User staff : department.getStaff())
-                        if (staff.getCc_number().compareTo(cc_number)==0) return true;
+                if (voting_election.getCollege_restrictions().isEmpty() || voting_election.getCollege_restrictions().contains(college.getName())) {
+                    for (Department department : college.getDepartments()) {
+                        if (voting_election.getDepartment_restrictions().isEmpty() || voting_election.getDepartment_restrictions().contains(department.getName())) {
+                            for (User student : department.getStudents())
+                                if (student.getCc_number().compareTo(cc_number)==0) return true;
+                            for (User teacher : department.getTeachers())
+                                if (teacher.getCc_number().compareTo(cc_number)==0) return true;
+                            for (User staff : department.getStaff())
+                                if (staff.getCc_number().compareTo(cc_number)==0) return true;
+                        }
+                    }
                 }
             } return false;
         }

@@ -741,18 +741,6 @@ class Inputs {
         //  IF TRUE RETURNS ERROR, OTHERWISE, SETS A VOTE TABLE
         return available_departments.get(option);
     }
-    public String askCCNumber(RMIClient client, Scanner keyboard) {
-        boolean result=false;
-        while (true) {
-            String cc_number= askVariable(keyboard, "Insira o seu Numero de CC: ", 2);
-            try { result= client.getServer1().authorizeUser(cc_number); } 
-            catch(Exception e1) {
-                try { result= client.getServer2().authorizeUser(cc_number); }
-                catch (Exception e2) {System.out.println("500: Nao ha servers!");}
-            }
-            if (result) { messageToWait("Sera reencaminhado para um Terminal de Voto..."); return cc_number; }
-        }
-    }
 
     public int checkIntegerOption(Scanner keyboard, String message, int min_limit, int max_limit) {
         while (true) {
