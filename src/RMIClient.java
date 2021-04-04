@@ -45,6 +45,7 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
             } catch (Exception e) { System.out.println("Inseriu um IP errado!\n"+e); return false;}
         }
 	}
+    
     protected boolean subscribe2Servers(RMIClient client, String depart_name) {
         String result=null;
         try {

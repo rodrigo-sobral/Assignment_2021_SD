@@ -37,8 +37,8 @@ public class AdminConsole extends RMIClient {
     private void adminMenu(Scanner keyboard) {
         int option=0;
         while (true) {
-            try { Runtime.getRuntime().exec("cls"); }
-            catch (Exception e) { }
+            System.out.print("\033[H\033[2J");  
+            System.out.flush();  
             System.out.println("|====================================|");
             System.out.println("|             Menu Admin             |");
             System.out.println("|====================================|");
@@ -556,7 +556,8 @@ public class AdminConsole extends RMIClient {
         if (option==-1) { input_manage.messageToWait("Voltando para o Menu Admin..."); return; }
 
         Election selected_election= available_elections.get(option);
-        
+        GetEnterKey pressed_enter= new GetEnterKey("pressed_enter", keyboard, input_manage);
+
         System.out.println("----------------------------------------");
         System.out.println("Titulo: "+selected_election.getTitle());
         System.out.println("Descricao: "+selected_election.getDescription());
@@ -580,6 +581,10 @@ public class AdminConsole extends RMIClient {
         }
         System.out.println("Total de Votos: "+ selected_election.getTotalVotes());
         System.out.println("----------------------------------------");
+        System.out.println("Pressione Enter para Voltar...");
+        while (pressed_enter.enter_thread.isAlive());
+        try { pressed_enter.enter_thread.join(1000); } 
+        catch (InterruptedException e) { return; }
     }
 
     private void consultVoteTables(Scanner keyboard) {

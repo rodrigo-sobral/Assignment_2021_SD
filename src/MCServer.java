@@ -76,7 +76,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             }
             if (available_elections==null) { System.out.println("400: Nao existe uma Eleicao para esse Departamento!"); continue; }
             
-            //  ASK ELECTION TO THE CANDIDATURE 
+            //  ASK ELECTION TO THE VOTE TABLE
             System.out.println("----------------------------------------");
             System.out.println("Eleicoes Disponiveis [0 para Voltar]");
             System.out.println("----------------------------------------");
@@ -90,7 +90,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             if (election_option==-1) { available_elections=null; continue; }
         }
 
-        //  ASK TO CHANGE A VARIABLE
+        while (!rmi_connection.subscribe2Servers(rmi_connection, depar));
         Election selected_election= available_elections.get(election_option);
 
         mesa_voto = new MCServer(n_max_terminais,mesa_voto2,"mesa_voto",Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
