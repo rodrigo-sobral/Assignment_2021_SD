@@ -127,7 +127,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         synchronized public String subscribeNewClient(RMIClient_I new_client, String depart_name) throws RemoteException {
             if (depart_name==null) { 
                 server.admins_list.add(new_client);
-                server.getPinger().setClientsList(server.admins_list, true);
+                if (server.getPinger()!=null) server.getPinger().setClientsList(server.admins_list, true);
                 System.out.println("Novo Administrador Conectado ["+(server.admins_list.size()-1)+"]"); 
             } else { 
                 Department selected_depart= getUniqueDepartment(depart_name);
@@ -136,7 +136,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
                 selected_depart.turnOnVoteTable();
                 associated_deps_list.add(depart_name);
                 server.clients_list.add(new_client); 
-                server.getPinger().setClientsList(server.clients_list, false);
+                if (server.getPinger()!=null) server.getPinger().setClientsList(server.clients_list, false);
                 System.out.println("Mesa de Voto do "+depart_name+" Conectado ["+(server.clients_list.size()-1)+"]");
             } return "200: Adicionado ao Servidor com Sucesso";
         }
