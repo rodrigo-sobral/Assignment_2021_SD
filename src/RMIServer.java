@@ -146,8 +146,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
                 System.out.println("Novo Administrador Conectado ["+(server.admins_list.size()-1)+"]"); 
             } else { 
                 Department selected_depart= getUniqueDepartment(depart_name);
-                if (!selected_depart.getVoteTable()) return "400: "+depart_name+" nao tem Mesa de Voto!\n";
-                if (selected_depart.getActivatedVoteTable()) return "400: Ja existe uma Mesa de Voto associada ao "+depart_name+"!\n";
+                if (!selected_depart.getVoteTable()) return "403: "+depart_name+" nao tem Mesa de Voto!\n";
+                if (selected_depart.getActivatedVoteTable()) return "403: Ja existe uma Mesa de Voto associada ao "+depart_name+"!\n";
                 selected_depart.turnOnVoteTable();
                 associated_deps_list.add(depart_name);
                 server.clients_list.add(new_client); 
@@ -212,7 +212,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         * @return returns a 200 code if sucess during registation, 400 otherwise
         */
         synchronized public String registUser(String new_college, String new_department, User new_user) throws RemoteException {
-            if (verifyUserExistence(new_user)) return "400: Uma pessoa com esse Numero de CC ja foi registada!\n";
+            if (verifyUserExistence(new_user)) return "403: Ja foi registado um Eleitor com esse Numero de CC!\n";
             int college_index = IntStream.range(0, server.colleges.size()).filter(i -> server.colleges.get(i).getName().equals(new_college)).findFirst().orElse(-1);
             if (college_index==-1) {
                 server.colleges.add(new College(new_college, new Department(new_department, new_college, new_user)));
