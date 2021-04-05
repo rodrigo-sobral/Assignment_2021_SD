@@ -2,21 +2,17 @@ import java.util.ArrayList;
 
 import classes.Candidature;
 import classes.Election;
-import java.net.Socket;
 import java.net.MulticastSocket;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.io.IOException;
 import java.util.*;
-import java.io.*;
 import java.lang.Thread;
 
 
 public class MCServer extends UnicastRemoteObject implements Runnable {
     private static final long serialVersionUID = 1L;
-    private int n_max_terminais;
     private MCServerData desk;
     private String message_envia;
     private Boolean votes_aux;
@@ -70,7 +66,6 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         thread = new Thread(this,threadname);
         this.array_candidature = new ArrayList<>();
         this.eleitor_cc = new ArrayList<>();
-        this.n_max_terminais = n_max_terminais;
         this.selected_election = selected_election;
         this.ready = false;
         this.votes_aux = false;
@@ -94,7 +89,6 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         Inputs input = new Inputs();
         int cont = 0, ind;
         Random alea = new Random();
-        String cart;
         int n_max_terminais=2 ;
         String ip,port;
         
@@ -169,153 +163,80 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                 mesa_voto2.thread.start();
                 cont++;
             } 
-            System.out.println("aqui");
             while(true){
-                System.out.println("entrou aqui");
                 try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
                 if (mesa_voto.getReady() == true){
                     try {Thread.sleep(1000);} catch (InterruptedException eInterruptedException) { }
-                    System.out.println("ENTROU PARA ESCOLHER");
-                    mesa_voto.printar_array_id_conectados();
                     try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
-                    mesa_voto.printar_array_id_conectados();
                     if (mesa_voto.getDesk().getArray_id().size()==1) ind = 0;
                     else ind = alea.nextInt((mesa_voto.getDesk().getArray_id().size()-1) + 1);
                     mesa_voto.setMessage_envia("type|connected;cc|"+mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1)+";id|"+mesa_voto.getDesk().getArray_id().get(ind));
                     mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));   
-                    mesa_voto.printar_array_id_conectados();
                     mesa_voto.setReady(false);
                     try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
                     break;
                 }else{
                     continue;
-                }/*
-                try {
-                    
-                    if (mesa_voto.getDesk().getArray_id().size() ==0){
-                        System.out.println("WAIT");
-                        mesa_voto.thread.wait();
-                        System.out.println("SAIU WAIT");
-                        mesa_voto.printar_array_id_conectados();
-                        if (mesa_voto.getDesk().getArray_id().size()==1) ind = 0;
-                        else ind = alea.nextInt((mesa_voto.getDesk().getArray_id().size()-1) + 1);
-                        mesa_voto.setMessage_envia("type|connected;cc|"+mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1)+";id|"+mesa_voto.getDesk().getArray_id().get(ind));
-                        mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));   
-                        mesa_voto.printar_array_id_conectados();
-                    }
-                    else{
-                        mesa_voto.printar_array_id_conectados();
-                        if (mesa_voto.getDesk().getArray_id().size()==1) ind = 0;
-                        else ind = alea.nextInt((mesa_voto.getDesk().getArray_id().size()-1) + 1);
-                        mesa_voto.setMessage_envia("type|connected;cc|"+mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1)+";id|"+mesa_voto.getDesk().getArray_id().get(ind));
-                        mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));   
-                        mesa_voto.printar_array_id_conectados();
-                    }
-                } catch (Exception ex) { ex.printStackTrace(); }
-            }*/
+                }
             }
-            System.out.println("saiu do while");
             
         }   
     }
 
     //encontrar terminais de voto
     public void run () {
-        //synchronized(Thread.currentThread()){
-            System.out.println("thread->multicast find");
-            String string;
-            int aux_ = 0;
-            String mensagem="";
-            String aux;
-            MulticastSocket socket = null;
-            String []lista;
-            String []sublista;
-            System.out.println("IP:"+mesa_voto2.getDesk().getIp());
-            System.out.println("PORT:"+mesa_voto2.getDesk().getPort());
-            mensagem="type|mult;"+mesa_voto2.getDesk().getIp()+";"+mesa_voto2.getDesk().getPort()+";"+mesa_voto.getDesk().getDeparNome(); 
-            while(true){
-                try {
-                    System.out.println("aqui");
-                    if (aux_==0){
-                        System.out.println("esta qhu");
-                        InetAddress group = InetAddress.getByName(getDesk().getIp());
-                        socket = new MulticastSocket(Integer.parseInt(getDesk().getPort()));
-                        socket.joinGroup(group);
-                        byte[] inBuf = new byte[8*1024];
-                        DatagramPacket msgIn = new DatagramPacket(inBuf, inBuf.length);
-                        System.out.println("entrou aqui");
-                        socket.receive(msgIn);
-                        string = new String(inBuf, 0,msgIn.getLength());
-                        System.out.println("Mult1 TERMINAIS Received:" + string);
-                        aux =Handler_Message.typeMessage(mensagem,selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
-                    /*if (aux.compareTo("wait")==0){
-                        mesa_voto.setReady(true);
-                    }*/
-                    }
-                    
-                    while(true){
-                        InetAddress group = InetAddress.getByName(getDesk().getIp());
-                        try {Thread.sleep(1000);} catch (InterruptedException e){}
-                        if(getMessage_envia().compareTo("")!=0){
-                            try {Thread.sleep(3000);} catch (InterruptedException e) { }
-                            byte[] buf = getMessage_envia().getBytes();
-                            System.out.println("Mult1 TERMINAIS send:" + getMessage_envia());
-                            DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getDesk().getPort()));
-                            socket.send(mesgOut);
-                            lista = getMessage_envia().split(";");
-                            sublista = lista[0].split("\\|");
-                            if(sublista[1].compareTo("mult")==0){
-                                mesa_voto.setReady(true);
-                                aux_ = 1;
-                            }else if(sublista[1].compareTo("connected")==0){
-                                aux_ = 0;
-                            }
-                            setMessage_envia("");
-                            break;
+        String string;
+        int aux_ = 0;
+        String aux;
+        String mensagem="";
+        MulticastSocket socket = null;
+        String []lista;
+        String []sublista;
+        mensagem="type|mult;"+mesa_voto2.getDesk().getIp()+";"+mesa_voto2.getDesk().getPort()+";"+mesa_voto.getDesk().getDeparNome(); 
+        while(true){
+            try {
+                if (aux_==0){
+                    InetAddress group = InetAddress.getByName(getDesk().getIp());
+                    socket = new MulticastSocket(Integer.parseInt(getDesk().getPort()));
+                    socket.joinGroup(group);
+                    byte[] inBuf = new byte[8*1024];
+                    DatagramPacket msgIn = new DatagramPacket(inBuf, inBuf.length);
+                    socket.receive(msgIn);
+                    string = new String(inBuf, 0,msgIn.getLength());
+                    aux =Handler_Message.typeMessage(mensagem,selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
+           
+                }
+                
+                while(true){
+                    InetAddress group = InetAddress.getByName(getDesk().getIp());
+                    try {Thread.sleep(1000);} catch (InterruptedException e){}
+                    if(getMessage_envia().compareTo("")!=0){
+                        try {Thread.sleep(3000);} catch (InterruptedException e) { }
+                        byte[] buf = getMessage_envia().getBytes();
+                        DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getDesk().getPort()));
+                        socket.send(mesgOut);
+                        lista = getMessage_envia().split(";");
+                        sublista = lista[0].split("\\|");
+                        if(sublista[1].compareTo("mult")==0){
+                            mesa_voto.setReady(true);
+                            aux_ = 1;
+                        }else if(sublista[1].compareTo("connected")==0){
+                            aux_ = 0;
                         }
-                        
+                        setMessage_envia("");
+                        break;
                     }
                     
-                    //setMessage_envia("");
-                }catch (Exception e) { e.printStackTrace(); }
-            }          
-        //}
+                }
+                
+            }catch (Exception e) { e.printStackTrace(); }
+        }          
+      
         
     }
 }
         
 
-        /*
-    public void run () {
-        synchronized(Thread.currentThread()){
-            String[] conection;
-            Scanner keyboardScanner= new Scanner(System.in);
-            InetAddress group;
-            DatagramPacket packet;
-            while(true){
-                MulticastSocket socket = null;
-                try {
-                    socket = new MulticastSocket();  // create socket without binding it (only for sending)                
-                    while (true) {
-                        try {Thread.sleep(1000);} catch (InterruptedException e) { }
-                        if (mesa_voto.getMensagens().compareTo("")!=0) {
-                            byte[] buffer = mesa_voto.getMensagens().getBytes();
-                            group = InetAddress.getByName(getDesk().getIp());
-                            packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getDesk().getPort()));
-                            socket.send(packet);
-                            conection = mesa_voto.getMensagens().split(";");
-                            if (conection[1].compareTo("received")==0) {
-                                if (mesa_voto.getDesk().getArray_id().size()==mesa_voto.n_max_terminais)
-                                    synchronized (mesa_voto.thread) { mesa_voto.thread.notify(); }
-                            }
-                            mesa_voto.setMensagens("");
-                        }
-                    }
-                }catch (IOException e) { e.printStackTrace(); } 
-                finally { socket.close(); keyboardScanner.close(); }
-            }  
-        }
-    }*/  
 
 
 //grupo multicast que trata das votacoes
@@ -352,13 +273,11 @@ class SecMultServer implements Runnable {
 
     public void run() {
         synchronized(Thread.currentThread()){
-            System.out.println("entrei client->server");
             String string;
             String aux;
             String []sublista;
             String []aux1;
             String id;
-            int aux2 =0;
             while(true){
                 MulticastSocket socket = null;
                 try {
@@ -370,10 +289,8 @@ class SecMultServer implements Runnable {
                     //if(getMensagens().compareTo("")!=0){
                     byte[] inBuf = new byte[8*1024];
                     DatagramPacket msgIn = new DatagramPacket(inBuf, inBuf.length);
-                    System.out.println("esoera");
                     socket.receive(msgIn);
                     string = new String(inBuf, 0,msgIn.getLength());
-                    System.out.println("VOTES Received:" + string);
                     //socket.leaveGroup(group);
                     aux = Handler_Message.typeMessage("", selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
                     sublista = aux.split(";");
@@ -391,8 +308,6 @@ class SecMultServer implements Runnable {
                         mesa_voto.setVotes_aux(true);
                     }
                           
-                    System.out.println("saiu");  
-                    ////
                         
                     
                     if (mesa_voto.getVotes_aux() == false){
@@ -400,7 +315,6 @@ class SecMultServer implements Runnable {
                             socket = new MulticastSocket();
                             try {Thread.sleep(100);} catch (InterruptedException e){}
                             if (getMensagens().compareTo("")!=0){
-                                System.out.println("VOTES Mensagem a enviar:"+getMensagens());
                                 byte[] buf = getMensagens().getBytes();
                                 DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getDesk().getPort()));
                                 socket.send(mesgOut);
@@ -413,10 +327,6 @@ class SecMultServer implements Runnable {
                         mesa_voto.setVotes_aux(false);
                         
                     }
-                   
-                    
-                    
-                    //} 
                 }catch (Exception e) { e.printStackTrace();
                 }finally {
                     socket.close();
@@ -446,10 +356,8 @@ class Handler_Message{
 
         if (sublista[1].compareTo("envia_id")==0) {
             sublista= lista[1].split("\\|");
-            System.out.println(aux+"id|"+sublista[1]);
             if(!mesa_voto.getDesk().getArray_id().contains(Integer.parseInt(sublista[1]))){
                 mesa_voto.getDesk().getArray_id().add(Integer.parseInt(sublista[1]));
-                System.out.println("Nao existe");
                 
             }
             mesa_voto.setMessage_envia(aux+";id|"+sublista[1]);
@@ -457,19 +365,7 @@ class Handler_Message{
             
             
         } 
-        
-
-        ///////////////////////////verrrrrrrrrrrrrrr
-        /*else if(sublista[1].compareTo("ask")==0) {
-            sublista = lista[1].split("\\|");
-            message_client = "type|listacandidaturas;";
-            for (int i = 0; i < mesa_voto.getArray_candidature().size(); i++) message_client+=mesa_voto.getArray_candidature().get(i)+";";
-            
-            message_client+="id|"+sublista[1];
-            mesa_voto.setMensagens(message_client);
-        }*/
         else if(sublista[1].compareTo("login")==0){
-            System.out.println("AQUI");
             for (int i = 1; i < lista.length-1; i++) {
                 sublista = lista[i].split("\\|");
                 add_mensagens.add(sublista[1]);
@@ -479,19 +375,16 @@ class Handler_Message{
             id = sublista[1];
             try {    
                 if (rmi_connection.getServer1().authenticateUser(add_mensagens.get(0), add_mensagens.get(1)) == true){
-                    //mesa_voto2.setMensagens("type|login;status|sucessed;id|"+id);
                     return "sucessed;"+id;
                 }
                     
                 else {
                     return "unsucessed;"+id;
-                }//mesa_voto2.setMensagens("type|login;status|unsucessed;id|"+id);
+                }
             } catch (RemoteException e) { } 
 
             add_mensagens.clear();
-           // return true;
         } else if(sublista[1].compareTo("resultado")==0) {
-            System.out.println("entra aqui");
             sublista = lista[1].split("\\|");
             
             if (sublista.length ==1) voto = "";
@@ -501,7 +394,6 @@ class Handler_Message{
             cc = sublista[1];
             
             selected_election.registVote(voto, cc,mesa_voto.getDesk().getDeparNome());
-            //mesa_voto2.setMensagens("");
            
         }else if(sublista[1].compareTo("ask")==0) {
             sublista = lista[1].split("\\|");
@@ -510,12 +402,9 @@ class Handler_Message{
             
             message_client+="id|"+sublista[1];
             return message_client;
-            //mesa_voto.setMessage_envia(message_client);
         
         }else if(sublista[1].compareTo("wait")==0){
-            System.out.println("ENTROU AUQI");
             return "wait";
-            //synchronized (mesa_voto.thread) { mesa_voto.thread.notify(); }
         }
         return "";
     }
@@ -536,21 +425,14 @@ class Handler_Message{
                 if (sublista[1].compareTo("sucessed")==0) return "sucessed";    
                 else return "unsucessed";
             }
-            //else if(lista[1].compareTo("received")==0) return "connected_server";
             else if(sublista[1].compareTo("connected")==0){
                 aux = lista[2].split("\\|");
                 return "choose|"+aux[1];
             } else if(sublista[1].compareTo("listacandidaturas")==0){
                 message=mensagem;
-                /*for (int i = 1; i < lista.length-1; i++) {
-                    if (i==lista.length-1) message+=lista[i];
-                    message+=lista[i]+";";
-                }*/
-                System.out.println("PRINT "+message);
                 return message;
            
             }else if(sublista1[1].compareTo("mult")==0){
-                System.out.println("entrou aqui");
                 cliente.getVote_terminal().setIp(lista[1]);
                 cliente.getVote_terminal().setPort(lista[2]);
                 cliente.getVote_terminal().setDepar(lista[3]);
