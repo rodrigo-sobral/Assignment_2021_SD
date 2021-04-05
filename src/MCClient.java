@@ -63,10 +63,11 @@ public class MCClient implements Runnable{
         Scanner scanner = new Scanner(System.in);
 
         cliente = new MCClient("cliente",thread_eleitor,cliente2,input,scanner);
-        thread_eleitor = new Eleitor_Connected("thread_eleitor",cliente2,cliente,input,scanner);
 
         cliente2 = new SecMultGClient(cliente,"cliente2");
         cliente2_received = new Cliente_Received(cliente,"cliente2_received",cliente2,thread_eleitor);
+        thread_eleitor = new Eleitor_Connected("thread_eleitor",cliente2,cliente,input,scanner);
+
         /*while(true){
             depar = input.askVariable(scanner,"Insira o deparmento a que o terminal de voto pertence: " , 0);
             cliente2.getMCServerData().setDepar(depar);
@@ -118,34 +119,30 @@ public class MCClient implements Runnable{
         String[] string1;
         String mensagem;
         String string;
-
+        int cont = 1;
         while(!exit){
             //System.out.println("thread ->votos");
-            try {Thread.sleep(1000);} catch (InterruptedException e){}
+            try {Thread.sleep(10);} catch (InterruptedException e){}
             if (getVote_terminal().getIp().compareTo("")!=0){
                 try {
                     socket = new MulticastSocket(Integer.parseInt(getVote_terminal().getPort()));
                     InetAddress group = InetAddress.getByName(getVote_terminal().getIp());
-                    
-                    if(getMessage().compareTo("")!=0){
-                        System.out.println("Mensagem a enviar votes:"+getMessage());
-                        byte[] buf = getMessage().getBytes();
-                        DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getVote_terminal().getPort()));
-                        socket.send(mesgOut);
-                        aux = getMessage().split(";");
-                        string1 = aux[0].split("\\|");
-                        if (string1[1].compareTo("resultado")==0){
-                            synchronized (Thread.currentThread()) { Thread.currentThread().notify(); } 
-                        }
-                        ////
-                        socket.joinGroup(group);
-                        byte[] inBuf = new byte[8*1024];
-                        DatagramPacket msgIn = new DatagramPacket(inBuf, inBuf.length);
-                        socket.receive(msgIn);
-                        string = new String(inBuf, 0,msgIn.getLength());
-                        System.out.println("Received votes:" + string);
-                        //socket.leaveGroup(group);
-                        messag_lida = Handler_Message.typeMessage_Client(string, cliente.vote_terminal.getN_terminal_vote(), cliente);
+                    socket.joinGroup(group);
+                    System.out.println("stgr");
+                    byte[] inBuf = new byte[8*1024];
+                    DatagramPacket msgIn = new DatagramPacket(inBuf, inBuf.length);
+                    socket.receive(msgIn);
+                    string = new String(inBuf, 0,msgIn.getLength());
+                    System.out.println("Received votes:" + string);
+
+                    messag_lida = Handler_Message.typeMessage_Client(string, cliente.vote_terminal.getN_terminal_vote(), cliente);
+                    System.out.println("Menasgem Lida "+messag_lida);
+                    aux = messag_lida.split("\\|");
+                    if(aux[0].compareTo("choose")==0){
+                        System.out.println("Terminal escolhido");
+                        cliente.setCc(aux[1]);
+                        thread_eleitor.thread.start();
+                    }else{
                         System.out.println("MENSAGEM"+ messag_lida);  
                         if(messag_lida.compareTo("sucessed")==0){
                             System.out.println("credenciais corretas!!");
@@ -166,15 +163,44 @@ public class MCClient implements Runnable{
                                 thread_eleitor.thread.notify();
                                 System.out.println("notificou");
                             }
-                        }else{
+                        }else if(messag_lida.compareTo("")==0){
+                            continue;
+                        }else if(messag_lida.compareTo("sair")==0){
+                            cont =0;
+                        }
+                        else{
                             Eleitor_Connected.ListaCandidaturas(cliente,string,inpu,scanner);
                             //do something
                             
-                            continue;
                         }
-                            //Handler_Message.typeMessage("", selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
-                        setMessage("");   
+                     
                     }
+                        //Handler_Message.typeMessage("", selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
+                    if (cont == 1){
+                        while(true){
+                            try {Thread.sleep(100);} catch (InterruptedException e) { }
+                            
+                            if(getMessage().compareTo("")!=0){
+                                System.out.println("entrou");
+                                System.out.println("Mensagem a enviar votes:"+getMessage());
+                                byte[] buf = getMessage().getBytes();
+                                DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getVote_terminal().getPort()));
+                                socket.send(mesgOut);
+                                aux = getMessage().split(";");
+                                string1 = aux[0].split("\\|");
+                                if (string1[1].compareTo("resultado")==0){
+    
+                                    synchronized (Thread.currentThread()) { Thread.currentThread().notify(); } 
+                                }
+                                break;
+                                ////   
+                            }
+                            //System.out.println("");
+                        }
+                        System.out.println("cavaou");
+                        
+                    }
+                    cont = 1;
                 } catch (Exception e) { e.printStackTrace();}
                 finally{socket.close();}
                 
@@ -278,14 +304,13 @@ class Cliente_Received implements Runnable{
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 while (!exit) {
                     try {Thread.sleep(1000);} catch (InterruptedException e){}
-                    System.out.println("parou");
                     socket.receive(packet);
-                    System.out.println("recebeu");
                     String message = new String(packet.getData(), 0, packet.getLength());
-                    System.out.println("kkk->received"+message);
+                    System.out.println("RECEIVED"+message);
                     //cliente.setMessage(message);
                     
                     messag_lida = Handler_Message.typeMessage_Client(message, cliente.getVote_terminal().getN_terminal_vote(),cliente);
+                    System.out.println("Mensagem"+messag_lida);
                     aux = messag_lida.split("\\|");
 
                     if (aux[0].compareTo("choose")==0){
@@ -326,10 +351,13 @@ class Cliente_Received implements Runnable{
                             if(messag_lida.compareTo("mult")==0){
                                 System.out.println("......Terminal de Voto do Departamento "+cliente.getVote_terminal().getDeparNome()+"......");
                                 //setMessage("type|wait");
-                                cliente2.setMessage("type|wait;id|"+cliente.getVote_terminal().getN_terminal_vote());
+                                cliente2.setMessage("");
+                                System.out.println("IP"+cliente.getVote_terminal().getIp());
+                                stop();
+                                cliente2.stop();
                                 //cliente2.setMessage("");
                             }else{
-                                System.out.println("ignora mensagem");
+                                System.out.println("IGNORA");
                             } 
                             //else if(messag_lida.compareTo("")==0) System.out.println("Ignorar mensagem");
                             /*else {
@@ -395,14 +423,14 @@ class SecMultGClient implements Runnable{
             ReadWrite.Write("TerminalVote.txt", getMCServerData().getDeparNome(), getMCServerData().getIp(), getMCServerData().getPort(),true);
         }*/
         while (!exit){
-            try {Thread.sleep(4000);} catch (InterruptedException e){}
+            try {Thread.sleep(3000);} catch (InterruptedException e){}
             MulticastSocket socket = null;
             if (getMessage().compareTo("")!=0){
                 try {
                     socket = new MulticastSocket();  // create socket without binding it (only for sending)
                     byte[] buffer = getMessage().getBytes();
                     InetAddress group = InetAddress.getByName(getMCServerData().getIp());
-                    System.out.println("mensagem a enviar: "+getMessage());
+                    System.out.println("SEND MESSAGE: "+getMessage());
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getMCServerData().getPort()));
                     socket.send(packet);
                     val = getMessage().split(";");
@@ -412,10 +440,10 @@ class SecMultGClient implements Runnable{
                     else if (aux[1].compareTo("resultado")==0){
                         setMessage("");
                         synchronized (Thread.currentThread()) { Thread.currentThread().notify(); } 
-                    }*/
+                    }
                     if(aux[1].compareTo("wait")==0){
                         setMessage("");
-                    }
+                    }*/
                 } catch (IOException e) { e.printStackTrace(); } 
                 finally { socket.close(); }
             }
@@ -426,7 +454,7 @@ class SecMultGClient implements Runnable{
 
 class Eleitor_Connected implements Runnable {
     private static SecMultGClient cliente2;
-    private static MCClient client;
+    private static MCClient cliente;
     public Thread thread;
     private Inputs input;
     private Scanner scanner;
@@ -435,7 +463,7 @@ class Eleitor_Connected implements Runnable {
     public Eleitor_Connected(String threadname,SecMultGClient cliente2,MCClient cliente,Inputs input,Scanner scanner){
         thread = new Thread(this,threadname);
         Eleitor_Connected.cliente2 = cliente2;
-        Eleitor_Connected.client = cliente;
+        Eleitor_Connected.cliente = cliente;
         this.input=input;
         this.scanner = scanner;
     }
@@ -452,20 +480,21 @@ class Eleitor_Connected implements Runnable {
                 String username,password;
                 username = getInput().askVariable(scanner,"Username: " , 0);
                 password = input.askVariable(scanner,"Password: " , 1);
-                client.setMessage("type|login;username|"+username+";password|"+password+";id|"+client.getVote_terminal().getN_terminal_vote());
+                cliente.setMessage("type|login;username|"+username+";password|"+password+";id|"+cliente.getVote_terminal().getN_terminal_vote());
+                System.out.println("Mensagem:" +cliente.getMessage());
                 synchronized(Thread.currentThread()){
                     try {
                         System.out.println("COMECOU O WAIT");
                         Thread.currentThread().wait(); 
                         System.out.println("SAIU WAIT");
-                        if (client.getLogin_sucessed() == true) break;
+                        if (cliente.getLogin_sucessed() == true) break;
                         else continue;
                     } catch (InterruptedException e) { e.printStackTrace(); }
                 }
                 
             }  
             System.out.println("user and pass correct");
-            client.setMessage("type|ask;id|"+client.getVote_terminal().getN_terminal_vote());
+            cliente.setMessage("type|ask;id|"+cliente.getVote_terminal().getN_terminal_vote());
         } 
         
         
@@ -481,7 +510,6 @@ class Eleitor_Connected implements Runnable {
         System.out.println("Insira a opcao que pretende votar: ");
         opcao = scanner.nextLine();
         cliente.setMessage("type|resultado;OpcaoVoto|"+opcao+";cc|"+cliente.getCc()+";id|" + cliente.getVote_terminal().getN_terminal_vote());
-        ReadWrite.remove_line("TerminalVote.txt",cliente.getVote_terminal().getDeparNome());      
     }
 
     public void stop() { exit = true; }

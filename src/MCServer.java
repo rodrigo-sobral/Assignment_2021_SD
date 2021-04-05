@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 import classes.Candidature;
 import classes.Election;
-
+import java.net.Socket;
 import java.net.MulticastSocket;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -124,7 +124,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         rmi_connection.subscribe2Servers(rmi_connection, depar);
         Election selected_election= available_elections.get(election_option);
 
-        mesa_voto = new MCServer(selected_election,n_max_terminais,mesa_voto2,"mesa_voto",Gerar_Numeros.gerar_ip(),Gerar_Numeros.gerar_port(1000,10),depar);
+        mesa_voto = new MCServer(selected_election,n_max_terminais,mesa_voto2,"mesa_voto","","",depar);
         mesa_voto2 = new SecMultServer(mesa_voto2,mesa_voto.getEleitor_cc(),selected_election,rmi_connection,mesa_voto,"mesa_voto2","", "", depar);
 
         for (Candidature string : selected_election.getCandidatures_to_election()) mesa_voto.getArray_candidature().add(string.getCandidature_name());
@@ -166,13 +166,14 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                 System.out.println("entrou aqui");
                 try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
                 if (mesa_voto.getReady() == true){
+                    try {Thread.sleep(3000);} catch (InterruptedException eInterruptedException) { }
                     System.out.println("ENTROU PARA ESCOLHER");
                     mesa_voto.printar_array_id_conectados();
                     try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
                     mesa_voto.printar_array_id_conectados();
                     if (mesa_voto.getDesk().getArray_id().size()==1) ind = 0;
                     else ind = alea.nextInt((mesa_voto.getDesk().getArray_id().size()-1) + 1);
-                    mesa_voto.setMessage_envia("type|connected;cc|"+mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1)+";id|"+mesa_voto.getDesk().getArray_id().get(ind));
+                    mesa_voto2.setMensagens("type|connected;cc|"+mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1)+";id|"+mesa_voto.getDesk().getArray_id().get(ind));
                     mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));   
                     mesa_voto.printar_array_id_conectados();
                     try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
@@ -234,7 +235,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     System.out.println(mensagem);
                     Handler_Message.typeMessage(mensagem,selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
                     while(true){
-                        try {Thread.sleep(3000);} catch (InterruptedException e){}
+                        try {Thread.sleep(1000);} catch (InterruptedException e){}
                         System.out.println("MENSAGEM"+getMessage_envia());
                         if(getMessage_envia().compareTo("")!=0){
                             try {Thread.sleep(3000);} catch (InterruptedException e) { }
@@ -244,8 +245,9 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                             socket.send(mesgOut);
                             lista = getMessage_envia().split(";");
                             sublista = lista[0].split("\\|");
-                            
-
+                            if(sublista[1].compareTo("mult")==0){
+                                mesa_voto.setReady(true);
+                            }
                             setMessage_envia("");
                             break;
                         }
@@ -337,51 +339,54 @@ class SecMultServer implements Runnable {
             while(true){
                 MulticastSocket socket = null;
                 try {
+                    while(true){
+                        socket = new MulticastSocket();
+                        InetAddress group = InetAddress.getByName(getDesk().getIp());
+                        try {Thread.sleep(100);} catch (InterruptedException e){}
+                        if (getMensagens().compareTo("")!=0){
+                            System.out.println("VOTES Mensagem a enviar:"+getMensagens());
+                            byte[] buf = getMensagens().getBytes();
+                            DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getDesk().getPort()));
+                            socket.send(mesgOut);
+                            //setMensagens("");
+                            break;
+                        }
+                        socket.close();
+                    }
                     InetAddress group = InetAddress.getByName(getDesk().getIp());
                     socket = new MulticastSocket(Integer.parseInt(getDesk().getPort()));
                     socket.joinGroup(group);
                     //socket.setTimeToLive(1);
                     //if(getMensagens().compareTo("")!=0){
-                        byte[] inBuf = new byte[8*1024];
-                        DatagramPacket msgIn =
-                        new DatagramPacket(inBuf, inBuf.length);
-                        socket.receive(msgIn);
-                        string = new String(inBuf, 0,msgIn.getLength());
-                        System.out.println("VOTES Received:" + string);
-                        //socket.leaveGroup(group);
-                        aux = Handler_Message.typeMessage("", selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
-                        sublista = aux.split(";");
-                        if(sublista[0].compareTo("sucessed")==0){
-                            id = sublista[1];
-                            setMensagens("type|login;status|sucessed;id|"+id);
-                        }else if(sublista[0].compareTo("unsucessed")==0){
-                            id = sublista[1];
-                            setMensagens("type|login;status|unsucessed;id|"+id);
-                        }else if(sublista[0].compareTo("listacandidaturas")==0){
-                            setMensagens("type|"+aux);
+                    byte[] inBuf = new byte[8*1024];
+                    DatagramPacket msgIn = new DatagramPacket(inBuf, inBuf.length);
+                    socket.receive(msgIn);
+                    string = new String(inBuf, 0,msgIn.getLength());
+                    System.out.println("VOTES Received:" + string);
+                    //socket.leaveGroup(group);
+                    aux = Handler_Message.typeMessage("", selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
+                    sublista = aux.split(";");
+                    aux1 = sublista[0].split("\\|");
+                    System.out.println(sublista[0]);
+                    if(sublista[0].compareTo("sucessed")==0){
+                        id = sublista[1];
+                        setMensagens("type|login;status|sucessed;id|"+id);
+                    }else if(sublista[0].compareTo("unsucessed")==0){
+                        id = sublista[1];
+                        setMensagens("type|login;status|unsucessed;id|"+id);
+                    }else if(sublista[0].compareTo("listacandidaturas")==0){
+                        setMensagens("type|"+aux);
                             
-                        }
-                        while(true){
-                            try {Thread.sleep(100);} catch (InterruptedException e){}
-                            if (getMensagens().compareTo("")!=0){
-                                System.out.println("VOTES Mensagem a enviar:"+getMensagens());
-                                byte[] buf = getMensagens().getBytes();
-                                DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getDesk().getPort()));
-                                socket.send(mesgOut);
-                                //setMensagens("");
-                                break;
-                            }
-                            
-                        }
+                    }
                         
+                    System.out.println("saiu");  
                     ////
                         
                     //} 
-                    }catch (Exception e) { e.printStackTrace();
-                    }finally {
-                        socket.close();
-                    }
-                    setMensagens("");    
+                }catch (Exception e) { e.printStackTrace();
+                }finally {
+                    socket.close();
+                }
             
             }
         //}
@@ -407,14 +412,18 @@ class Handler_Message{
 
         if (sublista[1].compareTo("envia_id")==0) {
             sublista= lista[1].split("\\|");
-            mesa_voto.getDesk().getArray_id().add(Integer.parseInt(sublista[1]));
-            System.out.println(aux);
-            mesa_voto.setMessage_envia(aux);
+            System.out.println(aux+"id|"+sublista[1]);
+            if(!mesa_voto.getDesk().getArray_id().contains(Integer.parseInt(sublista[1]))){
+                mesa_voto.getDesk().getArray_id().add(Integer.parseInt(sublista[1]));
+                System.out.println("Nao existe");
+                
+            }
+            mesa_voto.setMessage_envia(aux+";id|"+sublista[1]);
             mesa_voto.printar_array_id_conectados();
+            
+            
         } 
-        else if(sublista[1].compareTo("wait")==0){
-            mesa_voto.setReady(true);
-        }
+        
 
         ///////////////////////////verrrrrrrrrrrrrrr
         /*else if(sublista[1].compareTo("ask")==0) {
@@ -455,7 +464,9 @@ class Handler_Message{
 
             sublista = lista[2].split("\\|");
             cc = sublista[1];
+            
             selected_election.registVote(voto, cc,mesa_voto.getDesk().getDeparNome());
+            //mesa_voto2.setMensagens("");
            
         }else if(sublista[1].compareTo("ask")==0) {
             sublista = lista[1].split("\\|");
@@ -477,15 +488,10 @@ class Handler_Message{
     public static String typeMessage_Client(String mensagem, int id,MCClient cliente){
         System.out.println("chegou esta mensagem"+mensagem);
         String message="";
+        String aux[];
         String[] lista = mensagem.split(";");
         String [] sublista= lista[lista.length-1].split("\\|");
         String [] sublista1= lista[0].split("\\|");
-        if (sublista1[1].compareTo("mult")==0){
-            cliente.getVote_terminal().setIp(lista[1]);
-            cliente.getVote_terminal().setPort(lista[2]);
-            cliente.getVote_terminal().setDepar(lista[3]);
-            return "mult";
-        }
         //  verificar se e o terminal que queremos
         if (id == Integer.parseInt(sublista[1])) {
             sublista = lista[0].split("\\|");
@@ -497,9 +503,8 @@ class Handler_Message{
             }
             else if(lista[1].compareTo("received")==0) return "connected_server";
             else if(sublista[1].compareTo("connected")==0){
-                sublista = lista[1].split("\\|");
-                message = "choose|"+sublista[1];
-                return message;
+                aux = lista[2].split("\\|");
+                return "choose|"+aux[1];
             } else if(sublista[1].compareTo("listacandidaturas")==0){
                 message=mensagem;
                 /*for (int i = 1; i < lista.length-1; i++) {
@@ -509,8 +514,20 @@ class Handler_Message{
                 System.out.println("PRINT "+message);
                 return message;
            
-            }else return "";
-        } else return "";
+            }else if(sublista1[1].compareTo("mult")==0){
+                System.out.println("entrou aqui");
+                cliente.getVote_terminal().setIp(lista[1]);
+                cliente.getVote_terminal().setPort(lista[2]);
+                cliente.getVote_terminal().setDepar(lista[3]);
+                return "mult";
+            }
+            else return "";
+        }else{
+            if(sublista[1].compareTo("connected")==0){
+                return "sair";
+            }
+            else return "";
+        }
     }
 }
 
