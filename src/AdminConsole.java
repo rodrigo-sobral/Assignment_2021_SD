@@ -155,10 +155,18 @@ public class AdminConsole extends RMIClient {
         boolean sended=false;
         System.out.println("A Enviar Novo Eleitor...");
         while (!sended) {
-            try { System.out.println(admin.getServer1().registUser(new_college, new_department, new_user)); sended= true; } 
-            catch (Exception e1) {
-                try { System.out.println(admin.getServer2().registUser(new_college, new_department, new_user)); sended= true; } 
-                catch (Exception e2) { }
+            try { 
+                if (admin.getServer1()!=null) {
+                    System.out.println(admin.getServer1().registUser(new_college, new_department, new_user)); 
+                    sended= true; 
+                } 
+            } catch (Exception e1) {
+                try { 
+                    if (admin.getServer2()!=null) {
+                        System.out.println(admin.getServer2().registUser(new_college, new_department, new_user)); 
+                        sended= true; 
+                    }
+                } catch (Exception e2) { }
             }
         }
     }
@@ -226,12 +234,25 @@ public class AdminConsole extends RMIClient {
                 }
             }
         }
-        //  SEND NEW ELECTION TO RMI SERVER
-        try { System.out.println(admin.getServer1().registElection(new_election)); } 
-        catch (Exception e1) {
-            try { System.out.println(admin.getServer2().registElection(new_election)); } 
-            catch (Exception e2) { System.out.println("500: Nao ha servers\n"); }
-        }
+
+        //  SEND UPDATED ELECTION TO RMI SERVER
+        boolean sended=false;
+        System.out.println("A Enviar Eleicao Atualizada...");
+        while (!sended) {
+            try { 
+                if (admin.getServer1()!=null) {
+                    System.out.println(admin.getServer1().registElection(new_election)); 
+                    sended=true;
+                } 
+            } catch (Exception e1) {
+                try { 
+                    if (admin.getServer2()!=null) { 
+                        System.out.println(admin.getServer2().registElection(new_election)); 
+                        sended= true;
+                    } 
+                } catch (Exception e2) { }
+            }
+        }        
     }
     private void addCandidature(Scanner keyboard) {
         ArrayList<Election> available_elections= new ArrayList<>();
@@ -239,9 +260,9 @@ public class AdminConsole extends RMIClient {
         int option;
 
         //  GET ELECTION TO THE NEW CANDIDATURE
-        try { available_elections = admin.getServer1().getUnstartedElections(); } 
+        try { if (admin.getServer1()!=null) available_elections = admin.getServer1().getUnstartedElections(); } 
         catch (Exception e1) {
-            try { available_elections = admin.getServer2().getUnstartedElections(); } 
+            try { if (admin.getServer2()!=null) available_elections = admin.getServer2().getUnstartedElections(); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
         }
         if (available_elections.isEmpty()) { input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); return; }
@@ -284,9 +305,9 @@ public class AdminConsole extends RMIClient {
 
         if (collegs_restricts.isEmpty() && deps_restricts.isEmpty()) {
             ArrayList<College> all_colleges= null;
-            try { all_colleges= admin.getServer1().getColleges(); } 
+            try { if (admin.getServer1()!=null) all_colleges= admin.getServer1().getColleges(); } 
             catch (Exception e1) {
-                try { all_colleges= admin.getServer1().getColleges(); } 
+                try { if (admin.getServer2()!=null) all_colleges= admin.getServer2().getColleges(); } 
                 catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
             }
             for (College college : all_colleges)
@@ -295,21 +316,23 @@ public class AdminConsole extends RMIClient {
             //  GET USERS AVAILABLE FROM SPECIFIC COLLEGES
             for (String college : collegs_restricts) {
                 try { 
-                    for (Department department : admin.getServer1().getUniqueCollege(college).getDepartments()) 
-                        users_restricts.addAll(department.getUsersWithType(user_type_restrics));
+                    if (admin.getServer1()!=null)
+                        for (Department department : admin.getServer1().getUniqueCollege(college).getDepartments()) 
+                            users_restricts.addAll(department.getUsersWithType(user_type_restrics));
                 } catch (Exception e1) {
                     try {
-                        for (Department department : admin.getServer2().getUniqueCollege(college).getDepartments()) 
-                        users_restricts.addAll(department.getUsersWithType(user_type_restrics));
+                        if (admin.getServer2()!=null)
+                            for (Department department : admin.getServer2().getUniqueCollege(college).getDepartments()) 
+                                users_restricts.addAll(department.getUsersWithType(user_type_restrics));
                     } catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
                 }
             }
 
             //  GET USERS AVAILABLE FROM SPECIFIC DEPARTMENTS
             for (String department : deps_restricts) {
-                try { users_restricts.addAll(admin.getServer1().getUniqueDepartment(department).getUsersWithType(user_type_restrics)); } 
+                try { if (admin.getServer1()!=null) users_restricts.addAll(admin.getServer1().getUniqueDepartment(department).getUsersWithType(user_type_restrics)); } 
                 catch (Exception e1) {
-                    try { users_restricts.addAll(admin.getServer2().getUniqueDepartment(department).getUsersWithType(user_type_restrics)); } 
+                    try { if (admin.getServer2()!=null) users_restricts.addAll(admin.getServer2().getUniqueDepartment(department).getUsersWithType(user_type_restrics)); } 
                     catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
                 }
             }
@@ -343,10 +366,18 @@ public class AdminConsole extends RMIClient {
         boolean sended=false;
         System.out.println("A Enviar Eleicao Atualizada...");
         while (!sended) {
-            try { System.out.println(admin.getServer1().setUpdatedElection(selected_election, true)); sended= true; }
-            catch (Exception e1) {
-                try { System.out.println(admin.getServer2().setUpdatedElection(selected_election, true)); sended= true; } 
-                catch (Exception e) { }
+            try { 
+                if (admin.getServer1()!=null) {
+                    System.out.println(admin.getServer1().setUpdatedElection(selected_election, true)); 
+                    sended= true; 
+                }
+            } catch (Exception e1) {
+                try { 
+                    if (admin.getServer2()!=null) {
+                        System.out.println(admin.getServer2().setUpdatedElection(selected_election, true)); 
+                        sended= true; 
+                    }
+                } catch (Exception e) { }
             }
         }
     }
@@ -354,9 +385,9 @@ public class AdminConsole extends RMIClient {
         ArrayList<Department> available_deps=null;
         int option;
 
-        try { available_deps= admin.getServer1().getDepartmentsWithOrNotVoteTable(false); } 
+        try { if (admin.getServer1()!=null) available_deps= admin.getServer1().getDepartmentsWithOrNotVoteTable(false); } 
         catch (Exception e1) {
-            try { available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(false); } 
+            try { if (admin.getServer2()!=null) available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(false); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers!\n"); }
         }
         if (available_deps.isEmpty()) { input_manage.messageToWait("Erro: Nao existem Departamentos Disponiveis!"); return; };
@@ -381,10 +412,18 @@ public class AdminConsole extends RMIClient {
         boolean sended=false;
         System.out.println("A Enviar Departamento Atualizado...");
         while (!sended) {
-            try { System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep, true)); sended= true; }
-            catch (Exception e1) {
-                try { System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep, true)); sended= true; } 
-                catch (Exception e) { System.out.println("500: Nao ha servers!\n"); }
+            try { 
+                if (admin.getServer1()!=null) {
+                    System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep, true)); 
+                    sended= true; 
+                }
+            } catch (Exception e1) {
+                try { 
+                    if (admin.getServer2()!=null) {
+                        System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep, true)); 
+                        sended= true; 
+                    } 
+                } catch (Exception e) { System.out.println("500: Nao ha servers!\n"); }
             }
         }
     }
@@ -393,9 +432,9 @@ public class AdminConsole extends RMIClient {
         int option;
             
         //  GETS ALL DEPARTMENTS WITH VOTE TABLE ASSOCIATED FROM SERVER
-        try { available_deps= admin.getServer1().getDepartmentsWithOrNotVoteTable(true); } 
+        try { if (admin.getServer1()!=null) available_deps= admin.getServer1().getDepartmentsWithOrNotVoteTable(true); } 
         catch (Exception e1) {
-            try { available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(true); } 
+            try { if (admin.getServer2()!=null) available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(true); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers!\n"); }
         }
         if (available_deps.isEmpty()) { input_manage.messageToWait("Erro: Nao existem Mesas de Voto Disponiveis!"); return; };
@@ -419,10 +458,18 @@ public class AdminConsole extends RMIClient {
         boolean sended=false;
         System.out.println("A Enviar Departamento Atualizado...");
         while (!sended) {
-            try { System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep, false)); sended=true; }
-            catch (Exception e1) {
-                try { System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep, false)); sended=true; } 
-                catch (Exception e) { System.out.println("500: Nao ha servers!\n"); }
+            try { 
+                if (admin.getServer1()!=null) {
+                    System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep, false));
+                    sended=true; 
+                }
+            } catch (Exception e1) {
+                try { 
+                    if (admin.getServer2()!=null) {
+                        System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep, false)); 
+                        sended=true; 
+                    } 
+                } catch (Exception e) { }
             }
         }
     }
@@ -432,9 +479,9 @@ public class AdminConsole extends RMIClient {
         int option;
 
         //  GETS UNSTARTED ELECTIONS FROM THE SERVER 
-        try { available_elections = admin.getServer1().getUnstartedElections(); 
+        try { if (admin.getServer1()!=null) available_elections = admin.getServer1().getUnstartedElections(); 
         } catch (Exception e1) {
-            try { available_elections = admin.getServer2().getUnstartedElections(); 
+            try { if (admin.getServer2()!=null) available_elections = admin.getServer2().getUnstartedElections(); 
             } catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
         }
         if (available_elections.isEmpty()) { System.out.println("Erro: Nao ha Eleicoes registadas!"); return; }
@@ -484,10 +531,18 @@ public class AdminConsole extends RMIClient {
         boolean sended=false;
         System.out.println("A Enviar Eleicao Atualizada...");
         while (!sended) {
-            try { System.out.println(admin.getServer1().setUpdatedElection(updated_election, false)); sended=true; } 
-            catch (Exception e1) {
-                try { System.out.println(admin.getServer2().setUpdatedElection(updated_election, false)); sended=true; } 
-                catch (Exception e2) { }
+            try { 
+                if (admin.getServer1()!=null) {
+                    System.out.println(admin.getServer1().setUpdatedElection(updated_election, false)); 
+                    sended=true; 
+                } 
+            } catch (Exception e1) {
+                try { 
+                    if (admin.getServer2()!=null) {
+                        System.out.println(admin.getServer2().setUpdatedElection(updated_election, false)); 
+                        sended=true; 
+                    } 
+                } catch (Exception e2) { }
             }
         }
     }
@@ -497,9 +552,9 @@ public class AdminConsole extends RMIClient {
         int option;
 
         //  GETS ALL RUNNING ELECTIONS FROM THE SERVER
-        try { available_elections = admin.getServer1().getRunningElections(); } 
+        try { if (admin.getServer1()!=null) available_elections = admin.getServer1().getRunningElections(); } 
         catch (Exception e1) {
-            try { available_elections = admin.getServer2().getRunningElections(); } 
+            try { if (admin.getServer2()!=null) available_elections = admin.getServer2().getRunningElections(); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
         }
         if (available_elections.isEmpty()) { input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); return; }
@@ -522,11 +577,20 @@ public class AdminConsole extends RMIClient {
         while (true) {
             selected_election= null;
             success=false;
-            try { selected_election= admin.getServer1().getUniqueElection(selected_election_title, "running"); success=true; } 
-            catch (Exception e1) {
-                try { selected_election= admin.getServer2().getUniqueElection(selected_election_title, "running"); success=true; } 
-                catch (Exception e2) { }
+            try { 
+                if (admin.getServer1()!=null) {
+                    selected_election= admin.getServer1().getUniqueElection(selected_election_title, "running"); 
+                    success=true; 
+                } 
+            } catch (Exception e1) {
+                try { 
+                    if (admin.getServer1()!=null) {
+                        selected_election= admin.getServer2().getUniqueElection(selected_election_title, "running"); 
+                        success=true; 
+                    } 
+                } catch (Exception e2) { }
             }
+
             //  PROBLEMS GETTING THE ELECTION
             if (selected_election==null) { 
                 if (!success) input_manage.messageToWait("500: Os Servidores foram encerrados!"); 
@@ -560,9 +624,9 @@ public class AdminConsole extends RMIClient {
         int option;
 
         //  GET FINISHED ELECTIONS FROM SERVER
-        try { available_elections = admin.getServer1().getFinishedElections(); } 
+        try { if (admin.getServer1()!=null) available_elections = admin.getServer1().getFinishedElections(); } 
         catch (Exception e1) {
-            try { available_elections = admin.getServer2().getFinishedElections(); } 
+            try { if (admin.getServer2()!=null) available_elections = admin.getServer2().getFinishedElections(); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
         }
         if (available_elections.isEmpty()) { input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); return; }
@@ -624,9 +688,9 @@ public class AdminConsole extends RMIClient {
             System.out.flush(); 
 
             //  GETS ALL DEPARTMENTS WITH VOTE TABLE ASSOCIATED FROM SERVER
-            try { available_deps= admin.getServer1().getDepartmentsWithOrNotVoteTable(true); } 
+            try { if (admin.getServer1()!=null) available_deps= admin.getServer1().getDepartmentsWithOrNotVoteTable(true); } 
             catch (Exception e1) {
-                try { available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(true); } 
+                try { if (admin.getServer2()!=null) available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(true); } 
                 catch (Exception e2) { System.out.println("500: Nao ha servers!\n"); }
             }
             if (available_deps.isEmpty()) { 
@@ -716,9 +780,9 @@ class Inputs {
         int option;
         
         //  Get College Names from RMI Server
-        try { available_colleges = admin.getServer1().getCollegesNames(); } 
+        try { if (admin.getServer1()!=null) available_colleges = admin.getServer1().getCollegesNames(); } 
         catch (Exception e1) {
-            try { available_colleges = admin.getServer2().getCollegesNames(); } 
+            try { if (admin.getServer2()!=null) available_colleges = admin.getServer2().getCollegesNames(); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers"); return "";}
         }
         
@@ -739,10 +803,10 @@ class Inputs {
         ArrayList<String> available_departments= new ArrayList<>();
         int option;
 
-        //  Get Department Names from RMI Server
-        try { available_departments = client.getServer1().getDepartmentsNames(); } 
+        //  GET DEPARTMENT NAMES FROM RMI SERVER
+        try { if (client.getServer1()!=null) available_departments = client.getServer1().getDepartmentsNames(); } 
         catch (Exception e1) {
-            try { available_departments = client.getServer2().getDepartmentsNames(); } 
+            try { if (client.getServer2()!=null) available_departments = client.getServer2().getDepartmentsNames(); } 
             catch (Exception e2) { System.out.println("500: Nao ha servers"); return "";}
         }
 

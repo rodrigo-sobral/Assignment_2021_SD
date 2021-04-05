@@ -80,6 +80,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             System.out.println(mesa_voto.getDesk().getArray_id().get(i)+" ");
         }
     }
+    
     public static void main(String[] args) throws RemoteException, InterruptedException {
         Scanner scanner = new Scanner(System.in);
         String depar="";
@@ -100,9 +101,9 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                 depar = input.askDepartment(rmi_connection, scanner, new ArrayList<>(), true);
                 if (!depar.isEmpty()) break;
             }
-            try { available_elections= rmi_connection.getServer1().getElectionToVoteTable(depar); }
+            try { if (rmi_connection.getServer1()!=null) available_elections= rmi_connection.getServer1().getElectionToVoteTable(depar); }
             catch (Exception e1) {
-                try { available_elections= rmi_connection.getServer2().getElectionToVoteTable(depar); }
+                try { if (rmi_connection.getServer2()!=null) available_elections= rmi_connection.getServer2().getElectionToVoteTable(depar); }
                 catch (Exception e2) { }
             }
             if (available_elections==null) { System.out.println("400: Nao existe uma Eleicao para esse Departamento!"); continue; }
@@ -149,10 +150,16 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             String inputed_cc= input.askVariable(scanner, "Insira o Numero do seu CC: ", 2);
             mesa_voto.getEleitor_cc().add(inputed_cc); 
             try {
-                if (!rmi_connection.getServer1().authorizeUser(inputed_cc, selected_election)) { System.out.println("403: Nao esta autorizado a votar nesta Eleicao!"); continue; }
+                if (rmi_connection.getServer1()!=null && !rmi_connection.getServer1().authorizeUser(inputed_cc, selected_election)) { 
+                    System.out.println("403: Nao esta autorizado a votar nesta Eleicao!"); 
+                    continue; 
+                }
             } catch (RemoteException e) {
                 try {
-                    if (!rmi_connection.getServer2().authorizeUser(inputed_cc, selected_election)) { System.out.println("403: Nao esta autorizado a votar nesta Eleicao!"); continue; }
+                    if (rmi_connection.getServer2()!=null && !rmi_connection.getServer2().authorizeUser(inputed_cc, selected_election)) {
+                        System.out.println("403: Nao esta autorizado a votar nesta Eleicao!"); 
+                        continue; 
+                    }
                 } catch (RemoteException e1) { }
             }
             input.messageToWait("Sera reencaminhado para um Terminal de Voto...");

@@ -307,6 +307,7 @@ class Cliente_Received implements Runnable{
                 socket.joinGroup(group);
                 byte[] buffer = new byte[256];
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                socket.setSoTimeout(60*1000);
                 while (!exit) {
                     try {Thread.sleep(1000);} catch (InterruptedException e){}
                     socket.receive(packet);
@@ -373,7 +374,7 @@ class Cliente_Received implements Runnable{
                         }
                     }
                 } 
-                catch(SocketTimeoutException se) { System.out.println("Aviso: Excedeu o tempo limite, o Terminal de Voto ira encerrar!"); }
+                catch(SocketTimeoutException se) { System.out.println("Aviso: Excedeu o tempo limite, o Terminal de Voto ira encerrar!"); System.exit(0); return; }
                 catch (IOException e) { e.printStackTrace(); } 
                 finally { socket.close(); }
         }
