@@ -212,7 +212,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
 
     //encontrar terminais de voto
     public void run () {
-        //synchronized(Thread.currentThread()){
+        synchronized(Thread.currentThread()){
             System.out.println("thread->multicast find");
             String string;
             int aux_ = 0;
@@ -268,7 +268,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     //setMessage_envia("");
                 }catch (Exception e) { e.printStackTrace(); }
             }          
-        //}
+        }
         
     }
 }
