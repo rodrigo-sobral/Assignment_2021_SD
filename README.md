@@ -9,36 +9,36 @@ Número de Aluno:	| 2017987654
 Nota Final:	| 100
 -- | 
 **Requisitos Funcionais** | 44
-Registar novo utilizador (estudante, docente, ou funcionário) | 1 (X)
-Criar eleição | 3 (X)
-Gerir listas de candidatos a uma eleição | 3 (X)
-Criar mesas de voto | 3 (X)
+Registar novo utilizador (estudante, docente, ou funcionário) | 1
+Criar eleição | 3
+Gerir listas de candidatos a uma eleição | 3
+Criar mesas de voto | 3
 Gestão automática de terminais de voto, por Multicast | 3
-Identificar eleitor na mesa de voto e desbloquear um terminal de voto | 3 (X)
-Login de eleitor no terminal de voto | 3 (X)
+Identificar eleitor na mesa de voto e desbloquear um terminal de voto | 3
+Login de eleitor no terminal de voto | 3
 Votar (escolher, uma só vez, uma lista no terminal de voto) | 3
-Editar propriedades de uma eleição | 3 (X)
+Editar propriedades de uma eleição | 3
 Saber em que local votou cada eleitor | 3
 Consola de administração mostra mesas de voto on/off e votantes | 3
-Consola de administração atualizada em tempo real nas eleições | 3 (X)
-Eleição termina corretamente na data, hora e minuto marcados | 7 (X)
-Consultar resultados detalhados de todas as eleições passadas | 3 (X)
+Consola de administração atualizada em tempo real nas eleições | 3
+Eleição termina corretamente na data, hora e minuto marcados | 7
+Consultar resultados detalhados de todas as eleições passadas | 3
 -- | 
 **Tratamento de Exceções** | 24
 Avaria de um servidor RMI não tem qualquer efeito nos clientes | 4
 Não se perde/duplica votos se os servidores RMI falharem | 4
 Não se perde/duplica votos se a comunicação Multicast tiver falhas | 4
 Avarias temporárias (<30s) dos 2 RMIs são invisíveis para clientes | 4
-Terminal de voto bloqueado automaticamente após 60s sem uso | 4 (X)
+Terminal de voto bloqueado automaticamente após 60s sem uso | 4
 Crash de terminal de voto é recuperado | 4
 -- | 
 **Failover** | 24
-O servidor RMI secundário testa periodicamente o primário | 4 (X)
-Em caso de avaria longa os servidores Multicast ligam ao secundário | 4 (X)
-Servidor RMI secundário substitui o primário em caso de avaria | 4 (X)
+O servidor RMI secundário testa periodicamente o primário | 4
+Em caso de avaria longa os servidores Multicast ligam ao secundário | 4
+Servidor RMI secundário substitui o primário em caso de avaria | 4
 Os dados são os mesmos em ambos os servidores RMI | 4 
 O failover é invisível para clientes/eleitores (não perdem a sessão) | 4
-O servidor original, quando recupera, torna-se secundário | 4 (X)
+O servidor original, quando recupera, torna-se secundário | 4
 -- | 
 **Relatório**	| 8
 Detalhes do funcionamento do servidor Multicast (protocolo, etc.) | 2
