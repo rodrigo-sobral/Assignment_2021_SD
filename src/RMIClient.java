@@ -15,11 +15,15 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
         super();
         System.getProperties().put("java.security.policy","AdminConsole.policy");
         if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
-    }
-
-    protected boolean connect2Servers(Scanner keyboard) {
         try { LocateRegistry.createRegistry(port); } 
         catch (Exception e) { }
+    }
+
+    /**
+     * connects the client to the server, the server gives it access to its methods but doesnt regist it as a client
+     * @return true if the client was successfully connected
+     */
+    protected boolean connect2Servers(Scanner keyboard) { 
         String server1_ip= new Inputs().askVariable(keyboard, "Insira o IP do Servidor Principal: ", 5);
         String full_ip1= getRegistryFromIP(server1_ip, rmiregistry1), full_ip2= getRegistryFromIP(server1_ip, rmiregistry2);
 
@@ -30,10 +34,16 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
             try {
                 server1 = (RMIServer_I) Naming.lookup(full_ip2);
                 return true;
-            } catch (Exception e) { System.out.println("Inseriu um IP errado!\n"+e); return false; }
+            } catch (Exception e) { System.out.println("Inseriu um IP errado!"); return false; }
         }
 	}
     
+    /**
+     * 
+     * @param client clients that will be subscribed to a server
+     * @param depart_name will a bridge of association with the departments registed, null if it is an administrator
+     * @return true if the client was successfully subscribed
+     */
     protected boolean subscribe2Servers(RMIClient client, String depart_name) {
         String result=null;
         try {
@@ -51,6 +61,11 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
 
 	public RMIServer_I getServer1() { return server1; }
 	public RMIServer_I getServer2() { return server2; }
+
+    /**
+     * when a new secundary server is connected, it also shall be associated to the client
+     * @return true if the server was successfully associated
+     */
 	public boolean setNewServer(String new_server_ip) throws RemoteException { 
         if (server1==null) { 
             try { server1= (RMIServer_I) Naming.lookup(new_server_ip); return true; }

@@ -10,17 +10,7 @@ public class User implements Serializable {
     private String cc_number, cc_shelflife;
     private String college, department;
 
-    /**
-     * null para não declarar
-     * @param user_type Tipo da Pessoa: Funcionario, Professor, Estudante
-     * @param name
-     * @param password
-     * @param address
-     * @param phone_number
-     * @param cc_number
-     * @param cc_shelflife
-     */
-
+    public User() { }
     public User(String user_type, String name, String password, String address, String phone_number, String cc_number, String cc_shelflife) {
         if (user_type!=null) setUser_type(user_type);
         if (name!=null) setName(name);
@@ -30,7 +20,6 @@ public class User implements Serializable {
         if (cc_number!=null) setCc_number(cc_number);
         if (cc_shelflife!=null) setCc_shelflife(cc_shelflife);
     }
-    public User() { }
     
     public String getUser_type() { return user_type; }
     public String getName() { return name; }
@@ -57,9 +46,4 @@ public class User implements Serializable {
     public void setCollege(String college) { this.college = college; }
     public void setDepartment(String department) { this.department = department; }
 
-    @Override
-    public String toString() {
-        return "Faculdade: "+this.getCollege()+     "\tDepartamento: "+this.getDepartment()+"\t"    +this.user_type+   "\tNome: "+this.name;
-    }
-            
 }

@@ -82,7 +82,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             System.out.println("----------------------------------------");
             for (int i = 0; i < available_elections.size(); i++)  {
                 Election temp_election= available_elections.get(i);
-                System.out.println(i+1+": "+temp_election.getElection_type()+"\t"+temp_election.getTitle()+"\t"+temp_election.getStartingDateString()+"\t"+temp_election.getEndingDateString()+"\t"+temp_election.getDescription());
+                System.out.println(i+1+": "+temp_election.getElectionState()+"\t"+temp_election.getTitle()+"\t"+temp_election.getStartingDateString()+"\t"+temp_election.getEndingDateString()+"\t"+temp_election.getDescription());
             }
             System.out.println("----------------------------------------");
             election_option= input.checkIntegerOption(scanner, "Opcao: ", 0, available_elections.size())-1;

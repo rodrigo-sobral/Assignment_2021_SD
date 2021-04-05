@@ -152,12 +152,13 @@ public class AdminConsole extends RMIClient {
         new_user.setDepartment(new_department);
 
         //  SEND NEW USER TO RMI SERVER
-        String result=null;
-        while (result==null) {
-            try { result= admin.getServer1().registUser(new_college, new_department, new_user); } 
+        boolean sended=false;
+        System.out.println("A Enviar Novo Eleitor...");
+        while (!sended) {
+            try { System.out.println(admin.getServer1().registUser(new_college, new_department, new_user)); sended= true; } 
             catch (Exception e1) {
-                try { result= admin.getServer2().registUser(new_college, new_department, new_user); } 
-                catch (Exception e2) { result=null; }
+                try { System.out.println(admin.getServer2().registUser(new_college, new_department, new_user)); sended= true; } 
+                catch (Exception e2) { }
             }
         }
     }
@@ -167,7 +168,7 @@ public class AdminConsole extends RMIClient {
 
 
         //  GET DEFAULT ELECTION DATA
-        while(!new_election.setElection_type(input_manage.askVariable(keyboard, "Tipo Eleicao [Funcionario/Professor/Estudante]: ", 0)));
+        while(!new_election.setElectionState(input_manage.askVariable(keyboard, "Tipo Eleicao [Funcionario/Professor/Estudante]: ", 0)));
 
         new_election.setTitle(input_manage.askVariable(keyboard, "Titulo: ", 5));
         new_election.setDescription(input_manage.askVariable(keyboard, "Descricao: ", 5));
@@ -268,7 +269,7 @@ public class AdminConsole extends RMIClient {
         Election selected_election= available_elections.get(option);
         ArrayList<String> collegs_restricts= selected_election.getCollege_restrictions();
         ArrayList<String> deps_restricts= selected_election.getDepartment_restrictions();
-        String user_type_restrics= selected_election.getElection_type();
+        String user_type_restrics= selected_election.getElectionState();
         ArrayList<User> users_restricts= new ArrayList<>();
 
         //  ASK CANDIDATURE NAME
@@ -337,12 +338,16 @@ public class AdminConsole extends RMIClient {
         ArrayList<Integer> options= input_manage.checkSeveralIntegerOptions(keyboard, "Opcao [n1,n2,n3]: ", 1, users_restricts.size());
         for (Integer integer : options) new_candidature.getCandidates().add(users_restricts.get(integer-1));
         
+        selected_election.getCandidatures_to_election().add(new_candidature);
         //  SEND SELECTED UPDATED ELECTION TO RMI SERVER
-        selected_election.getCandidatures_to_election().add(new_candidature);   
-        try { System.out.println(admin.getServer1().setUpdatedElection(selected_election, true)); } 
-        catch (Exception e1) {
-            try { System.out.println(admin.getServer1().setUpdatedElection(selected_election, true)); } 
-            catch (Exception e2) { System.out.println("500: Nao ha servers"); return; }
+        boolean sended=false;
+        System.out.println("A Enviar Eleicao Atualizada...");
+        while (!sended) {
+            try { System.out.println(admin.getServer1().setUpdatedElection(selected_election, true)); sended= true; }
+            catch (Exception e1) {
+                try { System.out.println(admin.getServer2().setUpdatedElection(selected_election, true)); sended= true; } 
+                catch (Exception e) { }
+            }
         }
     }
     private void addVoteTable(Scanner keyboard) {
@@ -371,16 +376,23 @@ public class AdminConsole extends RMIClient {
 
         selected_dep.createVoteTable(input_manage.checkIntegerOption(keyboard, "Quantos terminais tera a Mesa de Voto do "+selected_dep.getName()+" [Max=100]: ", 1, 100));
 
-        try { System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep, true)); }
-        catch (Exception e1) {
-            try { System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep, true)); } 
-            catch (Exception e) { System.out.println("500: Nao ha servers!\n"); }
+
+        //  SENDS UPDATED DEPARTMENT TO RMI SERVER
+        boolean sended=false;
+        System.out.println("A Enviar Departamento Atualizado...");
+        while (!sended) {
+            try { System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep, true)); sended= true; }
+            catch (Exception e1) {
+                try { System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep, true)); sended= true; } 
+                catch (Exception e) { System.out.println("500: Nao ha servers!\n"); }
+            }
         }
     }
     private void deleteVoteTable(Scanner keyboard) {
         ArrayList<Department> available_deps=null;
         int option;
-
+            
+        //  GETS ALL DEPARTMENTS WITH VOTE TABLE ASSOCIATED FROM SERVER
         try { available_deps= admin.getServer1().getDepartmentsWithOrNotVoteTable(true); } 
         catch (Exception e1) {
             try { available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(true); } 
@@ -388,25 +400,30 @@ public class AdminConsole extends RMIClient {
         }
         if (available_deps.isEmpty()) { input_manage.messageToWait("Erro: Nao existem Mesas de Voto Disponiveis!"); return; };
 
-        //  ASK DEPARTMENT FROM THE ONES WHICH HAVE NOT VOTE TABLE 
+        //  ASKS A VOTE TABLE
         System.out.println("----------------------------------------");
         System.out.println("Mesas de Voto Disponiveis [0 Para Voltar]");
         System.out.println("----------------------------------------");
         for (int i = 0; i < available_deps.size(); i++) {
             Department aux= available_deps.get(i);
-            if (aux.getActivatedVoteTable()) System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tAtiva\t"+aux.getMCServerDatas());
-            else System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tInativa\t"+aux.getMCServerDatas());
+            if (aux.getActivatedVoteTable()) System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tAtiva\t"+aux.getVoteTerminals());
+            else System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tInativa\t"+aux.getVoteTerminals());
         }
         System.out.println("----------------------------------------");
         option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 0, available_deps.size())-1;
         if (option==-1) { input_manage.messageToWait("Voltando para o Menu Admin..."); return; }
         Department selected_dep= available_deps.get(option);
         selected_dep.deleteVoteTable();
-
-        try { System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep, false)); }
-        catch (Exception e1) {
-            try { System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep, false)); } 
-            catch (Exception e) { System.out.println("500: Nao ha servers!\n"); }
+        
+        //  SENDS UPDATED DEPARTMENT TO RMI SERVER
+        boolean sended=false;
+        System.out.println("A Enviar Departamento Atualizado...");
+        while (!sended) {
+            try { System.out.println(admin.getServer1().setUpdatedDepartment(selected_dep, false)); sended=true; }
+            catch (Exception e1) {
+                try { System.out.println(admin.getServer2().setUpdatedDepartment(selected_dep, false)); sended=true; } 
+                catch (Exception e) { System.out.println("500: Nao ha servers!\n"); }
+            }
         }
     }
 
@@ -414,7 +431,7 @@ public class AdminConsole extends RMIClient {
         ArrayList<Election> available_elections= new ArrayList<>();
         int option;
 
-        //  GET ELECTION TO THE NEW CANDIDATURE
+        //  GETS UNSTARTED ELECTIONS FROM THE SERVER 
         try { available_elections = admin.getServer1().getUnstartedElections(); 
         } catch (Exception e1) {
             try { available_elections = admin.getServer2().getUnstartedElections(); 
@@ -422,7 +439,7 @@ public class AdminConsole extends RMIClient {
         }
         if (available_elections.isEmpty()) { System.out.println("Erro: Nao ha Eleicoes registadas!"); return; }
 
-        //  ASK ELECTION TO THE CANDIDATURE 
+        //  ASKS AN ELECTION TO EDIT
         System.out.println("----------------------------------------");
         System.out.println("Eleicoes Disponiveis");
         System.out.println("----------------------------------------");
@@ -431,7 +448,7 @@ public class AdminConsole extends RMIClient {
         System.out.println("----------------------------------------");
         option= input_manage.checkIntegerOption(keyboard, "Opcao: ", 1, available_elections.size())-1;
         
-        //  ASK TO CHANGE A VARIABLE
+        //  ASKS TO CHANGE A VARIABLE
         Election updated_election= available_elections.get(option);
         System.out.println("\nQue atributo pretende Alterar?");
         System.out.println("----------------------------------------");
@@ -463,7 +480,7 @@ public class AdminConsole extends RMIClient {
             } else { updated_election.setEnding(LocalDateTime.of(temp_date2, temp_hour2)); }
         } 
 
-        //  SEND NEW ELECTION TO RMI SERVER
+        //  SENDS UPDATED ELECTION TO RMI SERVER
         boolean sended=false;
         System.out.println("A Enviar Eleicao Atualizada...");
         while (!sended) {
@@ -479,7 +496,7 @@ public class AdminConsole extends RMIClient {
         ArrayList<Election> available_elections= new ArrayList<>();
         int option;
 
-        //  GET ELECTION TO THE NEW CANDIDATURE
+        //  GETS ALL RUNNING ELECTIONS FROM THE SERVER
         try { available_elections = admin.getServer1().getRunningElections(); } 
         catch (Exception e1) {
             try { available_elections = admin.getServer2().getRunningElections(); } 
@@ -542,7 +559,7 @@ public class AdminConsole extends RMIClient {
         ArrayList<Election> available_elections= new ArrayList<>();
         int option;
 
-        //  GET ELECTION TO THE NEW CANDIDATURE
+        //  GET FINISHED ELECTIONS FROM SERVER
         try { available_elections = admin.getServer1().getFinishedElections(); } 
         catch (Exception e1) {
             try { available_elections = admin.getServer2().getFinishedElections(); } 
@@ -550,9 +567,9 @@ public class AdminConsole extends RMIClient {
         }
         if (available_elections.isEmpty()) { input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); return; }
         
-        //  ASK ELECTION 
+        //  ASK A FINISHED ELECTION TO THE USER
         System.out.println("----------------------------------------");
-        System.out.println("Eleicoes Finalizadas [0 Para Voltar]");
+        System.out.println("Eleicoes Acabadas [0 Para Voltar]");
         System.out.println("----------------------------------------");
         for (int i = 0; i < available_elections.size(); i++) {
             Election aux= available_elections.get(i);
@@ -569,7 +586,7 @@ public class AdminConsole extends RMIClient {
         System.out.println("Descricao: "+selected_election.getDescription());
         System.out.println("Data Inicio: "+selected_election.getStartingDateString()+"  "+selected_election.getStartingHourString());
         System.out.println("Data Fim: "+selected_election.getEndingDateString()+"  "+selected_election.getEndingHourString());
-        System.out.println("Eleitores/Candidatos: "+selected_election.getElection_type());
+        System.out.println("Eleitores/Candidatos: "+selected_election.getElectionState());
         if (!selected_election.getCollege_restrictions().isEmpty()) {
             System.out.println("Faculdades:");
             for (String college : selected_election.getCollege_restrictions()) System.out.print(" "+college);
@@ -588,6 +605,8 @@ public class AdminConsole extends RMIClient {
         System.out.println("Total de Votos: "+ selected_election.getTotalVotes());
         System.out.println("----------------------------------------");
         System.out.println("Pressione Enter para Voltar...");
+        
+        //  WAITS UNTIL THE USER PRESSES ENTER
         while (pressed_enter.enter_thread.isAlive());
         try { pressed_enter.enter_thread.join(1000); } 
         catch (InterruptedException e) { return; }
@@ -604,6 +623,7 @@ public class AdminConsole extends RMIClient {
             System.out.print("\033[H\033[2J");  
             System.out.flush(); 
 
+            //  GETS ALL DEPARTMENTS WITH VOTE TABLE ASSOCIATED FROM SERVER
             try { available_deps= admin.getServer1().getDepartmentsWithOrNotVoteTable(true); } 
             catch (Exception e1) {
                 try { available_deps= admin.getServer2().getDepartmentsWithOrNotVoteTable(true); } 
@@ -617,19 +637,20 @@ public class AdminConsole extends RMIClient {
                 return; 
             }
 
-            //  ASK DEPARTMENT FROM THE ONES WHICH HAVE NOT VOTE TABLE 
+            //  ASKES A VOTE TABLE TO CONSULT
             System.out.println("----------------------------------------");
             System.out.println("Mesas de Voto Disponiveis");
             System.out.println("----------------------------------------");
             System.out.println("Faculdade\tDepartamento\tAtividade\tTerminais");
             for (int i = 0; i < available_deps.size(); i++) {
                 Department aux= available_deps.get(i);
-                if (aux.getActivatedVoteTable()) System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tAtiva\t"+aux.getMCServerDatas());
-                else System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tInativa\t"+aux.getMCServerDatas());
+                if (aux.getActivatedVoteTable()) System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tAtiva\t"+aux.getVoteTerminals());
+                else System.out.println(i+1+": "+aux.getCollege()+"\t"+aux.getName()+"\tInativa\t"+aux.getVoteTerminals());
             }
             System.out.println("----------------------------------------");
             System.out.println("Pressione Enter para Voltar...");
-
+            
+            //  WAITS UNTIL THE USER PRESSES ENTER
             if (!pressed_enter.enter_thread.isAlive()) break;
             try { pressed_enter.enter_thread.join(1000); } 
             catch (InterruptedException e) { break; }
@@ -639,7 +660,7 @@ public class AdminConsole extends RMIClient {
 
 
 /**
- * Inputs
+ * Inputs takes care of all kind of inputings, dates, strings, numbers, phone numbers, departments, colleges, elections, among others
  */
 class Inputs {
 
@@ -806,6 +827,10 @@ class Inputs {
         else return false;
     }
 
+    /**
+     * extra method that prints a message and gives some time until user reads it
+     * @param message
+     */
     public void messageToWait(String message) {
         System.out.println(message);
         try { TimeUnit.SECONDS.sleep(2); }

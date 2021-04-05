@@ -27,6 +27,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         private boolean main_server= false;
         private String my_rmi_ip="", remoted_server_ip="";
 
+        //  CLIENTS DATA
         public ArrayList<RMIClient_I> clients_list= new ArrayList<>(), admins_list= new ArrayList<>();
         public ArrayList<String> associated_deps_list= new ArrayList<>();
 
@@ -36,7 +37,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         private static ServersManagement servers_manager;
 
         //  STORAGE DATA
-        private FilesManagement file_manage= new FilesManagement();
+        private ObjectFilesManagement file_manage= new ObjectFilesManagement();
         private static Inputs input_manage= new Inputs();
         
         //  DATA TO STORE
@@ -80,12 +81,16 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         //  ===========================================================================================================
         //  CONNECTIONS AND CONFIGURATIONS
         //  ===========================================================================================================
+
+        /**
+         * reads files if it's the main server, otherwise gets data from main server
+         */
         private void readAllFiles() throws RemoteException {
             if (isMainServer()) {
-                server.file_manage.loadElectionsFile(server.unstarted_elections, "unstarted");
-                server.file_manage.loadElectionsFile(server.running_elections, "running");
-                server.file_manage.loadElectionsFile(server.finished_elections, "finished");
-                server.file_manage.loadCollegesFile(server.colleges);
+                file_manage.loadElectionsFile(server.getUnstartedElections(), "unstarted");
+                file_manage.loadElectionsFile(server.getRunningElections(), "running");
+                file_manage.loadElectionsFile(server.getFinishedElections(), "finished");
+                file_manage.loadCollegesFile(server.getColleges());
             } else if (!isMainServer() && getPinger()!=null) {
                 setColleges(server.getPinger().getColleges());
                 setUnstarted_elections(server.getPinger().getUnstartedElections());
@@ -94,6 +99,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             }
         }
 
+        /**
+         * @param my_ip machine's ip
+         * @return true if it actually inited server 
+         */
         private static boolean initServers(String my_ip) {
             Scanner keyboard= new Scanner(System.in);
             String server1_ip= input_manage.askVariable(keyboard, "Insira o IP do Servidor Principal, se este for o Servidor Principal clique Enter: ", 5);
@@ -125,6 +134,11 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             }
         }
 
+        /**
+         * @param new_client client that will be subscribed to the server
+         * @param depart_name name of the department where the vote table is located, null if is just an administrator console
+         * @return 200 message if there was no problems subscribing new client, 400 message otherwise
+         */
         synchronized public String subscribeNewClient(RMIClient_I new_client, String depart_name) throws RemoteException {
             if (depart_name==null) { 
                 server.admins_list.add(new_client);
@@ -141,6 +155,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
                 System.out.println("Mesa de Voto do "+depart_name+" Conectado ["+(server.clients_list.size()-1)+"]");
             } return "200: Adicionado ao Servidor com Sucesso";
         }
+        /**
+         * @param new_server_ip ip address from the secundary server 
+         * @return true if there was no problems subscribing new server, false otherwise
+         */
         synchronized public boolean subscribeNewServer(String new_server_ip) throws RemoteException {
             if (server.isMainServer() && server.getPinger()==null) { 
                 try {
@@ -154,12 +172,16 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             } else return false;
         }
 
+        /**
+         * 
+         * @param ip machine's ipv4 address
+         * @param registryName registry name (rmiregistry1 or rmiregistry2)
+         * @return rmi full ip address
+         */
         synchronized private static String getRegistryFromIP(String ip, String registryName) { return "rmi://"+ip+":"+port+"/"+registryName; }
         synchronized public String ping() throws RemoteException { return "ACK"; }
 
 
-        //  ===========================================================================================================
-        //  SERVER ATTRIBUTES
         //  ===========================================================================================================
         synchronized public boolean isMainServer() throws RemoteException { return main_server; }
         synchronized public String getMy_rmi_ip() throws RemoteException { return my_rmi_ip; }
@@ -168,16 +190,13 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         synchronized public void setMy_rmi_ip(String full_ip) throws RemoteException { this.my_rmi_ip= full_ip; }
         synchronized public void setRemoted_server_ip(String full_ip) throws RemoteException { this.remoted_server_ip= full_ip; }
         synchronized public void changeServerPriority() throws RemoteException { 
-            server.main_server=!server.main_server; 
-            if (!server.main_server) System.out.println("Este Servidor passou a ser Secundario!"); 
-            else { System.out.println("Este Servidor passou a ser Primario!"); server.pinger=null; }
+            this.main_server=!this.main_server; 
+            if (!this.main_server) System.out.println("Este Servidor passou a ser Secundario!"); 
+            else { System.out.println("Este Servidor passou a ser Primario!"); this.setPinger(null); }
         }
         synchronized public void setPinger(RMIServer_I pinger) { 
             this.pinger= pinger; 
-            if (this.pinger==null) {
-                this.remoted_server_ip="";
-                System.out.println("O Servidor Secundario foi desassociado!");
-            }
+            if (this.pinger==null) { this.remoted_server_ip=""; System.out.println("O Servidor Secundario foi desassociado!"); }
         }
 
 
@@ -186,6 +205,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         //  ===========================================================================================================
 
         /**
+         * it regists a new user and possibly a new department and college 
         * @param new_college Name of the new college, registed with the new user data
         * @param new_department Name of the new department, registed with the new user data
         * @param new_user New User data
@@ -207,6 +227,12 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             if (server.getPinger()!=null) server.getPinger().setColleges(colleges);
             return "200: Pessoa registada com sucesso!\n";
         }
+    
+        /**
+         * checks if a user is registed in the whole system, using cc number as a reference
+         * @param comparing_user potential repeated user
+         * @return true if is already registed, false if isn't
+         */
         synchronized public boolean verifyUserExistence(User comparing_user) {
             for (College college : server.colleges) {
                 for (Department department : college.getDepartments()) {
@@ -223,17 +249,21 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             } return false;
         }
     
+        /**
+         * regists a new election, according to its state
+         * @return returns a 200 code if sucess during registation, 400 otherwise
+         */
         synchronized public String registElection(Election new_election) throws RemoteException {
-            for (Election election : server.unstarted_elections) 
+            for (Election election : getUnstartedElections()) 
                 if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
-            for (Election election : server.running_elections)
+            for (Election election : getRunningElections())
                 if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
-            for (Election election : server.finished_elections)
+            for (Election election : getFinishedElections())
                 if (election.getTitle()==new_election.getTitle()) return "400: Uma Eleicao com esse Titulo ja foi registada!";
 
-            server.unstarted_elections.add(new_election);
-            server.file_manage.saveElectionsFile(server.unstarted_elections, "unstarted");
-            if (server.getPinger()!=null) server.getPinger().setUnstarted_elections(server.unstarted_elections);
+            getUnstartedElections().add(new_election);
+            file_manage.saveElectionsFile(getUnstartedElections(), "unstarted");
+            if (pinger!=null) pinger.setUnstarted_elections(getUnstartedElections());
             System.out.println("Nova Eleicao Registada pela Consola de Administrador");
             return "200: Eleicao registada com sucesso!";
         }
@@ -250,13 +280,23 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             for (College college : colleges) names.add(college.getName());
             return names;
         }
+        
+        /**
+         * Searches for a College with the same name as college_name
+         * @return found college, null if wasn't found
+         */
         synchronized public College getUniqueCollege(String college_name) throws RemoteException { 
-            for (College college : server.getColleges()) 
+            for (College college : getColleges()) 
                 if (college.getName().compareTo(college_name)==0) return college;
             return null;
         }
+        
+        /**
+         * Searches for a Department with the same name as department_name
+         * @return found department, null if wasn't found
+         */
         synchronized public Department getUniqueDepartment(String department_name) throws RemoteException { 
-            for (College college : server.getColleges())
+            for (College college : getColleges())
                 for (Department department : college.getDepartments())
                     if (department.getName().compareTo(department_name)==0) return department;
             return null;
@@ -265,6 +305,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         synchronized public ArrayList<Election> getUnstartedElections() throws RemoteException { return unstarted_elections; }
         synchronized public ArrayList<Election> getRunningElections() throws RemoteException { return running_elections; }
         synchronized public ArrayList<Election> getFinishedElections() throws RemoteException { return finished_elections; }
+        
+        /**
+         * @return a list of all elections with a given state
+         */
         synchronized public ArrayList<String> getElectionNames(String election_state) throws RemoteException { 
             ArrayList<String> names= new ArrayList<>();
             if (election_state=="running") for (Election election : running_elections) names.add(election.getTitle());
@@ -272,15 +316,20 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             else if (election_state=="unstarted") for (Election election : unstarted_elections) names.add(election.getTitle());
             return names;
         }
+        
+        /**
+         * Searches for a Election with the same name as election_name and same state as election_state
+         * @return found election, null if wasn't found
+         */
         synchronized public Election getUniqueElection(String election_name, String election_state) throws RemoteException { 
             if (election_state=="unstarted") {
-                for (Election election : server.getUnstartedElections())
+                for (Election election : getUnstartedElections())
                     if (election.getTitle().compareTo(election_name)==0) return election;
             } else if (election_state=="running") {
-                for (Election election : server.getRunningElections())
+                for (Election election : getRunningElections())
                     if (election.getTitle().compareTo(election_name)==0) return election;
             } else if (election_state=="finished") {
-                for (Election election : server.getFinishedElections())
+                for (Election election : getFinishedElections())
                     if (election.getTitle().compareTo(election_name)==0) return election;
             } return null;
         }
@@ -289,8 +338,8 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             for (Election election : unstarted_elections)
                 if (election.getTitle().compareTo(updated_election.getTitle())==0) {
                     unstarted_elections.set(unstarted_elections.indexOf(election), updated_election);
-                    server.file_manage.saveElectionsFile(unstarted_elections, "unstarted");
-                    if (server.getPinger()!=null) server.getPinger().setUnstarted_elections(unstarted_elections);
+                    this.file_manage.saveElectionsFile(unstarted_elections, "unstarted");
+                    if (this.getPinger()!=null) this.getPinger().setUnstarted_elections(unstarted_elections);
                     if (is_candidature) { System.out.println("Nova Candidatura Submetida pela Consola de Administrador"); return "200: Candidatura Submetida com Sucesso"; }
                     else { System.out.println("Eleicao "+election.getTitle()+" alterada pela Consola de Administrador"); return "200: Eleicao Editada com Sucesso"; }
                 }
@@ -302,10 +351,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
                 int dep_index = IntStream.range(0, colleg_deps.size()).filter(i -> colleg_deps.get(i).getName().equals(updated_department.getName())).findFirst().orElse(-1);
                 if (dep_index==-1) continue;
                 college.getDepartments().set(dep_index, updated_department);
-                server.file_manage.saveCollegesFile(colleges);
-                if (server.getPinger()!=null) server.getPinger().setColleges(colleges);
+                this.file_manage.saveCollegesFile(colleges);
+                if (pinger!=null) pinger.setColleges(colleges);
                 if (new_vote_table) { 
-                    System.out.println("Mesa de Voto Registada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()+" com "+updated_department.getMCServerDatas()+" terminais de voto"); 
+                    System.out.println("Mesa de Voto Registada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()+" com "+updated_department.getVoteTerminals()+" terminais de voto"); 
                     return "200: Mesa de Voto Registada com Sucesso"; 
                 } else {
                     System.out.println("Mesa de Voto Eliminada no Departamento "+updated_department.getName()+", "+updated_department.getCollege()); 
@@ -314,6 +363,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             } return "400: Departamento nao encontrado";
         }
 
+        /**
+         * @return a list of departments with (or not, depending on the given argument) vote table
+         */
         synchronized public ArrayList<Department> getDepartmentsWithOrNotVoteTable(boolean with) throws RemoteException {
             ArrayList<Department> available_departments= new ArrayList<>();
             for (College college : colleges) {
@@ -324,6 +376,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             } return available_departments;
         }
 
+        /**
+         * @return a list of elections running in a given depart_name
+         */
         synchronized public ArrayList<Election> getElectionToVoteTable(String depart_name) throws RemoteException {
             ArrayList<Election> available_elections= new ArrayList<>();
             for (Election running_election : server.running_elections) {
@@ -377,43 +432,42 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         }
 
         synchronized public void setColleges(ArrayList<College> colleges) throws RemoteException { 
-            if (!isMainServer()) System.out.println("Informacao dos Eleitores recebida do Servidor Primario!");
-            else System.out.println("Informacao dos Eleitores recebida do Servidor Secundario!");
             this.colleges = colleges; 
             file_manage.saveCollegesFile(this.colleges);
+            if (!isMainServer()) System.out.println("Informacao dos Eleitores recebida do Servidor Primario!");
+            else System.out.println("Informacao dos Eleitores recebida do Servidor Secundario!");
         }
         synchronized public void setUnstarted_elections(ArrayList<Election> unstarted_elections) throws RemoteException { 
-            if (!isMainServer()) System.out.println("Informacao das Eleicoes Nao Comecadas recebida do Servidor Primario!");
-            else System.out.println("Informacao das Eleicoes Nao Comecadas recebida do Servidor Secundario!");
             this.unstarted_elections = unstarted_elections; 
             file_manage.saveElectionsFile(running_elections, "unstarted");
+            if (!isMainServer()) System.out.println("Informacao das Eleicoes Nao Comecadas recebida do Servidor Primario!");
+            else System.out.println("Informacao das Eleicoes Nao Comecadas recebida do Servidor Secundario!");
         }
         synchronized public void setRunning_elections(ArrayList<Election> running_elections) throws RemoteException { 
-            if (!isMainServer()) System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Primario!");
-            else System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Scundario!");
             this.running_elections = running_elections; 
             file_manage.saveElectionsFile(running_elections, "running");
+            if (!isMainServer()) System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Primario!");
+            else System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Scundario!");
         }
         synchronized public void setFinished_elections(ArrayList<Election> finished_elections) throws RemoteException { 
-            if (!isMainServer()) System.out.println("Informacao das Eleicoes Atuais recebida do Servidor Primario!");
-            else System.out.println("Informacao das Eleicoes Acabadas recebida do Servidor Secundario!");
             this.finished_elections = finished_elections;
             file_manage.saveElectionsFile(running_elections, "finished");
+            if (!isMainServer()) System.out.println("Informacao das Eleicoes Acabadas recebida do Servidor Primario!");
+            else System.out.println("Informacao das Eleicoes Acabadas recebida do Servidor Secundario!");
         }
         synchronized public void setClientsList(ArrayList<RMIClient_I> clients_list, boolean admins) throws RemoteException { 
-            if (!isMainServer()) System.out.println("Clients Ativos recebidos do Servidor Primario!");
-            else System.out.println("Clients Ativos recebidos do Servidor Secundario!");
             if (admins) this.admins_list = clients_list;
             else this.clients_list= clients_list;
+            if (!isMainServer()) System.out.println("Clients Ativos recebidos do Servidor Primario!");
+            else System.out.println("Clients Ativos recebidos do Servidor Secundario!");
         }
 
 }
 
 /**
- * FilesManagement takes care of all data storage
+ * ObjectFilesManagement takes care of all data storage and reading relative to object files
 */
-class FilesManagement {
-    public FilesManagement() { }
+class ObjectFilesManagement {  
     /**
      * Writes colleges in a object file called "database_colleges.data"
      * @param colleges ArrayList of Colleges, considering each one has a Department and each Department has 3 ArrayList (students, teachers and staff)
@@ -436,8 +490,8 @@ class FilesManagement {
     
     /**
      * Reads and loads all colleges from a object file called "database_colleges.data"
-     * @param colleges ArrayList of Colleges, considering each one has a Department and each Department has 3 ArrayList (students, teachers and staff)
-     * @return true if the file was save successfully, false otherwise
+     * @param colleges ArrayList of Colleges to be filled, considering each one has a Department and each Department has 3 ArrayList (students, teachers and staff)
+     * @return list of all the colleges
      */
     public ArrayList<College> loadCollegesFile(ArrayList<College> colleges) {
         String filePath = "database_colleges.dat";
@@ -458,8 +512,15 @@ class FilesManagement {
         catch (ClassNotFoundException e) { e.printStackTrace(); }
         return colleges;
     }
-    public boolean saveElectionsFile(ArrayList<Election> elections, String election_type) {
-        String filePath = "database_elections_"+election_type+".dat";
+    
+    /**
+     * Writes elections in diferent object files, depending on the elections' state (unstarted, running or finished)
+     * @param elections ArrayList of Elections
+     * @param election_state type of all election present in elections argument 
+     * @return true if the file was save successfully, false otherwise
+     */
+    public boolean saveElectionsFile(ArrayList<Election> elections, String election_state) {
+        String filePath = "database_elections_"+election_state+".dat";
         try {
             FileOutputStream file = new FileOutputStream(new File(filePath));
             ObjectOutputStream writer = new ObjectOutputStream(file);
@@ -472,8 +533,15 @@ class FilesManagement {
         catch (IOException e) { System.out.println("Error initializing stream\n"+e); } 
         return false;
     }
-    public ArrayList<Election> loadElectionsFile(ArrayList<Election> elections, String election_type) {
-        String filePath = "database_elections_"+election_type+".dat";
+    
+    /**
+     * Reads and loads all elections from diferent object files, depending on the elections' state (unstarted, running or finished)
+     * @param elections ArrayList of Elections to be filled
+     * @param election_state type of all election present in elections argument 
+     * @return list of all the elections wich state was referenced in the arguments
+     */
+    public ArrayList<Election> loadElectionsFile(ArrayList<Election> elections, String election_state) {
+        String filePath = "database_elections_"+election_state+".dat";
         try {
             FileInputStream file = new FileInputStream(new File(filePath));
             ObjectInputStream reader = new ObjectInputStream(file);
@@ -495,7 +563,9 @@ class FilesManagement {
     }
 }
 
-
+/**
+ * ServersManagement is a Thread that has the responsability to response to failovers between main and secundary server
+ */
 class ServersManagement implements Runnable {
     public Thread manager_thread;
     public RMIServer server; 
@@ -602,6 +672,7 @@ class IsClientAlive implements Runnable {
             }
         }
     }    
+
 }
 
 
@@ -611,7 +682,7 @@ class IsClientAlive implements Runnable {
 class ElectionsState implements Runnable {
     public Thread thread;
     RMIServer server;
-    FilesManagement file_manage= new FilesManagement();
+    ObjectFilesManagement file_manage= new ObjectFilesManagement();
 
     
     ElectionsState(String threadname, RMIServer server) {
@@ -620,6 +691,8 @@ class ElectionsState implements Runnable {
         System.out.println("Verificacao de estado das Eleicoes: Ativa");
         thread.start();
     }
+    
+    
     public void run() {
         int unstarted_id=0, running_id=0;
         Election temp_elec;
