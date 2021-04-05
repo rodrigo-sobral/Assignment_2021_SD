@@ -15,8 +15,8 @@ public class MCClient implements Runnable{
     public Thread thread;
     private Inputs inpu;
     private Scanner scanner;
-    boolean exit=false;
-
+    boolean exit=false; 
+    private String aux_received;
     
     private String cc;
 
@@ -25,6 +25,7 @@ public class MCClient implements Runnable{
     private static Cliente_Received cliente2_received;
     private static MCClient cliente;
     private static Eleitor_Connected thread_eleitor;
+    
     //thread para contar o tempo em que o terminal esta inativo
 
     //inicialmente fala com uma thread, depois passa para a outra
@@ -40,6 +41,7 @@ public class MCClient implements Runnable{
         this.cc = "";
         this.inpu = inpu;
         this.scanner = scanner;
+        this.aux_received = "00";
     }
 
     //getter
@@ -50,13 +52,17 @@ public class MCClient implements Runnable{
     public String getCc() { return cc; }
     public Inputs getInpu() { return inpu; }
     public Scanner getScanner() { return scanner; }
-    
+    public String getAux_received() {
+        return aux_received;
+    }
     //setter
     public void setMessage(String message) { this.message = message; }
     public void setConnected(Boolean connected) { Connected = connected; }
     public void setLogin_sucessed(Boolean login_sucessed) { this.login_sucessed = login_sucessed; }
     public void setCc(String cc) { this.cc = cc; }
-    
+    public void setAux_received(String aux_received) {
+        this.aux_received = aux_received;
+    }
     public static void main(String[] args) {
         String depar="";
         Inputs input = new Inputs();
@@ -65,7 +71,7 @@ public class MCClient implements Runnable{
         cliente = new MCClient("cliente",thread_eleitor,cliente2,input,scanner);
         thread_eleitor = new Eleitor_Connected("thread_eleitor",cliente2,cliente,input,scanner);
 
-        cliente2 = new SecMultGClient(cliente,"cliente2");
+        cliente2 = new SecMultGClient(cliente,"cliente2",cliente2_received);
         cliente2_received = new Cliente_Received(cliente,"cliente2_received",cliente2,thread_eleitor);
 
         /*while(true){
@@ -102,7 +108,7 @@ public class MCClient implements Runnable{
                 cliente.thread.wait();
                 System.out.println("Saiu da main");
                 cliente2.stop();
-                cliente2_received.stop();
+                //cliente2_received.stop();
                 //cliente2.stop();
             }catch (Exception e) { e.printStackTrace(); }
         }
@@ -129,9 +135,10 @@ public class MCClient implements Runnable{
                     socket = new MulticastSocket();
                     try {Thread.sleep(100);} catch (InterruptedException e){}
                     if(getMessage().compareTo("")!=0){
-                    
+                        aux = getMessage().split(";");
+                        string1 = aux[0].split("\\|");
                         System.out.println("entrou");
-                        System.out.println("Mensagem a enviar votes:"+getMessage());
+                        System.out.println("Mensagem a enviar votes :"+getMessage());
                         byte[] buf = getMessage().getBytes();
                         DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getVote_terminal().getPort()));
                         
@@ -139,17 +146,19 @@ public class MCClient implements Runnable{
                         aux = getMessage().split(";");
                         string1 = aux[0].split("\\|");
                         if (string1[1].compareTo("resultado")==0){
-        
+            
                             synchronized (Thread.currentThread()) { Thread.currentThread().notify(); } 
                         }
                         break;
+                        
+                        
                         ////   
                     }
                     socket.close();
                 }
             
         
-                try {Thread.sleep(10);} catch (InterruptedException e){}
+                //try {Thread.sleep();} catch (InterruptedException e){}
                 if (getVote_terminal().getIp().compareTo("")!=0){
                     
                     InetAddress group = InetAddress.getByName(getVote_terminal().getIp());
@@ -170,7 +179,8 @@ public class MCClient implements Runnable{
                         cliente2.setMessage("type|ok");
                         cliente.setCc(aux[1]);
                         thread_eleitor.thread.start();
-                    }else{
+                    }
+                    else{
                         System.out.println("MENSAGEM"+ messag_lida);  
                         if(messag_lida.compareTo("sucessed")==0){
                             System.out.println("credenciais corretas!!");
@@ -308,14 +318,14 @@ class Cliente_Received implements Runnable{
                 byte[] buffer = new byte[256];
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 while (!exit) {
+                    if (cliente.getConnected()==true) stop();
                     try {Thread.sleep(1000);} catch (InterruptedException e){}
                     socket.receive(packet);
                     String message = new String(packet.getData(), 0, packet.getLength());
-                    System.out.println("RECEIVED"+message);
+                    System.out.println("RECEIVED "+message);
                     //cliente.setMessage(message);
                     
                     messag_lida = Handler_Message.typeMessage_Client(message, cliente.getVote_terminal().getN_terminal_vote(),cliente);
-                    System.out.println("Mensagem"+messag_lida);
                     aux = messag_lida.split("\\|");
 
                     if (aux[0].compareTo("choose")==0){
@@ -326,8 +336,9 @@ class Cliente_Received implements Runnable{
                         /*synchronized(thread_eleitor.thread){
                             thread_eleitor.thread.notify();;
                         }*/
+                        
+                        cliente2.setMessage("type|ok;id|"+cliente.getVote_terminal().getN_terminal_vote());
                         thread_eleitor.thread.start();
-                        cliente2.setMessage("type|ok;id|"+cliente.getVote_terminal().getN_terminal_vote());;
 
                         //multicast votos
                     } else {
@@ -359,11 +370,12 @@ class Cliente_Received implements Runnable{
                                 //setMessage("type|wait");
                                 //cliente2.setMessage("type|wait;id|"+cliente.getVote_terminal().getN_terminal_vote());
                                 System.out.println("IP"+cliente.getVote_terminal().getIp());
+                                cliente.setAux_received("11");
                                 //stop();
                                 //cliente2.stop();
                                 //cliente2.setMessage("");
                             }else{
-                                System.out.println("IGNORA");
+                                System.out.println("IGNORAR");
                             } 
                             //else if(messag_lida.compareTo("")==0) System.out.println("Ignorar mensagem");
                             /*else {
@@ -392,18 +404,21 @@ class SecMultGClient implements Runnable{
     private String message;
     private Boolean Connected;
     private MCServerData MCServerData;
+    
     boolean exit=false;
 
     //threads
     public Thread thread;
     private static MCClient cliente;
+    private static Cliente_Received cliente2_received;
     
-    public SecMultGClient(MCClient cliente,String threadname) {
+    public SecMultGClient(MCClient cliente,String threadname,Cliente_Received cliente2_received) {
         this.MCServerData = new MCServerData();
         this.message = "";
         this.Connected = false;
         thread = new Thread(this,threadname);
         SecMultGClient.cliente = cliente;
+        SecMultGClient.cliente2_received = cliente2_received;
     }
     
     public MCServerData getMCServerData() { return MCServerData; }
@@ -415,6 +430,8 @@ class SecMultGClient implements Runnable{
     public void run() {
         String [] val;  
         String []aux;
+        String []aux1;
+        String id;
         System.out.println("multicast find cliente send");
         /*
         System.out.println(getMCServerData().getDeparNome());
@@ -429,34 +446,46 @@ class SecMultGClient implements Runnable{
             ReadWrite.Write("TerminalVote.txt", getMCServerData().getDeparNome(), getMCServerData().getIp(), getMCServerData().getPort(),true);
         }*/
         while (!exit){
-            try {Thread.sleep(3000);} catch (InterruptedException e){}
+            try {Thread.sleep(2000);} catch (InterruptedException e){}
             MulticastSocket socket = null;
+            
             if (getMessage().compareTo("")!=0){
-                try {
-                    socket = new MulticastSocket();  // create socket without binding it (only for sending)
-                    byte[] buffer = getMessage().getBytes();
-                    InetAddress group = InetAddress.getByName(getMCServerData().getIp());
-                    System.out.println("SEND MESSAGE: "+getMessage());
-                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getMCServerData().getPort()));
-                    socket.send(packet);
-                    val = getMessage().split(";");
-                    aux = val[0].split("\\|");
-                    if (aux[1].compareTo("ok")==0){
-                        System.out.println("entrou aqui");
-                        stop();
-                        
+                aux = getMessage().split(";");
+                val = aux[0].split("\\|");
+                System.out.println("suposta mensagem a enviar: "+getMessage());
+                aux1 = aux[aux.length-1].split("\\|");
+                if (aux1[1].compareTo(Integer.toString(cliente.getVote_terminal().getN_terminal_vote()))==0){
+                    if(val[1].compareTo("envia_id")==0 && cliente.getAux_received().compareTo("11")!=0 || val[1].compareTo("mult")==0 && cliente.getAux_received().compareTo("11")!=0||val[1].compareTo("ok")==0){
+                        try {
+                            socket = new MulticastSocket();  // create socket without binding it (only for sending)
+                            byte[] buffer = getMessage().getBytes();
+                            InetAddress group = InetAddress.getByName(getMCServerData().getIp());
+                            System.out.println("SEND MESSAGE: "+getMessage());
+                            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getMCServerData().getPort()));
+                            socket.send(packet);
+                            val = getMessage().split(";");
+                            aux = val[0].split("\\|");
+                            if (aux[1].compareTo("ok")==0){
+                                System.out.println("entrou aqui");
+                                stop();
+                                cliente.setConnected(true);
+                                //cliente2_received.stop();
+                                
+                            }
+                            /*
+                            if (aux[1].compareTo("login")==0) getMessage().compareTo("");
+                            else if (aux[1].compareTo("resultado")==0){
+                                setMessage("");
+                                synchronized (Thread.currentThread()) { Thread.currentThread().notify(); } 
+                            }
+                            if(aux[1].compareTo("wait")==0){
+                                setMessage("");
+                            }*/
+                        } catch (IOException e) { e.printStackTrace(); } 
+                        finally { socket.close(); }
                     }
-                    /*
-                    if (aux[1].compareTo("login")==0) getMessage().compareTo("");
-                    else if (aux[1].compareTo("resultado")==0){
-                        setMessage("");
-                        synchronized (Thread.currentThread()) { Thread.currentThread().notify(); } 
-                    }
-                    if(aux[1].compareTo("wait")==0){
-                        setMessage("");
-                    }*/
-                } catch (IOException e) { e.printStackTrace(); } 
-                finally { socket.close(); }
+                }
+                
             }
         }
     }
@@ -492,7 +521,7 @@ class Eleitor_Connected implements Runnable {
                 username = getInput().askVariable(scanner,"Username: " , 0);
                 password = input.askVariable(scanner,"Password: " , 1);
                 cliente.setMessage("type|login;username|"+username+";password|"+password+";id|"+cliente.getVote_terminal().getN_terminal_vote());
-                System.out.println("Mensagem:" +cliente.getMessage());
+                System.out.println("Mensagem: " +cliente.getMessage());
                 synchronized(Thread.currentThread()){
                     try {
                         System.out.println("COMECOU O WAIT");

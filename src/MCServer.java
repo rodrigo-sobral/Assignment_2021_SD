@@ -130,7 +130,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         for (Candidature string : selected_election.getCandidatures_to_election()) mesa_voto.getArray_candidature().add(string.getCandidature_name());
         
         
-        System.out.println("Insira o ip(224.0.0.0 a 239.255.255.255.) do grupo da mesa de voto que se quer conectar: ");
+        System.out.println("Insira o ip(224.0.0.0 a 239.255.255.255) do grupo da mesa de voto que se quer conectar: ");
         mesa_voto.getDesk().setIp(scanner.nextLine());
         
         System.out.println("Insira a porta do grupo da mesa de voto que se quer conectar: ");
@@ -167,7 +167,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                 System.out.println("entrou aqui");
                 try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
                 if (mesa_voto.getReady() == true){
-                    try {Thread.sleep(3000);} catch (InterruptedException eInterruptedException) { }
+                    try {Thread.sleep(1000);} catch (InterruptedException eInterruptedException) { }
                     System.out.println("ENTROU PARA ESCOLHER");
                     mesa_voto.printar_array_id_conectados();
                     try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
@@ -177,6 +177,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     mesa_voto.setMessage_envia("type|connected;cc|"+mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1)+";id|"+mesa_voto.getDesk().getArray_id().get(ind));
                     mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));   
                     mesa_voto.printar_array_id_conectados();
+                    mesa_voto.setReady(false);
                     try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
                     break;
                 }else{
@@ -213,7 +214,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
 
     //encontrar terminais de voto
     public void run () {
-        synchronized(Thread.currentThread()){
+        //synchronized(Thread.currentThread()){
             System.out.println("thread->multicast find");
             String string;
             int aux_ = 0;
@@ -227,7 +228,9 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             mensagem="type|mult;"+mesa_voto2.getDesk().getIp()+";"+mesa_voto2.getDesk().getPort()+";"+mesa_voto.getDesk().getDeparNome(); 
             while(true){
                 try {
+                    System.out.println("aqui");
                     if (aux_==0){
+                        System.out.println("esta qhu");
                         InetAddress group = InetAddress.getByName(getDesk().getIp());
                         socket = new MulticastSocket(Integer.parseInt(getDesk().getPort()));
                         socket.joinGroup(group);
@@ -237,7 +240,6 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                         socket.receive(msgIn);
                         string = new String(inBuf, 0,msgIn.getLength());
                         System.out.println("Mult1 TERMINAIS Received:" + string);
-                        System.out.println(mensagem);
                         aux =Handler_Message.typeMessage(mensagem,selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
                     /*if (aux.compareTo("wait")==0){
                         mesa_voto.setReady(true);
@@ -247,7 +249,6 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     while(true){
                         InetAddress group = InetAddress.getByName(getDesk().getIp());
                         try {Thread.sleep(1000);} catch (InterruptedException e){}
-                        System.out.println("MENSAGEM"+getMessage_envia());
                         if(getMessage_envia().compareTo("")!=0){
                             try {Thread.sleep(3000);} catch (InterruptedException e) { }
                             byte[] buf = getMessage_envia().getBytes();
@@ -259,6 +260,8 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                             if(sublista[1].compareTo("mult")==0){
                                 mesa_voto.setReady(true);
                                 aux_ = 1;
+                            }else if(sublista[1].compareTo("connected")==0){
+                                aux_ = 0;
                             }
                             setMessage_envia("");
                             break;
@@ -269,7 +272,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     //setMessage_envia("");
                 }catch (Exception e) { e.printStackTrace(); }
             }          
-        }
+        //}
         
     }
 }
@@ -503,7 +506,6 @@ class Handler_Message{
 
     //trata das mensagens que o cliente recebe
     public static String typeMessage_Client(String mensagem, int id,MCClient cliente){
-        System.out.println("chegou esta mensagem"+mensagem);
         String message="";
         String aux[];
         String[] lista = mensagem.split(";");
@@ -518,7 +520,7 @@ class Handler_Message{
                 if (sublista[1].compareTo("sucessed")==0) return "sucessed";    
                 else return "unsucessed";
             }
-            else if(lista[1].compareTo("received")==0) return "connected_server";
+            //else if(lista[1].compareTo("received")==0) return "connected_server";
             else if(sublista[1].compareTo("connected")==0){
                 aux = lista[2].split("\\|");
                 return "choose|"+aux[1];
