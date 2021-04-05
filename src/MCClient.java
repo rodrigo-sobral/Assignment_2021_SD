@@ -133,7 +133,7 @@ public class MCClient implements Runnable{
                 while(true){
                     InetAddress group = InetAddress.getByName(getVote_terminal().getIp());
                     socket = new MulticastSocket();
-                    try {Thread.sleep(100);} catch (InterruptedException e){}
+                    try {Thread.sleep(1000);} catch (InterruptedException e){}
                     if(getMessage().compareTo("")!=0){
                         aux = getMessage().split(";");
                         string1 = aux[0].split("\\|");
@@ -337,9 +337,10 @@ class Cliente_Received implements Runnable{
                             thread_eleitor.thread.notify();;
                         }*/
                         
-                        cliente2.setMessage("type|ok;id|"+cliente.getVote_terminal().getN_terminal_vote());
+                        //cliente2.setMessage("type|ok;id|"+cliente.getVote_terminal().getN_terminal_vote());
                         thread_eleitor.thread.start();
-
+                        cliente2.stop();
+                        cliente.setConnected(true);
                         //multicast votos
                     } else {
                         /*if(messag_lida.compareTo("sucessed")==0){
@@ -463,7 +464,7 @@ class SecMultGClient implements Runnable{
                             System.out.println("SEND MESSAGE: "+getMessage());
                             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, Integer.parseInt(getMCServerData().getPort()));
                             socket.send(packet);
-                            val = getMessage().split(";");
+                            /*val = getMessage().split(";");
                             aux = val[0].split("\\|");
                             if (aux[1].compareTo("ok")==0){
                                 System.out.println("entrou aqui");

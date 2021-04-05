@@ -19,6 +19,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
     private int n_max_terminais;
     private MCServerData desk;
     private String message_envia;
+    private Boolean votes_aux;
     private String message_recebe;
     private ArrayList<String> array_candidature;
     private ArrayList<String> eleitor_cc;
@@ -31,6 +32,9 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
     Election selected_election;
     
 
+    public Boolean getVotes_aux() {
+        return votes_aux;
+    }
     public Boolean getReady() {
         return ready;
     }
@@ -48,6 +52,9 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         this.message_envia = message_envia;
     }
 
+    public void setVotes_aux(Boolean votes_aux) {
+        this.votes_aux = votes_aux;
+    }
     public void setMessage_recebe(String message_recebe) {
         this.message_recebe = message_recebe;
     }
@@ -66,6 +73,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         this.n_max_terminais = n_max_terminais;
         this.selected_election = selected_election;
         this.ready = false;
+        this.votes_aux = false;
     }
 
     public ArrayList<String> getEleitor_cc() { return eleitor_cc;}
@@ -145,7 +153,6 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             try {Thread.sleep(100);} catch (InterruptedException e) { }
             System.out.print("\033[H\033[2J");  
             System.out.flush(); 
-            System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");
             String inputed_cc= input.askVariable(scanner, "Insira o Numero do seu CC: ", 2);
             mesa_voto.getEleitor_cc().add(inputed_cc); 
             try {
@@ -344,13 +351,14 @@ class SecMultServer implements Runnable {
     }
 
     public void run() {
-        //synchronized(Thread.currentThread()){
+        synchronized(Thread.currentThread()){
             System.out.println("entrei client->server");
             String string;
             String aux;
             String []sublista;
             String []aux1;
             String id;
+            int aux2 =0;
             while(true){
                 MulticastSocket socket = null;
                 try {
@@ -362,6 +370,7 @@ class SecMultServer implements Runnable {
                     //if(getMensagens().compareTo("")!=0){
                     byte[] inBuf = new byte[8*1024];
                     DatagramPacket msgIn = new DatagramPacket(inBuf, inBuf.length);
+                    System.out.println("esoera");
                     socket.receive(msgIn);
                     string = new String(inBuf, 0,msgIn.getLength());
                     System.out.println("VOTES Received:" + string);
@@ -377,29 +386,35 @@ class SecMultServer implements Runnable {
                         id = sublista[1];
                         setMensagens("type|login;status|unsucessed;id|"+id);
                     }else if(sublista[0].compareTo("listacandidaturas")==0){
-                        setMensagens("type|"+aux);
-                            
+                        setMensagens("type|"+aux);     
+                    }else if(sublista[0].compareTo("resultado")==0){
+                        mesa_voto.setVotes_aux(true);
                     }
-                        
+                          
                     System.out.println("saiu");  
                     ////
                         
                     
-                    
-                    while(true){
-                        socket = new MulticastSocket();
-                        try {Thread.sleep(100);} catch (InterruptedException e){}
-                        if (getMensagens().compareTo("")!=0){
-                            System.out.println("VOTES Mensagem a enviar:"+getMensagens());
-                            byte[] buf = getMensagens().getBytes();
-                            DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getDesk().getPort()));
-                            socket.send(mesgOut);
-                            setMensagens("");
-                            
-                            break;
+                    if (mesa_voto.getVotes_aux() == false){
+                        while(true){
+                            socket = new MulticastSocket();
+                            try {Thread.sleep(100);} catch (InterruptedException e){}
+                            if (getMensagens().compareTo("")!=0){
+                                System.out.println("VOTES Mensagem a enviar:"+getMensagens());
+                                byte[] buf = getMensagens().getBytes();
+                                DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getDesk().getPort()));
+                                socket.send(mesgOut);
+                                setMensagens("");
+                                
+                                break;
+                            }
+                            socket.close();
                         }
-                        socket.close();
+                        mesa_voto.setVotes_aux(false);
+                        
                     }
+                   
+                    
                     
                     //} 
                 }catch (Exception e) { e.printStackTrace();
@@ -408,7 +423,7 @@ class SecMultServer implements Runnable {
                 }
             
             }
-        //}
+        }
         
     }
 }
@@ -476,6 +491,7 @@ class Handler_Message{
             add_mensagens.clear();
            // return true;
         } else if(sublista[1].compareTo("resultado")==0) {
+            System.out.println("entra aqui");
             sublista = lista[1].split("\\|");
             
             if (sublista.length ==1) voto = "";
