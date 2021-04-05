@@ -173,7 +173,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                     mesa_voto.printar_array_id_conectados();
                     if (mesa_voto.getDesk().getArray_id().size()==1) ind = 0;
                     else ind = alea.nextInt((mesa_voto.getDesk().getArray_id().size()-1) + 1);
-                    mesa_voto2.setMensagens("type|connected;cc|"+mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1)+";id|"+mesa_voto.getDesk().getArray_id().get(ind));
+                    mesa_voto.setMessage_envia("type|connected;cc|"+mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1)+";id|"+mesa_voto.getDesk().getArray_id().get(ind));
                     mesa_voto.getDesk().getArray_id().remove(mesa_voto.getDesk().getArray_id().get(ind));   
                     mesa_voto.printar_array_id_conectados();
                     try {Thread.sleep(2000);} catch (InterruptedException eInterruptedException) { }
@@ -215,7 +215,9 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         //synchronized(Thread.currentThread()){
             System.out.println("thread->multicast find");
             String string;
+            int aux_ = 0;
             String mensagem="";
+            String aux;
             MulticastSocket socket = null;
             String []lista;
             String []sublista;
@@ -224,17 +226,25 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             mensagem="type|mult;"+mesa_voto2.getDesk().getIp()+";"+mesa_voto2.getDesk().getPort()+";"+mesa_voto.getDesk().getDeparNome(); 
             while(true){
                 try {
-                    InetAddress group = InetAddress.getByName(getDesk().getIp());
-                    socket = new MulticastSocket(Integer.parseInt(getDesk().getPort()));
-                    socket.joinGroup(group);
-                    byte[] inBuf = new byte[8*1024];
-                    DatagramPacket msgIn = new DatagramPacket(inBuf, inBuf.length);
-                    socket.receive(msgIn);
-                    string = new String(inBuf, 0,msgIn.getLength());
-                    System.out.println("Mult1 TERMINAIS Received:" + string);
-                    System.out.println(mensagem);
-                    Handler_Message.typeMessage(mensagem,selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
+                    if (aux_==0){
+                        InetAddress group = InetAddress.getByName(getDesk().getIp());
+                        socket = new MulticastSocket(Integer.parseInt(getDesk().getPort()));
+                        socket.joinGroup(group);
+                        byte[] inBuf = new byte[8*1024];
+                        DatagramPacket msgIn = new DatagramPacket(inBuf, inBuf.length);
+                        System.out.println("entrou aqui");
+                        socket.receive(msgIn);
+                        string = new String(inBuf, 0,msgIn.getLength());
+                        System.out.println("Mult1 TERMINAIS Received:" + string);
+                        System.out.println(mensagem);
+                        aux =Handler_Message.typeMessage(mensagem,selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
+                    /*if (aux.compareTo("wait")==0){
+                        mesa_voto.setReady(true);
+                    }*/
+                    }
+                    
                     while(true){
+                        InetAddress group = InetAddress.getByName(getDesk().getIp());
                         try {Thread.sleep(1000);} catch (InterruptedException e){}
                         System.out.println("MENSAGEM"+getMessage_envia());
                         if(getMessage_envia().compareTo("")!=0){
@@ -247,6 +257,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
                             sublista = lista[0].split("\\|");
                             if(sublista[1].compareTo("mult")==0){
                                 mesa_voto.setReady(true);
+                                aux_ = 1;
                             }
                             setMessage_envia("");
                             break;
@@ -339,20 +350,7 @@ class SecMultServer implements Runnable {
             while(true){
                 MulticastSocket socket = null;
                 try {
-                    while(true){
-                        socket = new MulticastSocket();
-                        InetAddress group = InetAddress.getByName(getDesk().getIp());
-                        try {Thread.sleep(100);} catch (InterruptedException e){}
-                        if (getMensagens().compareTo("")!=0){
-                            System.out.println("VOTES Mensagem a enviar:"+getMensagens());
-                            byte[] buf = getMensagens().getBytes();
-                            DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getDesk().getPort()));
-                            socket.send(mesgOut);
-                            //setMensagens("");
-                            break;
-                        }
-                        socket.close();
-                    }
+                    
                     InetAddress group = InetAddress.getByName(getDesk().getIp());
                     socket = new MulticastSocket(Integer.parseInt(getDesk().getPort()));
                     socket.joinGroup(group);
@@ -382,6 +380,23 @@ class SecMultServer implements Runnable {
                     System.out.println("saiu");  
                     ////
                         
+                    
+                    
+                    while(true){
+                        socket = new MulticastSocket();
+                        try {Thread.sleep(100);} catch (InterruptedException e){}
+                        if (getMensagens().compareTo("")!=0){
+                            System.out.println("VOTES Mensagem a enviar:"+getMensagens());
+                            byte[] buf = getMensagens().getBytes();
+                            DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getDesk().getPort()));
+                            socket.send(mesgOut);
+                            setMensagens("");
+                            
+                            break;
+                        }
+                        socket.close();
+                    }
+                    
                     //} 
                 }catch (Exception e) { e.printStackTrace();
                 }finally {
@@ -477,10 +492,11 @@ class Handler_Message{
             return message_client;
             //mesa_voto.setMessage_envia(message_client);
         
-        }/*else if(sublista[1].compareTo("wait")==0){
+        }else if(sublista[1].compareTo("wait")==0){
             System.out.println("ENTROU AUQI");
-            synchronized (mesa_voto.thread) { mesa_voto.thread.notify(); }
-        }*/
+            return "wait";
+            //synchronized (mesa_voto.thread) { mesa_voto.thread.notify(); }
+        }
         return "";
     }
 
@@ -519,8 +535,9 @@ class Handler_Message{
                 cliente.getVote_terminal().setIp(lista[1]);
                 cliente.getVote_terminal().setPort(lista[2]);
                 cliente.getVote_terminal().setDepar(lista[3]);
+            
                 return "mult";
-            }
+            }else if (sublista[1].compareTo("wait")==0) return "wait";
             else return "";
         }else{
             if(sublista[1].compareTo("connected")==0){

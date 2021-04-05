@@ -63,10 +63,10 @@ public class MCClient implements Runnable{
         Scanner scanner = new Scanner(System.in);
 
         cliente = new MCClient("cliente",thread_eleitor,cliente2,input,scanner);
+        thread_eleitor = new Eleitor_Connected("thread_eleitor",cliente2,cliente,input,scanner);
 
         cliente2 = new SecMultGClient(cliente,"cliente2");
         cliente2_received = new Cliente_Received(cliente,"cliente2_received",cliente2,thread_eleitor);
-        thread_eleitor = new Eleitor_Connected("thread_eleitor",cliente2,cliente,input,scanner);
 
         /*while(true){
             depar = input.askVariable(scanner,"Insira o deparmento a que o terminal de voto pertence: " , 0);
@@ -113,20 +113,47 @@ public class MCClient implements Runnable{
 
 
     public void run() {
-        MulticastSocket socket = null;
+        
         String messag_lida;
         String []aux;
         String[] string1;
         String mensagem;
         String string;
         int cont = 1;
-        while(!exit){
-            //System.out.println("thread ->votos");
-            try {Thread.sleep(10);} catch (InterruptedException e){}
-            if (getVote_terminal().getIp().compareTo("")!=0){
-                try {
-                    socket = new MulticastSocket(Integer.parseInt(getVote_terminal().getPort()));
+        
+        while(true){
+            MulticastSocket socket = null;
+            try {
+                while(true){
                     InetAddress group = InetAddress.getByName(getVote_terminal().getIp());
+                    socket = new MulticastSocket();
+                    try {Thread.sleep(100);} catch (InterruptedException e){}
+                    if(getMessage().compareTo("")!=0){
+                    
+                        System.out.println("entrou");
+                        System.out.println("Mensagem a enviar votes:"+getMessage());
+                        byte[] buf = getMessage().getBytes();
+                        DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getVote_terminal().getPort()));
+                        
+                        socket.send(mesgOut);
+                        aux = getMessage().split(";");
+                        string1 = aux[0].split("\\|");
+                        if (string1[1].compareTo("resultado")==0){
+        
+                            synchronized (Thread.currentThread()) { Thread.currentThread().notify(); } 
+                        }
+                        break;
+                        ////   
+                    }
+                    socket.close();
+                }
+            
+        
+                try {Thread.sleep(10);} catch (InterruptedException e){}
+                if (getVote_terminal().getIp().compareTo("")!=0){
+                    
+                    InetAddress group = InetAddress.getByName(getVote_terminal().getIp());
+                    socket = new MulticastSocket(Integer.parseInt(getVote_terminal().getPort()));
                     socket.joinGroup(group);
                     System.out.println("stgr");
                     byte[] inBuf = new byte[8*1024];
@@ -140,6 +167,7 @@ public class MCClient implements Runnable{
                     aux = messag_lida.split("\\|");
                     if(aux[0].compareTo("choose")==0){
                         System.out.println("Terminal escolhido");
+                        cliente2.setMessage("type|ok");
                         cliente.setCc(aux[1]);
                         thread_eleitor.thread.start();
                     }else{
@@ -164,7 +192,7 @@ public class MCClient implements Runnable{
                                 System.out.println("notificou");
                             }
                         }else if(messag_lida.compareTo("")==0){
-                            continue;
+                            
                         }else if(messag_lida.compareTo("sair")==0){
                             cont =0;
                         }
@@ -173,40 +201,17 @@ public class MCClient implements Runnable{
                             //do something
                             
                         }
-                     
-                    }
-                        //Handler_Message.typeMessage("", selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
-                    if (cont == 1){
-                        while(true){
-                            try {Thread.sleep(100);} catch (InterruptedException e) { }
-                            
-                            if(getMessage().compareTo("")!=0){
-                                System.out.println("entrou");
-                                System.out.println("Mensagem a enviar votes:"+getMessage());
-                                byte[] buf = getMessage().getBytes();
-                                DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getVote_terminal().getPort()));
-                                socket.send(mesgOut);
-                                aux = getMessage().split(";");
-                                string1 = aux[0].split("\\|");
-                                if (string1[1].compareTo("resultado")==0){
-    
-                                    synchronized (Thread.currentThread()) { Thread.currentThread().notify(); } 
-                                }
-                                break;
-                                ////   
-                            }
-                            //System.out.println("");
-                        }
-                        System.out.println("cavaou");
-                        
-                    }
-                    cont = 1;
-                } catch (Exception e) { e.printStackTrace();}
-                finally{socket.close();}
-                
+                    
+                }
+            }}catch (Exception e) { e.printStackTrace();
+                }finally {
+                    socket.close();
+                }   //Handler_Message.typeMessage("", selected_election, string, mesa_voto, rmi_connection, mesa_voto2);
+            
             }
         }
-    }                    
+        
+                        
 
 /*while (!exit) {
                         try {Thread.sleep(1000);} catch (InterruptedException e){}
@@ -322,6 +327,7 @@ class Cliente_Received implements Runnable{
                             thread_eleitor.thread.notify();;
                         }*/
                         thread_eleitor.thread.start();
+                        cliente2.setMessage("type|ok;id|"+cliente.getVote_terminal().getN_terminal_vote());;
 
                         //multicast votos
                     } else {
@@ -351,10 +357,10 @@ class Cliente_Received implements Runnable{
                             if(messag_lida.compareTo("mult")==0){
                                 System.out.println("......Terminal de Voto do Departamento "+cliente.getVote_terminal().getDeparNome()+"......");
                                 //setMessage("type|wait");
-                                cliente2.setMessage("");
+                                //cliente2.setMessage("type|wait;id|"+cliente.getVote_terminal().getN_terminal_vote());
                                 System.out.println("IP"+cliente.getVote_terminal().getIp());
-                                stop();
-                                cliente2.stop();
+                                //stop();
+                                //cliente2.stop();
                                 //cliente2.setMessage("");
                             }else{
                                 System.out.println("IGNORA");
@@ -435,6 +441,11 @@ class SecMultGClient implements Runnable{
                     socket.send(packet);
                     val = getMessage().split(";");
                     aux = val[0].split("\\|");
+                    if (aux[1].compareTo("ok")==0){
+                        System.out.println("entrou aqui");
+                        stop();
+                        
+                    }
                     /*
                     if (aux[1].compareTo("login")==0) getMessage().compareTo("");
                     else if (aux[1].compareTo("resultado")==0){
