@@ -107,13 +107,13 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             }
             if (available_elections==null) { System.out.println("400: Nao existe uma Eleicao para esse Departamento!"); continue; }
             
-            //  ASK ELECTION TO THE CANDIDATURE 
+            //  ASK ELECTION TO THE VOTE TABLE
             System.out.println("----------------------------------------");
             System.out.println("Eleicoes Disponiveis [0 para Voltar]");
             System.out.println("----------------------------------------");
             for (int i = 0; i < available_elections.size(); i++)  {
                 Election temp_election= available_elections.get(i);
-                System.out.println(i+1+": "+temp_election.getElection_type()+"\t"+temp_election.getTitle()+"\t"+temp_election.getStartingDateString()+"\t"+temp_election.getEndingDateString()+"\t"+temp_election.getDescription());
+                System.out.println(i+1+": "+temp_election.getElectionState()+"\t"+temp_election.getTitle()+"\t"+temp_election.getStartingDateString()+"\t"+temp_election.getEndingDateString()+"\t"+temp_election.getDescription());
             }
             System.out.println("----------------------------------------");
             election_option= input.checkIntegerOption(scanner, "Opcao: ", 0, available_elections.size())-1;
@@ -121,7 +121,7 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
             if (election_option==-1) { available_elections=null; continue; }
         }
 
-        rmi_connection.subscribe2Servers(rmi_connection, depar);
+        while (!rmi_connection.subscribe2Servers(rmi_connection, depar));
         Election selected_election= available_elections.get(election_option);
 
         mesa_voto = new MCServer(selected_election,n_max_terminais,mesa_voto2,"mesa_voto","","",depar);
@@ -142,21 +142,22 @@ public class MCServer extends UnicastRemoteObject implements Runnable {
         mesa_voto2.getDesk().setPort(port);
         mesa_voto2.setMensagens("");
         while(true) {
-            System.out.println("entrou no while");
-            try {Thread.sleep(1000);} catch (InterruptedException e) { }
-            //System.out.print("\033[H\033[2J");  
-            //System.out.flush(); 
-            mesa_voto.getEleitor_cc().add(input.askVariable(scanner, "-------Insira o Numero do seu CC: ---------", 2));
-            //System.out.println(cart);
-            //mesa_voto.getEleitor_cc().add(input.askVariable(scanner, "Insira o Numero do seu CC: ", 2)); 
-            /*try {
-                if (!rmi_connection.getServer1().authorizeUser(mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1))) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
+            try {Thread.sleep(100);} catch (InterruptedException e) { }
+            System.out.print("\033[H\033[2J");  
+            System.out.flush(); 
+            System.out.println("--------Mesa de Voto do Departamento "+mesa_voto.desk.getDeparNome()+"--------");
+            String inputed_cc= input.askVariable(scanner, "Insira o Numero do seu CC: ", 2);
+            mesa_voto.getEleitor_cc().add(inputed_cc); 
+            try {
+                if (!rmi_connection.getServer1().authorizeUser(inputed_cc, selected_election)) { System.out.println("403: Nao esta autorizado a votar nesta Eleicao!"); continue; }
             } catch (RemoteException e) {
                 try {
-                    if (!rmi_connection.getServer2().authorizeUser(mesa_voto.getEleitor_cc().get(mesa_voto.getEleitor_cc().size()-1))) { System.out.println("404: Inseriu um Numero de CC invalido!"); continue; }
+                    if (!rmi_connection.getServer2().authorizeUser(inputed_cc, selected_election)) { System.out.println("403: Nao esta autorizado a votar nesta Eleicao!"); continue; }
                 } catch (RemoteException e1) { }
-            }*/
-            if (cont ==0){    
+            }
+            input.messageToWait("Sera reencaminhado para um Terminal de Voto...");
+
+            if(cont==0) {
                 mesa_voto.thread.start();
                 mesa_voto2.thread.start();
                 cont++;

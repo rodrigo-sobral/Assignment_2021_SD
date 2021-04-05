@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class Election implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String election_type;
+    private String election_state;
     private String title, description;
     private LocalDateTime starting, ending;
     private int total_votes=0, blank_votes=0, null_votes=0;
@@ -18,7 +18,7 @@ public class Election implements Serializable {
     private ArrayList<Candidature> candidatures_to_election= new ArrayList<>();
     private ArrayList<Vote> voters= new ArrayList<>();
 
-    public String getElection_type() { return election_type; }
+    public String getElectionState() { return election_state; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
     
@@ -41,12 +41,12 @@ public class Election implements Serializable {
     public ArrayList<String> getDepartment_restrictions() { return department_restrictions; }
     
     /**
-     * @param election_type must be: Estudante, Professor, Funcionario or Geral
-     * @return true if election_type is correct, false otherwise
+     * @param election_state must be: Estudante, Professor, Funcionario or Geral
+     * @return true if election_state is correct, false otherwise
      */
-    public boolean setElection_type(String election_type) { 
-        if (election_type.compareTo("Estudante")==0 || election_type.compareTo("Professor")==0 || election_type.compareTo("Funcionario")==0) {
-            this.election_type = election_type; 
+    public boolean setElectionState(String election_state) { 
+        if (election_state.compareTo("Estudante")==0 || election_state.compareTo("Professor")==0 || election_state.compareTo("Funcionario")==0) {
+            this.election_state = election_state; 
             return true;
         } else return false;
     }
