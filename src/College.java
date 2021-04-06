@@ -15,5 +15,10 @@ public class College implements Serializable {
         this.name = name;
         this.departments.add(department);
     }
-
+    
+    public String toString(String users_type) {
+        String final_string="";
+        for (Department department : this.departments) final_string+=this.name+"\t"+department.toString(users_type);
+        return final_string;
+    }
 }

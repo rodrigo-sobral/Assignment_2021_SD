@@ -315,7 +315,7 @@ class SecMultServer implements Runnable {
                                 byte[] buf = getMensagens().getBytes();
                                 DatagramPacket mesgOut = new DatagramPacket(buf, buf.length, group, Integer.parseInt(getDesk().getPort()));
                                 socket.send(mesgOut);
-                                setMensagens("");
+                                //setMensagens("");
                                 
                                 break;
                             }
