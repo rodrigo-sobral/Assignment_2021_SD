@@ -267,13 +267,6 @@ public class AdminConsole extends RMIClient {
         }
         if (available_elections.isEmpty()) { input_manage.messageToWait("Erro: Nao ha Eleicoes registadas!"); return; }
         
-        for (Election election : available_elections) {
-            for (Candidature cand : election.getCandidatures_to_election()) {
-                System.out.println(cand.getCandidature_name());
-                for (User us : cand.getCandidates()) System.out.println(us.getCc_number());
-            }
-        }
-
         //  ASK ELECTION TO THE CANDIDATURE 
         System.out.println("----------------------------------------");
         System.out.println("Eleicoes Disponiveis [0 Para Voltar]");
