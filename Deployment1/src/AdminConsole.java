@@ -291,7 +291,6 @@ public class AdminConsole extends RMIClient {
 
         //  CHECK IF THAT CANDIDATURE NAME ALREADY EXIST
         for (Candidature candidature : selected_election.getCandidatures_to_election()) {
-            System.out.println(candidature.getCandidature_name());
             if (candidature.getCandidature_name().equals(new_candidature.getCandidature_name())) { input_manage.messageToWait("Erro: Ja existe uma Eleicao com o nome "+candidature.getCandidature_name()+"!"); return; }
             
         }
