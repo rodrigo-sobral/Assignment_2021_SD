@@ -576,7 +576,7 @@ public class AdminConsole extends RMIClient {
                 } 
             } catch (Exception e1) {
                 try { 
-                    if (admin.getServer1()!=null) {
+                    if (admin.getServer2()!=null) {
                         selected_election= admin.getServer2().getUniqueElection(selected_election_title, "running"); 
                         success=true; 
                     } 
@@ -653,10 +653,17 @@ public class AdminConsole extends RMIClient {
             System.out.println("");
         } if (!selected_election.getCandidatures_to_election().isEmpty()) {
             System.out.println("Candidatos: ");
-            for (Candidature candidature: selected_election.getCandidatures_to_election()) 
-                System.out.printf("\t %s\tVotos: %.2f%% (%d)\n", candidature.getCandidature_name(), (candidature.getCandidature_votes()/selected_election.getTotalVotes())*100, candidature.getCandidature_votes());
-            System.out.printf("Votos Nulos: %.2f%% (%d)\n", (selected_election.getNullVotes()/selected_election.getTotalVotes())*100, selected_election.getNullVotes());
-            System.out.printf("Votos em Branco: %.2f%% (%d)\n", (selected_election.getBlankVotes()/selected_election.getTotalVotes())*100, selected_election.getBlankVotes());
+            for (Candidature candidature: selected_election.getCandidatures_to_election()) {
+                if (selected_election.getTotalVotes()==0) System.out.println("\t %s\tVotos: 0% (0)");
+                else System.out.printf("\t %s\tVotos: %.2f%% (%d)\n", candidature.getCandidature_name(), (candidature.getCandidature_votes()/selected_election.getTotalVotes())*100, candidature.getCandidature_votes());
+            }
+            if (selected_election.getTotalVotes()!=0) {
+                System.out.printf("Votos Nulos: %.2f%% (%d)\n", (selected_election.getNullVotes()/selected_election.getTotalVotes())*100, selected_election.getNullVotes());
+                System.out.printf("Votos em Branco: %.2f%% (%d)\n", (selected_election.getBlankVotes()/selected_election.getTotalVotes())*100, selected_election.getBlankVotes());
+            } else {
+                System.out.println("Votos Nulos: 0% (0)");
+                System.out.println("Votos em Branco: 0% (0)");
+            }
         }
         System.out.println("Total de Votos: "+ selected_election.getTotalVotes());
         System.out.println("----------------------------------------");
