@@ -388,8 +388,24 @@ class Handler_Message{
             cc = sublista[1];
             
             selected_election.registVote(voto, cc,mesa_voto.getDesk().getDeparNome());
-            return "result";
-        }else if(sublista[1].compareTo("ask")==0) {
+            boolean sended=false;
+            System.out.println("A Enviar Eleicao Atualizada...");
+            while (!sended) {
+                try { 
+                    if (rmi_connection.getServer1()!=null) {
+                        new Inputs().messageToWait(rmi_connection.getServer1().setUpdatedElection(selected_election, false)); 
+                        sended=true; 
+                    } 
+                } catch (Exception e1) {
+                    try { 
+                        if (rmi_connection.getServer2()!=null) {
+                            new Inputs().messageToWait(rmi_connection.getServer2().setUpdatedElection(selected_election, false)); 
+                            sended=true; 
+                        } 
+                    } catch (Exception e2) { }
+                }
+            } return "result";
+        } else if(sublista[1].compareTo("ask")==0) {
             sublista = lista[1].split("\\|");
             message_client = "listacandidaturas;";
             for (int i = 0; i < mesa_voto.getArray_candidature().size(); i++) message_client+=mesa_voto.getArray_candidature().get(i)+";";

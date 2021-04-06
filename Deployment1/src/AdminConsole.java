@@ -654,7 +654,7 @@ public class AdminConsole extends RMIClient {
         } if (!selected_election.getCandidatures_to_election().isEmpty()) {
             System.out.println("Candidatos: ");
             for (Candidature candidature: selected_election.getCandidatures_to_election()) {
-                if (selected_election.getTotalVotes()==0) System.out.println("\t %s\tVotos: 0% (0)");
+                if (selected_election.getTotalVotes()==0) System.out.printf("\t %s\tVotos: 0% (0)", candidature.getCandidature_name());
                 else System.out.printf("\t %s\tVotos: %.2f%% (%d)\n", candidature.getCandidature_name(), (candidature.getCandidature_votes()/selected_election.getTotalVotes())*100, candidature.getCandidature_votes());
             }
             if (selected_election.getTotalVotes()!=0) {
