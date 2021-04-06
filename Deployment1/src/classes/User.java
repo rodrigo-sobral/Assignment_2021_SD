@@ -45,5 +45,10 @@ public class User implements Serializable {
     public void setCc_shelflife(String cc_shelflife) { this.cc_shelflife = cc_shelflife; }
     public void setCollege(String college) { this.college = college; }
     public void setDepartment(String department) { this.department = department; }
-
+    
+    @Override
+    public String toString() {
+        return "Faculdade: "+this.getCollege()+     "\tDepartamento: "+this.getDepartment()+"\t"    +this.user_type+   "\tNome: "+this.name;
+    }
+         
 }
