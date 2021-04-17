@@ -51,14 +51,4 @@ public class Department implements Serializable {
     public void turnOnVoteTable() { if (this.vote_table) this.activated_vote_table=true; }
     public void turnOffVoteTable() { if (this.vote_table) this.activated_vote_table=false; }
 
-    public String toString(String user_type) {
-        String final_string="";
-        if (user_type=="all" || user_type.compareTo("Professor")==0) {
-            for (User user : this.teachers) final_string+="Departamento: "+this.name+"\t"+user+"\n";
-        } if (user_type=="all" || user_type.compareTo("Estudante")==0) {
-            for (User user : this.students) final_string+="Departamento: "+this.name+"\t"+user+"\n";
-        } if (user_type=="all" || user_type.compareTo("Funcionario")==0) {
-            for (User user : this.staff) final_string+="Departamento: "+this.name+"\t"+user+"\n";
-        } return final_string;
-    }
 }

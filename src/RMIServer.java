@@ -322,13 +322,13 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
          * @return found election, null if wasn't found
          */
         synchronized public Election getUniqueElection(String election_name, String election_state) throws RemoteException { 
-            if (election_state=="unstarted") {
+            if (election_state.compareTo("unstarted")==0) {
                 for (Election election : getUnstartedElections())
                     if (election.getTitle().compareTo(election_name)==0) return election;
-            } else if (election_state=="running") {
+            } else if (election_state.compareTo("running")==0) {
                 for (Election election : getRunningElections())
                     if (election.getTitle().compareTo(election_name)==0) return election;
-            } else if (election_state=="finished") {
+            } else if (election_state.compareTo("finished")==0) {
                 for (Election election : getFinishedElections())
                     if (election.getTitle().compareTo(election_name)==0) return election;
             } return null;
