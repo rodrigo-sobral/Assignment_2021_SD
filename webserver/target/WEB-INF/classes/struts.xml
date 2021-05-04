@@ -13,7 +13,7 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
   <constant name="struts.devMode" value="true" />
   <constant name="struts.ui.theme" value="simple" />
 
-  <package name="hey" extends="struts-default">
+  <package name="webserver" extends="struts-default">
 	
 	<default-action-ref name="index" />
 	
@@ -30,10 +30,13 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
     <action name="index">
       <result>/index.jsp</result>
     </action>
+    <action name="adminconsole">
+      <result>/adminconsole.jsp</result>
+    </action>
 
 	<!-- 'login' action calls 'execute' in 'LoginAction' -->
-    <action name="login" class="hey.action.LoginAction" method="execute">
-      <result name="success">/hey.jsp</result>
+    <action name="login" class="webserver.action.LoginAction" method="execute">
+      <result name="success">/webserver.jsp</result>
       <result name="login">/index.jsp</result>
     </action>
 

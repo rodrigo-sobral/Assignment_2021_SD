@@ -1,4 +1,4 @@
 target
 
-src/hey/rmiserver/*.class
-src/hey/rmiserver/classes/*.class
+src/webserver/rmiserver/*.class
+src/webserver/rmiserver/classes/*.class
