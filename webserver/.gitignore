@@ -1,0 +1,4 @@
+target
+
+src/hey/rmiserver/*.class
+src/hey/rmiserver/classes/*.class

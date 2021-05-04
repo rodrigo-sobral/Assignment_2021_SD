@@ -1,7 +1,1 @@
-.gitattributes
-
 .vscode
-
-RMI Server/src/*.class
-RMI Server/src/classes/*.class
-
