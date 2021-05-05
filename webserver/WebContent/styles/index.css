@@ -1,0 +1,17 @@
+body { background-color: #282d3f; }
+label { font-family: arcadeFont; }
+
+.container {
+	display: flex;
+	justify-content: center;
+}
+
+#fblogo {
+	width: 25px;
+	height: 25px;
+}
+
+@font-face {
+	font-family: arcadeFont;
+	src: url("../resources/fonts/Quantico-Regular.ttf");
+}

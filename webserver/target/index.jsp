@@ -5,15 +5,22 @@
 
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-				<title>Hey!</title>
+				<title>Menu Principal</title>
+				<link rel="shortcut icon" href="./resources/images/uc_logo.png">
+				<link rel="stylesheet" href="./styles/index.css">
 			</head>
-
+			
 			<body>
-				<s:form action="login" method="post">
-					<s:text name="Username:" />
-					<s:textfield name="username" /><br>
-					<s:submit />
-				</s:form>
-			</body>
+				<form action="login" method="post">
+					
+					<div class="container">
+						<input type="text" placeholder="Username">
+						<input type="password" placeholder="Password">
+						<button>Login</button>
 
+						<input id="fblogo" type="image" src="resources/images/facebook_logo.png" alt="Submit" width="48" height="48">
+					</div>
+				</form>
+
+			</body>
 		</html>
