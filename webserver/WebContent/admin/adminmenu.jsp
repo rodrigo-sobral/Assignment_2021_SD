@@ -7,20 +7,15 @@
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 				<title>Admin Menu</title>
 				<link rel="shortcut icon" href="../resources/images/uc_logo.png">
-				<link rel="stylesheet" href="../styles/adminmenu.css">
+				<link rel="stylesheet" href="styles/adminmenu.css">
 			</head>
 
-			<style>
-				
-			</style>
-
 			<body>
-				<h1>Menu Admin</h1>
+				<h1>Menu Administrativo</h1>
 				<br><br>
 				<div class="container">
-					<form></form>
 					<form action="button1">
-						<button>Registar Pessoa</button>
+						<button>Registar Eleitor</button>
 					</form>
 					<form action="button2">
 						<button>Registar Eleicao</button>
