@@ -17,80 +17,66 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
 	
 	<default-action-ref name="index" />
 	
-	<global-results>
-		<result name="error">/error.jsp</result>
-	</global-results>
+	<global-results> <result name="error">/error.jsp</result> </global-results>
 
 	<!-- all exceptions not caught by the application will lead to error.jsp -->
-	<global-exception-mappings>
-		<exception-mapping exception="java.lang.Exception" result="error" />
-	</global-exception-mappings>
+	<global-exception-mappings> <exception-mapping exception="java.lang.Exception" result="error" /> </global-exception-mappings>
 
-	<!-- 'index' action leads to the view provided by index.jsp -->
-    <action name="index">
-    	<result>/index.jsp</result>
-    </action>
-    <action name="admin">
-    	<result>/admin/adminmenu.jsp</result>
-    </action>
+	<!--========================================================================================-->
 
-<!--
+	<!-- MAIN PAGES -->
+    <action name="index"> <result>/index.jsp</result> 			</action>
+    <action name="admin"> <result>/admin/adminmenu.jsp</result> </action>
+
+	<!--========================================================================================-->
+	<!--	ADMIN ACTIONS	-->
+	<!--========================================================================================-->
+
+	<!--BUTTON ACTIONS-->
 	<action name="button1">
-            <interceptor-ref name="loginStack" />
-            <result>/pages/registar.jsp</result>
-            <result name="login" type="redirect">/index.jsp</result>
+        <result>/admin/pages/button1.jsp</result>
     </action>
-
-    <action name="button2">
-        <interceptor-ref name="loginStack" />
-        <result>/pages/gerirDep.jsp</result>
-        <result name="login" type="redirect">/index.jsp</result>
+	<action name="button2">
+        <result>/admin/pages/button2.jsp</result>
     </action>
-
-    <action name="button3">
-        <interceptor-ref name="loginStack" />
-        <result>/pages/criarEleicao.jsp</result>
-        <result name="login" type="redirect">/index.jsp</result>
+	<action name="button3">
+        <result>/admin/pages/button3.jsp</result>
     </action>
-
-    <action name="button4">
-        <interceptor-ref name="loginStack" />
-        <result>/pages/dadosEle.jsp</result>
-        <result name="login" type="redirect">/index.jsp</result>
+	<action name="button4">
+        <result>/admin/pages/button4.jsp</result>
     </action>
-
 	<action name="button5">
-        <interceptor-ref name="loginStack" />
-        <result>/pages/listaCandidata.jsp</result>
-        <result name="login" type="redirect">/index.jsp</result>
+        <result>/admin/pages/button5.jsp</result>
     </action>
-
 	<action name="button6">
-        <interceptor-ref name="loginStack" />
-        <result>/pages/gerirMesas.jsp</result>
+        <result>/admin/pages/button6.jsp</result>
+    </action>
+	<action name="button7">
+        <result>/admin/pages/button7.jsp</result>
+    </action>
+	<action name="button8">
+        <result>/admin/pages/button8.jsp</result>
+    </action>
+	<action name="button9">
+        <result>/admin/pages/button9.jsp</result>
+    </action>
+
+    <action name="cancel_admin">
+        <result>/admin/adminmenu.jsp</result>
+    </action>
+
+	<!--SYSTEM ACTIONS-->
+	<action name="registar" class="webserver.action.RegistUser" method="execute">
+        <result name="success">/pages/menu.jsp</result>
+        <result name="error">/pages/registar.jsp</result>
         <result name="login" type="redirect">/index.jsp</result>
     </action>
 
-    <action name="button7">
-        <interceptor-ref name="loginStack" />
-        <result>/pages/alterarEle.jsp</result>
-        <result name="login" type="redirect">/index.jsp</result>
-    </action>
 
-	 <action name="button8">
-         <interceptor-ref name="loginStack" />
-        <result>/pages/localVoto.jsp</result>
-         <result name="login" type="redirect">/index.jsp</result>
-     </action>
+	<!--========================================================================================-->
+	<!--	USER ACTIONS	-->
+	<!--========================================================================================-->
 
-    <action name="button9">
-        <interceptor-ref name="loginStack" />
-        <result>/pages/estadoMesas.jsp</result>
-        <result name="login" type="redirect">/index.jsp</result>
-    </action>
--->
-
-	<!-- 'login' action calls 'execute' in 'LoginAction' -->
     <action name="login" class="webserver.action.LoginAction" method="execute">
 		<result name="success">/webserver.jsp</result>
 		<result name="login">/index.jsp</result>
