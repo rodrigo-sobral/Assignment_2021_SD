@@ -11,12 +11,22 @@
 			</head>
 
 			<body>
-				<h1>Registar Eleitor</h1>
+				<h1>Registar Eleicao</h1>
 				<br><br>
 				<div class="container">
 					<form action="regist_eleitor">
-                        <input type="radio" checked="checked" name="radio">
-                        <input type="text" placeholder="Tipo (Funcionario/Professor/Estudante)">
+                        <label class="checking">Estudante
+							<input type="radio" checked="checked" name="radio">
+							<span class="checkmark"></span>
+						</label>
+						<label class="checking">Professor
+							<input type="radio" name="radio">
+							<span class="checkmark"></span>
+						</label>
+						<label class="checking">Funcionario
+							<input type="radio" name="radio">
+							<span class="checkmark"></span>
+						</label>
 						<input type="text" placeholder="Nome">
 						<input type="password" placeholder="password">
 						<input type="text" placeholder="Morada">

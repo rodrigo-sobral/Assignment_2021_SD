@@ -42,9 +42,27 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
 	<action name="button3">
         <result>/admin/pages/button3.jsp</result>
     </action>
+	<action name="button4">
+        <result>/admin/pages/button4.jsp</result>
+    </action>
+	<action name="button5">
+        <result>/admin/pages/button5.jsp</result>
+    </action>
+	<action name="button6">
+        <result>/admin/pages/button6.jsp</result>
+    </action>
+	<action name="button7">
+        <result>/admin/pages/button7.jsp</result>
+    </action>
+	<action name="button8">
+        <result>/admin/pages/button8.jsp</result>
+    </action>
+	<action name="button9">
+        <result>/admin/pages/button9.jsp</result>
+    </action>
 
     <action name="cancel_admin">
-        <result type="redirect">/admin/adminmenu.jsp</result>
+        <result>/admin/adminmenu.jsp</result>
     </action>
 
 	<!--SYSTEM ACTIONS-->
@@ -53,6 +71,7 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
         <result name="error">/pages/registar.jsp</result>
         <result name="login" type="redirect">/index.jsp</result>
     </action>
+
 
 	<!--========================================================================================-->
 	<!--	USER ACTIONS	-->
