@@ -10,17 +10,19 @@
 				<link rel="stylesheet" href="./styles/index.css">
 			</head>
 			
-			<body>
-				<form action="login" method="post">
-					
-					<div class="container">
-						<input type="text" placeholder="Username">
-						<input type="password" placeholder="Password">
-						<button>Login</button>
-
-						<input id="fblogo" type="image" src="resources/images/facebook_logo.png" alt="Submit" width="48" height="48">
+			<body>				
+				<div class="wrapper fadeInDown">
+					<div id="formContent">
+						<!-- Tabs Titles -->
+						<h2 class="active"> Log In </h2>
+						<!-- Login Form -->
+						<form action="login" method="post">
+							<input type="text" id="login" class="fadeIn second" name="username" placeholder="login">
+							<input type="text" id="password" class="fadeIn third" name="password" placeholder="password">
+							<input type="submit" class="fadeIn fourth" value="Enviar">
+						</form>
+				  
 					</div>
-				</form>
-
+				</div>
 			</body>
 		</html>
