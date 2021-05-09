@@ -27,7 +27,7 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
 	<!-- MAIN PAGES -->
     <action name="index"> <result>/index.jsp</result> 			</action>
     <action name="admin"> <result>/admin/adminmenu.jsp</result> </action>
-
+    <action name="autent"> <result>/autentication.jsp</result> </action>
 	<!--========================================================================================-->
 	<!--	ADMIN ACTIONS	-->
 	<!--========================================================================================-->

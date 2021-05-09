@@ -5,28 +5,19 @@
 
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-				<title>Menu Principal</title>
-				<link rel="shortcut icon" href="./resources/images/uc_logo.png">
-				<link rel="stylesheet" href="./styles/index.css">
+				<link rel="stylesheet" href="./styles/autentication.css">
 			</head>
 			
 			<body>				
-				<form action="login" method="post">
-					<div class="wrapper fadeInDown">
-						<div id="formContent">
-							<!-- Tabs Titles -->
-							<h2 class="active"> Log In </h2>
-							<!-- Login Form -->
-							<form>
-								<input type="text" id="login" class="fadeIn second" name="login" placeholder="login">
-								<input type="text" id="password" class="fadeIn third" name="login" placeholder="password">
-								<input type="submit" class="fadeIn fourth" value="Log In">
-							</form>
-					  
-						</div>
+				<div class="wrapper fadeInDown">
+					<div id="formContent">
+						<!-- Tabs Titles -->
+						<form action="autent" method="post">
+							<h2 class="active"> eVoting </h2>
+							<input type="text" id="CC" class="fadeIn second" name="cc" placeholder="Numero Cartao Cidadao">
+							<input type="submit" class="fadeIn fourth" value="Autenticar">
+						</form>
 					</div>
-						
-				</form>
-
+				</div>
 			</body>
 		</html>
