@@ -5,8 +5,8 @@
 
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-				<title>Admin Menu</title>
-				<link rel="shortcut icon" href="../resources/images/uc_logo.png">
+				<title>Menu Admin</title>
+				<link rel="shortcut icon" href="resources/images/uc_logo.png">
 				<link rel="stylesheet" href="styles/adminmenu.css">
 			</head>
 
