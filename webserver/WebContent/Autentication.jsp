@@ -12,7 +12,7 @@
 				<div class="wrapper fadeInDown">
 					<div id="formContent">
 						<!-- Tabs Titles -->
-						<form action="autent" method="post">
+						<form action="autenti" method="post">
 							<h2 class="active"> eVoting </h2>
 							<input type="text" id="CC" class="fadeIn second" name="cc" placeholder="Numero Cartao Cidadao">
 							<input type="submit" class="fadeIn fourth" value="Autenticar">

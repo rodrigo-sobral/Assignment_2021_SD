@@ -17,9 +17,12 @@ public class LoginAction extends ActionSupport implements SessionAware {
 	public String execute() {
 		// any username is accepted without confirmation (should check using RMI)
 		if(this.username != null && !this.username.equals("") && !this.password.equals("")) {
+			System.out.println("username "+this.username+" password "+this.password);
 			if (this.username.equals("filipa") && this.password.equals("capela")){
 				return SUCCESS;
 			}
+
+			//VERIFICAR NO RMI A PASS O USERNAME
 			else{
 				return LOGIN;
 			}

@@ -96,6 +96,8 @@ input[type=button]:active, input[type=submit]:active, input[type=reset]:active  
 	transform: scale(0.95);
 }
 
+
+
 input[type=text] {	
 	font-family: arcadeFont; 	
 	background-color: #f6f6f6;	
@@ -125,7 +127,6 @@ input[type=text]:focus {
 input[type=text]:placeholder {	
 	color: #cccccc;
 }
-
 
 
 /* ANIMATIONS */
