@@ -15,26 +15,16 @@
 				<br><br>
 				<div class="container">
 					<form action="regist_eleitor">
-                        <label class="checking">Estudante
-							<input type="radio" checked="checked" name="radio">
-							<span class="checkmark"></span>
-						</label>
-						<label class="checking">Professor
-							<input type="radio" name="radio">
-							<span class="checkmark"></span>
-						</label>
-						<label class="checking">Funcionario
-							<input type="radio" name="radio">
-							<span class="checkmark"></span>
-						</label>
-						<input type="text" placeholder="Nome">
-						<input type="password" placeholder="Password">
-						<input type="text" placeholder="Morada">
-						<input type="text" placeholder="Contacto Telefonico">
-						<input type="text" placeholder="Faculdade">
-						<input type="text" placeholder="Departamento">
-						<input type="text" placeholder="Numero Cartao Cidadao">
-						<input type="text" placeholder="Validade Cartao Cidadao">
+						<input type="text" name="user_type" placeholder="(Estudante, Professor, Funcioanrio)">
+
+						<input type="text" name="name" placeholder="Nome">
+						<input type="password" name="password" placeholder="Password">
+						<input type="text" name="address" placeholder="Morada">
+						<input type="text" name="phone_number" placeholder="Contacto Telefonico">
+						<input type="text" name="college" placeholder="Faculdade">
+						<input type="text" name="department" placeholder="Departamento">
+						<input type="text" name="cc_number" placeholder="Numero Cartao Cidadao">
+						<input type="text" name="cc_shelflife" placeholder="Validade Cartao Cidadao">
 						<button type="submit">Submeter</button>
                     </form>
 

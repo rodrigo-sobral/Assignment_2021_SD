@@ -1,13 +1,8 @@
-/**
- * Raul Barbosa 2014-11-07
- */
-package webserver.action;
-
 import com.opensymphony.xwork2.ActionSupport;
 import org.apache.struts2.interceptor.SessionAware;
 import java.util.Map;
-import webserver.model.HeyBean;
 
+/*
 public class LoginAction extends ActionSupport implements SessionAware {
 	private static final long serialVersionUID = 4L;
 	private Map<String, Object> session;
@@ -54,4 +49,4 @@ public class LoginAction extends ActionSupport implements SessionAware {
 	public void setSession(Map<String, Object> session) {
 		this.session = session;
 	}
-}
+}*/

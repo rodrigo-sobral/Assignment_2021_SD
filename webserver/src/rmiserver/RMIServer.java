@@ -213,11 +213,17 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         */
         synchronized public String registUser(String new_college, String new_department, User new_user) throws RemoteException {
             if (verifyUserExistence(new_user)) return "403: Ja foi registado um Eleitor com esse Numero de CC!\n";
-            int college_index = IntStream.range(0, server.colleges.size()).filter(i -> server.colleges.get(i).getName().equals(new_college)).findFirst().orElse(-1);
+            int college_index = -1;
+            for (int i = 0; i < server.colleges.size(); i++) {
+                if (server.colleges.get(i).getName().equals(new_college)) college_index= i;
+            }
             if (college_index==-1) {
                 server.colleges.add(new College(new_college, new Department(new_department, new_college, new_user)));
             } else {
-                int department_index = IntStream.range(0, server.colleges.get(college_index).getDepartments().size()).filter(i -> server.colleges.get(college_index).getDepartments().get(i).getName().equals(new_department)).findFirst().orElse(-1);
+                int department_index = -1;
+                for (int i = 0; i < server.colleges.get(college_index).getDepartments().size(); i++) {
+                    if (server.colleges.get(college_index).getDepartments().get(i).getName().equals(new_department)) department_index= i;
+                }
                 if (department_index==-1) server.colleges.get(college_index).getDepartments().add(new Department(new_department, new_college, new_user));
                 else server.colleges.get(college_index).getDepartments().get(department_index).getUsersWithType(new_user.getUser_type()).add(new_user);
             }
@@ -348,7 +354,10 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         synchronized public String setUpdatedDepartment(Department updated_department, boolean new_vote_table) throws RemoteException { 
             for (College college : colleges) {
                 ArrayList<Department> colleg_deps= college.getDepartments();
-                int dep_index = IntStream.range(0, colleg_deps.size()).filter(i -> colleg_deps.get(i).getName().equals(updated_department.getName())).findFirst().orElse(-1);
+                int dep_index= -1;
+                for (int i = 0; i < colleg_deps.size(); i++) {
+                    if (colleg_deps.get(i).getName().equals(updated_department.getName())) dep_index= i;
+                }
                 if (dep_index==-1) continue;
                 college.getDepartments().set(dep_index, updated_department);
                 this.file_manage.saveCollegesFile(colleges);
