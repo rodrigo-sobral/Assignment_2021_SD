@@ -1,6 +1,6 @@
-//  Default
+package rmiserver;
+
 import java.io.*;
-//  RMI
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.stream.IntStream;
 
-//  CUSTOM 
 import classes.User;
 import classes.Vote;
 import classes.Election;
