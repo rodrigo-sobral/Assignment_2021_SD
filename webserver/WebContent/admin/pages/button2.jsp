@@ -5,11 +5,11 @@
 
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-				<title>Admin Menu</title>
-				<link rel="shortcut icon" href="../resources/images/uc_logo.png">
-				<link rel="stylesheet" href="../styles/adminmenu.css">
+				<title>Menu Admin</title>
+				<link rel="shortcut icon" href="resources/images/uc_logo.png">
+				<link rel="stylesheet" href="styles/regist_template.css">
 			</head>
-
+			
 			<body>
 				<h1>Registar Eleicao</h1>
 				<br><br>
@@ -27,16 +27,20 @@
 							<input type="radio" name="radio">
 							<span class="checkmark"></span>
 						</label>
-						<input type="text" placeholder="Nome">
-						<input type="password" placeholder="password">
-						<input type="text" placeholder="Morada">
-						<input type="number" placeholder="Contacto Telefonico">
-						<input type="text" placeholder="Faculdade">
-						<input type="text" placeholder="Departamento">
-						<input type="number" placeholder="Numero Cartao Cidadao">
-						<input type="text" placeholder="Validade Cartao Cidadao">
+						<input type="text" placeholder="Titulo">
+						<input type="text" placeholder="Descricao">
+						<input type="datetime-local" placeholder="Inicio">
+						<input type="datetime-local" placeholder="Fim">
+						<label for="custom-dropdown">Pretende restringir a Eleicao?</label>
+						<span class="custom-dropdown">
+							<select>
+								<option>Nao</option>
+							  	<option>Sim</option>
+							</select>
+						  </span>
+						<button type="submit">Submeter</button>
                     </form>
-                    <form action="cancel_admin">
+                    <form action="admin">
                         <button>Cancelar</button>
                     </form>
 				</div>

@@ -1,4 +1,3 @@
-//	Default
 import java.rmi.RemoteException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,7 +11,6 @@ import classes.Candidature;
 import classes.Election;
 import classes.User;
 import classes.Vote;
-
 
 public class AdminConsole extends RMIClient {
     private static final long serialVersionUID = 1L;
@@ -333,8 +331,9 @@ public class AdminConsole extends RMIClient {
         //  TAKE OFF USERS ALREADY CANDIDATED
         for (Candidature candidature : selected_election.getCandidatures_to_election()) {
             for (User user : candidature.getCandidates()) {
-                int user_index = IntStream.range(0, users_restricts.size()).filter(i -> users_restricts.get(i).getCc_number().equals(user.getCc_number())).findFirst().orElse(-1);
-                if (user_index!=-1) users_restricts.remove(user_index);
+                for (int i = 0; i < users_restricts.size(); i++) {
+                    if (users_restricts.get(i).getCc_number().equals(user.getCc_number())) users_restricts.remove(i);
+                }
             }
         }
     

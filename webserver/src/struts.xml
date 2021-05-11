@@ -62,14 +62,10 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
         <result>/admin/pages/button9.jsp</result>
     </action>
 
-    <action name="cancel_admin">
-        <result>/admin/adminmenu.jsp</result>
-    </action>
-
 	<!--SYSTEM ACTIONS-->
-	<action name="registar" class="webserver.action.RegistUser" method="execute">
-        <result name="success">/pages/menu.jsp</result>
-        <result name="error">/pages/registar.jsp</result>
+	<action name="regist_eleitor" class="webserver.action.RegistUser" method="execute">
+        <result name="success">/admin/adminmenu.jsp</result>
+        <result name="error">/admin/pages/button1.jsp</result>
         <result name="login" type="redirect">/index.jsp</result>
     </action>
 
@@ -78,10 +74,13 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
 	<!--	USER ACTIONS	-->
 	<!--========================================================================================-->
 
+    <action name="login"> <result>/user/login.jsp</result> </action>
+
+    <!--
     <action name="login" class="webserver.action.LoginAction" method="execute">
 		<result name="success">/Login_Correto.jsp</result>
 		<result name="login">/index.jsp</result>
     </action>
-
+    -->
   </package>
 </struts>
