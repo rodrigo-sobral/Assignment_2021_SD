@@ -1,3 +1,5 @@
+package rmiserver;
+
 import java.util.ArrayList;
 
 public class MCServerData {

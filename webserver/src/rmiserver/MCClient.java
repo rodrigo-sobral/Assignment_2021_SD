@@ -1,3 +1,5 @@
+package rmiserver;
+
 import org.javaguy.coolframework.MyClass;
 import java.net.MulticastSocket;
 import java.net.SocketTimeoutException;

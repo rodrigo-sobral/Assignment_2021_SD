@@ -1,3 +1,5 @@
+package webserver.model;
+
 import java.util.ArrayList;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -27,5 +29,4 @@ public class RMIConnection extends RMIClient {
             }
         }
     }
-
 }

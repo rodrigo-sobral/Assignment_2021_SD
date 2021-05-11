@@ -5,7 +5,7 @@ import org.apache.struts2.interceptor.SessionAware;
 import java.rmi.RemoteException;
 import java.util.Map;
 
-import src.webserver.model.RMIConnection;
+import webserver.model.RMIConnection;
 
 public class Action extends ActionSupport implements SessionAware {
 

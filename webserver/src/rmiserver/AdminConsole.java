@@ -1,3 +1,4 @@
+package rmiserver;
 import java.rmi.RemoteException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
