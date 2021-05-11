@@ -11,7 +11,7 @@ public class User implements Serializable {
     private String college, department;
 
     public User() { }
-    public User(String user_type, String name, String password, String address, String phone_number, String cc_number, String cc_shelflife, String college, String department) {
+    public User(String user_type, String name, String password, String address, String phone_number, String cc_number, String cc_shelflife) {
         if (user_type!=null) setUser_type(user_type);
         if (name!=null) setName(name);
         if (password!=null) setPassword(password);
@@ -19,8 +19,6 @@ public class User implements Serializable {
         if (phone_number!=null) setPhone_number(phone_number);
         if (cc_number!=null) setCc_number(cc_number);
         if (cc_shelflife!=null) setCc_shelflife(cc_shelflife);
-        if (college!=null) setCc_shelflife(college);
-        if (department!=null) setCc_shelflife(department);
     }
     
     public String getUser_type() { return user_type; }
