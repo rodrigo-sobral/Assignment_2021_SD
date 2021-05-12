@@ -6,27 +6,28 @@ import java.rmi.NotBoundException;
 import java.net.MalformedURLException;
 import java.rmi.RemoteException;
 
-import rmiserver.RMIClient;
+import rmiserver.RMIServer_I;
 
-public class RMIConnection extends RMIClient {
-    private static final long serialVersionUID = 1L;
-
-	private int port=1099;
+public class RMIConnection {
+    private RMIServer_I rmi_connection;
 	private String rmiregistry1="rmiconnection1", rmiregistry2="rmiconnection2";
 	
-	private String username, password;
-	private RMIConnection rmi_connection= new RMIConnection();
-
-	public RMIConnection() throws RemoteException { super(); }
-
-	private void connectToRMI() {
+	public RMIConnection() throws RemoteException { 
         boolean connected = false;
         while(!connected){
             try {
+                rmi_connection= (RMIServer_I) Naming.lookup(rmiregistry1);
                 connected = true;
-            } catch (RemoteException | NotBoundException e) {
+            } catch (RemoteException | NotBoundException | MalformedURLException e1) {
                 System.out.println("Primary is now down.");
+                try {
+                    rmi_connection= (RMIServer_I) Naming.lookup(rmiregistry2);
+                    connected = true;
+                } catch (RemoteException | NotBoundException | MalformedURLException e2) {
+                    System.out.println("Secundary is now down.");
+                }
             }
         }
     }
+
 }

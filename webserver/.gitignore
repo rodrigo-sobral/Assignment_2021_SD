@@ -1,7 +1,2 @@
 target
-
-src/webserver/rmiserver/*.class
-src/webserver/rmiserver/classes/*.class
-
-index.html
-lib
+.vscode

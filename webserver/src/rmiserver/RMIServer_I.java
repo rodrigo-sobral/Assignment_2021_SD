@@ -1,8 +1,9 @@
+package rmiserver;
 import java.rmi.*;
 import java.util.ArrayList;
 
-import classes.Election;
-import classes.User;
+import rmiserver.classes.Election;
+import rmiserver.classes.User;
 
 public interface RMIServer_I extends Remote {
 

@@ -1,3 +1,5 @@
+package rmiserver;
+
 //	Default
 import java.rmi.RemoteException;
 import java.time.LocalDate;
@@ -8,10 +10,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
-import classes.Candidature;
-import classes.Election;
-import classes.User;
-import classes.Vote;
+import rmiserver.classes.*;
 
 
 public class AdminConsole extends RMIClient {
