@@ -6,7 +6,7 @@ import java.rmi.NotBoundException;
 import java.net.MalformedURLException;
 import java.rmi.RemoteException;
 
-import rmiserver.RMIClient;
+import src.rmiserver.RMIClient;
 
 public class RMIConnection extends RMIClient {
     private static final long serialVersionUID = 1L;
