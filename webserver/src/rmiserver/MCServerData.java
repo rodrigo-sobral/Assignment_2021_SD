@@ -1,7 +1,8 @@
+package rmiserver;
+
 import java.util.ArrayList;
 
 public class MCServerData {
-
     private String ip;
     private String port;
     private int n_terminal_vote;

@@ -1,7 +1,8 @@
+package rmiserver;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import classes.User;
+import rmiserver.classes.User;
 
 public class Department implements Serializable {
     private static final long serialVersionUID = 1L;

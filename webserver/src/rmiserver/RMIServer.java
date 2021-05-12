@@ -1,3 +1,4 @@
+package rmiserver;
 //  Default
 import java.io.*;
 //  RMI
@@ -10,9 +11,9 @@ import java.util.Scanner;
 import java.util.stream.IntStream;
 
 //  CUSTOM 
-import classes.User;
-import classes.Vote;
-import classes.Election;
+import rmiserver.classes.User;
+import rmiserver.classes.Vote;
+import rmiserver.classes.Election;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
