@@ -1,10 +1,5 @@
 package webserver.action;
 
-import rmiserver.classes.*;
-import rmiserver.*;
-import org.apache.struts2.interceptor.SessionAware;
-
-import java.util.Map;
 import java.rmi.RemoteException;
 import rmiserver.classes.User;
 
@@ -17,20 +12,44 @@ public class RegistUser extends Action {
 
 	@Override
 	public String execute() throws RemoteException {
-		System.out.println("entrou");
 		if (user_type!=null && name!=null && password!=null && address!=null && phone_number!=null && cc_number!=null && cc_shelflife!=null && college!=null && department!=null) {
-			System.out.println("aceitou"+user_type+password+address+phone_number);
+			if (name.isBlank() || password.isBlank() || address.isBlank() || phone_number.isBlank() || cc_number.isBlank() || cc_shelflife.isBlank() || college.isBlank() || department.isBlank()) return ERROR;
 			if (user_type.compareTo("Estudante")==0 || user_type.compareTo("Professor")==0 || user_type.compareTo("Funcionario")==0) {
                 User new_user = new User(user_type, name, password, address, phone_number, cc_number, cc_shelflife, college, department);
-				if (this.getRMIConnection().registarPessoa(new_user))
-                    return SUCCESS;
+				boolean result= this.getRMIConnection().registarPessoa(new_user);
+				System.out.println("resultado do registo: "+result);
+				if (result) return SUCCESS;
 				return ERROR;
             } return ERROR;
 		} return ERROR;
 	}	
 
-	@Override
-	public void setSession(Map<String, Object> session) {
-		this.session = session;
+	public void setUser_type(String user_type) {
+		this.user_type = user_type;
 	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	public void setAddress(String address) {
+		this.address = address;
+	}
+	public void setPhone_number(String phone_number) {
+		this.phone_number = phone_number;
+	}
+	public void setCc_number(String cc_number) {
+		this.cc_number = cc_number;
+	}
+	public void setCc_shelflife(String cc_shelflife) {
+		this.cc_shelflife = cc_shelflife;
+	}
+	public void setCollege(String college) {
+		this.college = college;
+	}
+	public void setDepartment(String department) {
+		this.department = department;
+	}
+
 }

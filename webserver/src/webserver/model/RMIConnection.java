@@ -1,42 +1,54 @@
 package webserver.model;
 
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
-import java.net.MalformedURLException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.server.UnicastRemoteObject;
 
-import rmiserver.RMIServer_I;
-import rmiserver.classes.User;
+import rmiserver.*;
+import rmiserver.classes.*;
 
-public class RMIConnection {
+public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
+    private static final long serialVersionUID = 1L;
+
     private RMIServer_I rmi_connection;
+    private short port= 1099;
+    private String rmiserver_ip= "localhost";
 	private String rmiregistry1="rmiconnection1", rmiregistry2="rmiconnection2";
 	
     public RMIConnection() throws RemoteException { 
-        connectToRMI();
+        this.connectToRMI();
     }
 
-	public void connectToRMI() { 
-        boolean connected = false;
-        while(!connected){
+	private void connectToRMI() { 
+        //boolean connected = false;
             try {
-                rmi_connection= (RMIServer_I) Naming.lookup(rmiregistry1);
-                connected = true;
-            } catch (RemoteException | NotBoundException | MalformedURLException e1) {
+                this.rmi_connection= (RMIServer_I) LocateRegistry.getRegistry(rmiserver_ip, port).lookup(rmiregistry1);
+                //connected = true;
+            } catch (Exception e1) {
                 System.out.println("Primary is now down.");
+                e1.printStackTrace();
                 try {
-                    rmi_connection= (RMIServer_I) Naming.lookup(rmiregistry2);
-                    connected = true;
-                } catch (RemoteException | NotBoundException | MalformedURLException e2) {
+                    this.rmi_connection= (RMIServer_I) LocateRegistry.getRegistry(rmiserver_ip, port).lookup(rmiregistry2);
+                    //connected = true;
+                } catch (Exception e2) {
                     System.out.println("Secundary is now down.");
+                    e2.printStackTrace();
                 }
             }
-        }
+        
     }
 
     public boolean registarPessoa(User new_user) throws RemoteException {
-        String result = rmi_connection.registUser(new_user.getCollege(), new_user.getDepartment(), new_user);
+        String result = this.rmi_connection.registUser(new_user.getCollege(), new_user.getDepartment(), new_user);
         if (result.split(":")[0].compareTo("200")==0) return true;
         else return false;
     }
+
+
+
+
+    @Override
+    public boolean setNewServer(String new_server_ip) throws RemoteException { return false; }
+    @Override
+    public String ping() throws RemoteException { return "ACK"; }
 }

@@ -8,10 +8,8 @@ import java.util.Map;
 import webserver.model.RMIConnection;
 
 public class Action extends ActionSupport implements SessionAware {
-
     private static final long serialVersionUID = 4L;
     Map<String, Object> session;
-
 
     public RMIConnection getRMIConnection() throws RemoteException {
         if(!session.containsKey("RMIConnection"))
