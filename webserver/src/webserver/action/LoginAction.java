@@ -50,7 +50,7 @@ public class LoginAction extends ActionSupport implements SessionAware {
 	}
 
 	public void setHeyBean(RMIConnection connection) {
-		this.session.put("RMIConnection", connection);
+		this.session.put("HeyBean", connection);
 	}
 
 	@Override

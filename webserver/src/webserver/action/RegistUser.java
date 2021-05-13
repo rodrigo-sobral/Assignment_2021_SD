@@ -1,7 +1,9 @@
 package webserver.action;
 
 import java.rmi.RemoteException;
+
 import rmiserver.classes.User;
+import webserver.model.RMIConnection;
 
 public class RegistUser extends Action {
 	private static final long serialVersionUID = 4L;
@@ -13,10 +15,12 @@ public class RegistUser extends Action {
 	@Override
 	public String execute() throws RemoteException {
 		if (user_type!=null && name!=null && password!=null && address!=null && phone_number!=null && cc_number!=null && cc_shelflife!=null && college!=null && department!=null) {
-			if (name.isBlank() || password.isBlank() || address.isBlank() || phone_number.isBlank() || cc_number.isBlank() || cc_shelflife.isBlank() || college.isBlank() || department.isBlank()) return ERROR;
+			if (name.isBlank() || password.isBlank() || address.isBlank() || phone_number.isBlank() || cc_number.isBlank() || cc_shelflife.isBlank() || college.isBlank() || department.isBlank()) 
+				return ERROR;
 			if (user_type.compareTo("Estudante")==0 || user_type.compareTo("Professor")==0 || user_type.compareTo("Funcionario")==0) {
                 User new_user = new User(user_type, name, password, address, phone_number, cc_number, cc_shelflife, college, department);
-				boolean result= this.getRMIConnection().registarPessoa(new_user);
+				RMIConnection rmiserver= this.getRMIConnection();
+				boolean result= rmiserver.registarPessoa(new_user);
 				System.out.println("resultado do registo: "+result);
 				if (result) return SUCCESS;
 				return ERROR;

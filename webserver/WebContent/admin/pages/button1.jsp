@@ -14,7 +14,7 @@
 				<br><br>
 				<div class="container">
 					<form action="regist_eleitor" method="POST">
-						<input type="text" name="user_type" placeholder="(Estudante, Professor, Funcioanrio)">
+						<input type="text" name="user_type" placeholder="(Estudante, Professor, Funcionario)">
 
 						<input type="text" name="name" placeholder="Nome">
 						<input type="password" name="password" placeholder="Password">
