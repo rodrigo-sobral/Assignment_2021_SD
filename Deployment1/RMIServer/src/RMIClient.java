@@ -11,7 +11,7 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
 	private int port=1099;
 	private String rmiregistry1="rmiconnection1", rmiregistry2="rmiconnection2";
 
-    RMIClient() throws RemoteException { 
+    public RMIClient() throws RemoteException { 
         super();
         System.getProperties().put("java.security.policy","AdminConsole.policy");
         if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 

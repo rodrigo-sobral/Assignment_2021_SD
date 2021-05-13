@@ -26,7 +26,6 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
 
 	<!-- MAIN PAGES -->
     <action name="index"> <result>/index.jsp</result> 			</action>
-    <action name="autenti"> <result>/user/autentication.jsp</result> </action>
     <action name="admin"> <result>/admin/adminmenu.jsp</result> </action>
     
 	<!--========================================================================================-->
@@ -72,9 +71,8 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
 	<!--========================================================================================-->
 	<!--	USER ACTIONS	-->
 	<!--========================================================================================-->
-    <!--
-    <action name="login"> <result>index.jsp</result> </action>
-    -->
+
+
     <!--
     <action name="login" class="webserver.action.LoginAction" method="execute">
 		<result name="success">/Login_Correto.jsp</result>
