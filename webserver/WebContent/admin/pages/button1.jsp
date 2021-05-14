@@ -13,9 +13,8 @@
 				<h1>Registar Eleitor</h1>
 				<br><br>
 				<div class="container">
-					<form action="regist_eleitor" method="POST">
+					<form action="regist_user" method="POST">
 						<input type="text" name="user_type" placeholder="(Estudante, Professor, Funcionario)">
-
 						<input type="text" name="name" placeholder="Nome">
 						<input type="password" name="password" placeholder="Password">
 						<input type="text" name="address" placeholder="Morada">

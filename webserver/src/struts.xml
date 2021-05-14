@@ -62,9 +62,13 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
     </action>
 
 	<!--SYSTEM ACTIONS-->
-	<action name="regist_eleitor" class="webserver.action.RegistUser" method="execute">
+	<action name="regist_user" class="webserver.action.RegistUser" method="execute">
         <result name="success">/admin/adminmenu.jsp</result>
         <result name="error">/admin/pages/button1.jsp</result>
+    </action>
+	<action name="regist_election" class="webserver.action.RegistElection" method="execute">
+        <result name="success">/admin/adminmenu.jsp</result>
+        <result name="error">/admin/pages/button2.jsp</result>
     </action>
 
 

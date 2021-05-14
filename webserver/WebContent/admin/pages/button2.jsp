@@ -14,30 +14,14 @@
 				<h1>Registar Eleicao</h1>
 				<br><br>
 				<div class="container">
-					<form action="regist_eleitor">
-                        <label class="checking">Estudante
-							<input type="radio" checked="checked" name="radio">
-							<span class="checkmark"></span>
-						</label>
-						<label class="checking">Professor
-							<input type="radio" name="radio">
-							<span class="checkmark"></span>
-						</label>
-						<label class="checking">Funcionario
-							<input type="radio" name="radio">
-							<span class="checkmark"></span>
-						</label>
-						<input type="text" placeholder="Titulo">
-						<input type="text" placeholder="Descricao">
-						<input type="datetime-local" placeholder="Inicio">
-						<input type="datetime-local" placeholder="Fim">
-						<label for="custom-dropdown">Pretende restringir a Eleicao?</label>
-						<span class="custom-dropdown">
-							<select>
-								<option>Nao</option>
-							  	<option>Sim</option>
-							</select>
-						  </span>
+					<form action="regist_election" method="POST">
+						<input type="text" name="election_state" placeholder="(Estudante, Professor, Funcionario)">
+						<input type="text" name="title" placeholder="Titulo">
+						<input type="text" name="description" placeholder="Descricao">
+						<input type="text" name="start_date" placeholder="Data Inicio [dd/mm/aaaa]">
+						<input type="text" name="start_hour" placeholder="Hora Inicio [hh:mm]">
+						<input type="text" name="end_date" placeholder="Data Fim [dd/mm/aaaa]">
+						<input type="text" name="end_hour" placeholder="Hora Fim [hh:mm]">
 						<button type="submit">Submeter</button>
                     </form>
                     <form action="admin">

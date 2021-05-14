@@ -19,8 +19,8 @@ public class RegistUser extends Action {
 				return ERROR;
 			if (user_type.compareTo("Estudante")==0 || user_type.compareTo("Professor")==0 || user_type.compareTo("Funcionario")==0) {
                 User new_user = new User(user_type, name, password, address, phone_number, cc_number, cc_shelflife, college, department);
-				RMIConnection rmiserver= this.getRMIConnection();
-				boolean result= rmiserver.registarPessoa(new_user);
+				RMIConnection connection= getRMIConnection();
+				boolean result= connection.registUser(new_user);
 				System.out.println("resultado do registo: "+result);
 				if (result) return SUCCESS;
 				return ERROR;
