@@ -22,6 +22,7 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
 	private void connectToRMI() { 
         System.out.println("vou criar uma conexao");
         try {
+            System.out.println("entrei aqui\n");
             this.rmiserver= (RMIServer_I) LocateRegistry.getRegistry(rmiserver_ip, port).lookup(rmiregistry1);
             System.out.println("liguei");
         } catch (Exception e1) {
@@ -53,7 +54,19 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
         else return "foda-se";
     }
 
-
+    public boolean login_user(String username,String password){
+        boolean result;
+        while(true){
+            try {
+                result = rmiserver.authenticateUser(username, password);
+                System.out.println(result);
+                return result;
+                    
+            } catch (Exception e) {
+                this.connectToRMI();
+            }
+        }
+    }
     @Override
     public boolean setNewServer(String new_server_ip) throws RemoteException { return false; }
     @Override

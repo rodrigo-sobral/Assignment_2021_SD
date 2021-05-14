@@ -7,24 +7,22 @@ import java.rmi.RemoteException;
 import java.util.Map;
 import webserver.model.RMIConnection;
 
-public class LoginAction extends ActionSupport implements SessionAware {
+public class LoginAction extends Action{
 	private static final long serialVersionUID = 4L;
 	private Map<String, Object> session;
 	private String username = null, password = null;
 
 	@Override
-	public String execute() {
+	public String execute() throws RemoteException{
 		// any username is accepted without confirmation (should check using RMI)
 		if(this.username != null && !this.username.equals("") && !this.password.equals("")) {
 			System.out.println("username "+this.username+" password "+this.password);
-			if (this.username.equals("filipa") && this.password.equals("capela")){
-				return SUCCESS;
-			}
-
-			//VERIFICAR NO RMI A PASS O USERNAME
-			else{
-				return LOGIN;
-			}
+			RMIConnection rmiserver = this.getRMIConnection();
+			System.out.println("saiu yoo");
+			boolean result = rmiserver.login_user(username, password);
+			System.out.println("password: "+result);
+			
+			return SUCESS;
 			//this.getHeyBean().setUsername(this.username);
 			//this.getHeyBean().setPassword(this.password);
 			//session.put("username", username);
