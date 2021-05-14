@@ -7,7 +7,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 import rmiserver.classes.Election;
-import webserver.model.RMIConnection;
 
 public class RegistElection extends Action {
     private static final long serialVersionUID = 4L;
@@ -18,10 +17,8 @@ public class RegistElection extends Action {
 	public String execute() throws RemoteException {
 		if (election_state!=null && title!=null && description!=null && start_date!=null && start_hour!=null && end_date!=null && end_hour!=null) {
             if (title.isBlank() || description.isBlank() || start_date.isBlank() || start_hour.isBlank() || end_date.isBlank() || end_hour.isBlank()) return ERROR;
-            LocalDate temp_date1= checkDateFormat(start_date);
-            LocalTime temp_hour1= checkHourFormat(start_hour);
-            LocalDate temp_date2= checkDateFormat(end_date);
-            LocalTime temp_hour2= checkHourFormat(end_hour);
+            LocalDate temp_date1= checkDateFormat(start_date), temp_date2= checkDateFormat(end_date);
+            LocalTime temp_hour1= checkHourFormat(start_hour), temp_hour2= checkHourFormat(end_hour);
 			if ((election_state.compareTo("Estudante")==0 || election_state.compareTo("Professor")==0 || election_state.compareTo("Funcionario")==0) && temp_date1!=null && temp_hour1!=null && temp_date2!=null && temp_hour2!=null) {
                 if (LocalDate.now().compareTo(temp_date1)>0 || LocalDate.now().compareTo(temp_date1)==0 && LocalTime.now().compareTo(temp_hour1)>0 || temp_date1.compareTo(temp_date2)>0 || temp_date1.compareTo(temp_date2)==0 && temp_hour1.compareTo(temp_hour2)>0) return ERROR;
 
@@ -31,9 +28,7 @@ public class RegistElection extends Action {
                 new_election.setDescription(description);
                 new_election.setStarting(LocalDateTime.of(temp_date1, temp_hour1));
                 new_election.setEnding(LocalDateTime.of(temp_date2, temp_hour2));
-				RMIConnection rmiserver= this.getRMIConnection();
-				boolean result= rmiserver.registElection(new_election);
-				System.out.println("resultado do registo: "+result);
+				boolean result= getRMIConnection().registElection(new_election);
 				if (result) return SUCCESS;
 				return ERROR;
             } return ERROR;

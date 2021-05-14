@@ -3,7 +3,6 @@ package webserver.action;
 import java.rmi.RemoteException;
 
 import rmiserver.classes.User;
-import webserver.model.RMIConnection;
 
 public class RegistUser extends Action {
 	private static final long serialVersionUID = 4L;
@@ -19,10 +18,7 @@ public class RegistUser extends Action {
 				return ERROR;
 			if (user_type.compareTo("Estudante")==0 || user_type.compareTo("Professor")==0 || user_type.compareTo("Funcionario")==0) {
                 User new_user = new User(user_type, name, password, address, phone_number, cc_number, cc_shelflife, college, department);
-				RMIConnection connection= getRMIConnection();
-				boolean result= connection.registUser(new_user);
-				System.out.println("resultado do registo: "+result);
-				if (result) return SUCCESS;
+				if (getRMIConnection().registUser(new_user)) return SUCCESS;
 				return ERROR;
             } return ERROR;
 		} return ERROR;

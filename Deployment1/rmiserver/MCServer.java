@@ -1,7 +1,8 @@
+package rmiserver;
 import java.util.ArrayList;
 
-import classes.Candidature;
-import classes.Election;
+import rmiserver.classes.Candidature;
+import rmiserver.classes.Election;
 import java.net.MulticastSocket;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;

@@ -1,3 +1,4 @@
+package rmiserver;
 import java.net.MulticastSocket;
 import java.net.SocketTimeoutException;
 import java.net.DatagramPacket;
