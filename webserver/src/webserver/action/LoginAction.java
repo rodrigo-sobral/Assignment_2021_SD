@@ -1,10 +1,6 @@
 package webserver.action;
 
-import com.opensymphony.xwork2.ActionSupport;
-import org.apache.struts2.interceptor.SessionAware;
-
 import java.rmi.RemoteException;
-import java.util.Map;
 import webserver.model.RMIConnection;
 
 public class LoginAction extends Action{

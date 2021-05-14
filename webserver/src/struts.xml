@@ -77,11 +77,11 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
 	<!--========================================================================================-->
 
 
-    <!--
+    
     <action name="login" class="webserver.action.LoginAction" method="execute">
 		<result name="success">/Login_Correto.jsp</result>
 		<result name="login">/index.jsp</result>
     </action>
-    -->
+    
   </package>
 </struts>
