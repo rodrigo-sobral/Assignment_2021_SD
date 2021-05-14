@@ -9,7 +9,6 @@ import webserver.model.RMIConnection;
 
 public class LoginAction extends Action{
 	private static final long serialVersionUID = 4L;
-	private Map<String, Object> session;
 	private String username = null, password = null;
 
 	@Override
@@ -22,7 +21,7 @@ public class LoginAction extends Action{
 			boolean result = rmiserver.login_user(username, password);
 			System.out.println("password: "+result);
 			
-			return SUCESS;
+			return SUCCESS;
 			//this.getHeyBean().setUsername(this.username);
 			//this.getHeyBean().setPassword(this.password);
 			//session.put("username", username);
@@ -33,26 +32,9 @@ public class LoginAction extends Action{
 	}
 	
 	public void setUsername(String username) {
-		this.username = username; // will you sanitize this input? maybe use a prepared statement?
+		this.username = username;
 	}
-
 	public void setPassword(String password) {
-		this.password = password; // what about this input? 
-	}
-	
-	public RMIConnection getHeyBean() {
-		if(!session.containsKey("heyBean")) {
-			try { this.setHeyBean(new RMIConnection()); }
-			catch (RemoteException e) {  e.printStackTrace(); }
-		} return (RMIConnection) session.get("heyBean");
-	}
-
-	public void setHeyBean(RMIConnection connection) {
-		this.session.put("HeyBean", connection);
-	}
-
-	@Override
-	public void setSession(Map<String, Object> session) {
-		this.session = session;
+		this.password = password;
 	}
 }

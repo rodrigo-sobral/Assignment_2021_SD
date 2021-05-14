@@ -1,7 +1,8 @@
 package webserver.model;
 
+import java.rmi.Naming;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
+//import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 
 import rmiserver.*;
@@ -10,20 +11,19 @@ import rmiserver.classes.*;
 public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
     private static final long serialVersionUID = 1L;
 
-    private RMIServer_I rmiserver;
-    private short port= 1099;
-    private String rmiserver_ip= "localhost";
-	private String rmiregistry1="rmiconnection1";
+    private RMIServer_I rmiserver= null;
+    //private short port= 1099;
+    //private String rmiserver_ip= "localhost", rmiregistry1= "rmiconnection1";
 	
     public RMIConnection() throws RemoteException { 
-        this.connectToRMI();
+        connectToRMI();
     }
 
 	private void connectToRMI() { 
         System.out.println("vou criar uma conexao");
         try {
-            System.out.println("entrei aqui\n");
-            this.rmiserver= (RMIServer_I) LocateRegistry.getRegistry(rmiserver_ip, port).lookup(rmiregistry1);
+            //this.rmiserver= (RMIServer_I) LocateRegistry.getRegistry(rmiserver_ip, port).lookup(rmiregistry1);
+            this.rmiserver= (RMIServer_I) Naming.lookup("rmi://localhost:1099/rmiconnection1");
             System.out.println("liguei");
         } catch (Exception e1) {
             System.out.println("Primary is now down.");
@@ -31,8 +31,8 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
         }
     }
 
-    public boolean registarPessoa(User new_user) throws RemoteException {
-        System.out.println("yey nome: "+ new_user.getName());
+    public boolean registUser(User new_user) {
+        System.out.println("hey nome: "+ new_user.getName());
         while (true) {
             try {
                 String result = rmiserver.registUser(new_user.getCollege(), new_user.getDepartment(), new_user);
@@ -40,18 +40,26 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
                 if (result.split(":")[0].compareTo("200")==0) return true;
                 else return false;        
             } catch (Exception e) {
-                this.connectToRMI();
+                //connectToRMI();
+                e.printStackTrace();
+                return false;
             }
         }
     }
-
-    public String getCollege() {
-        if (this.rmiserver!=null) {
+    public boolean registElection(Election new_election) throws RemoteException {
+        System.out.println("hey titulo: "+ new_election.getTitle());
+        //while (true) {
             try {
-                return this.rmiserver.getColleges().get(0).getName();
-            } catch (Exception e) { e.printStackTrace(); return "foda-se 2";}
-        }
-        else return "foda-se";
+                String result = rmiserver.registElection(new_election);
+                System.out.println(result);
+                if (result.split(":")[0].compareTo("200")==0) return true;
+                else return false;        
+            } catch (Exception e) {
+                //this.connectToRMI();
+                e.printStackTrace();
+                return false;
+            }
+        //}
     }
 
     public boolean login_user(String username,String password){
