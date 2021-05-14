@@ -35,66 +35,12 @@ button:hover { opacity: 0.8; }
 	background-color: #03ad80;
 }
 
-.container { padding: 16px; }
-
-.checking {
-	display: block;
-	position: relative;
-	padding-left: 35px;
-	margin-bottom: 12px;
-	cursor: pointer;
-	font-size: 18px;
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
-}
-
-.checking input { position: absolute; opacity: 0; cursor: pointer; }
-.checkmark {
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 25px;
-	width: 25px;
-	background-color: #56628b;
-	border-radius: 50%;
-}
-.checking:hover input ~ .checkmark { background-color: #3d4561; }
-.checking input:checked ~ .checkmark { background-color: #03ad80; }
-.checkmark:after {	
-	content: "";
-	position: absolute;
-	display: none;
-}
-.checking input:checked ~ .checkmark:after { display: block; }
-.checking .checkmark:after {
-	top: 9px;
-	left: 9px;
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: white; 
-}
-
-.custom-select { position: relative; font-family: arcadeFont; }  
-.custom-select select { display: none; }
-  
-.custom-dropdown {
-	position: relative;
-	margin: 10px;
-}
-  
-.custom-dropdown select {
-	background-color: #1abc9c;
-	color: #fff;
+textarea {
+	padding: 12px 20px;
+	background-color: #037557;
+	color: white;
 	border: 3px solid white;
 	border-radius: 7px;   
-	padding: .5em;
-	padding-right: 2.5em;	
-	text-indent: 0.01px;
-	text-overflow: '';
-	-webkit-appearance: button;
 }
 
 @media screen and (max-width: 300px) { .cancelbtn { width: 100%; } }

@@ -14,9 +14,7 @@ public class Action extends ActionSupport implements SessionAware {
     public RMIConnection getRMIConnection() throws RemoteException {
         if(!session.containsKey("RMIConnection")) {
             setRMIConnection(new RMIConnection());
-            System.out.println("associei um servidor");
         }
-        else System.out.println("ja tinha o servidor");
         return (RMIConnection) session.get("RMIConnection");
     }
 

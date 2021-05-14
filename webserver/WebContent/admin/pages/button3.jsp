@@ -9,12 +9,16 @@
 				<link rel="shortcut icon" href="resources/images/uc_logo.png">
 				<link rel="stylesheet" href="styles/regist_template.css">
 			</head>
-
+			
 			<body>
 				<h1>Editar Eleicao</h1>
 				<br><br>
 				<div class="container">
-					
+					<form action="edit_election" method="POST">
+						<label><b><br/>Eleicoes Disponiveis:<br/></b></label>
+						<s:textarea value="%{elections_list}" cols="50" rows="30" disabled="true"/> <br/>
+						<button type="submit">Selecionar</button>
+                    </form>
                     <form action="admin">
                         <button>Cancelar</button>
                     </form>
