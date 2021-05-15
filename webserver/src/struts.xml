@@ -39,13 +39,13 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
 	<action name="button2">
         <result>/admin/pages/button2.jsp</result>
     </action>
-	<action name="button3" class="webserver.action.EditElection" method="execute">
+	<action name="button3" class="webserver.action.EditElection" method="getUnstartedElections">
         <result>/admin/pages/button3.jsp</result>
     </action>
 	<action name="button4">
         <result>/admin/pages/button4.jsp</result>
     </action>
-	<action name="button5">
+	<action name="button5" class="webserver.action.ConsultFinishedElections" method="getFinishedElections">
         <result>/admin/pages/button5.jsp</result>
     </action>
 	<action name="button6">
@@ -70,9 +70,13 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
         <result name="success">/admin/adminmenu.jsp</result>
         <result name="error">/admin/pages/button2.jsp</result>
     </action>
-	<action name="edit_election" class="webserver.action.RegistElection" method="execute">
+	<action name="edit_election" class="webserver.action.EditElection" method="execute">
         <result name="success">/admin/adminmenu.jsp</result>
-        <result name="error">/admin/pages/button2.jsp</result>
+        <result name="error">/admin/pages/button3.jsp</result>
+    </action>
+	<action name="consult_finished_elections" class="webserver.action.ConsultFinishedElections" method="execute">
+        <result name="success">/admin/pages/FinishedElectionDetails.jsp</result>
+        <result name="error">/admin/pages/button5.jsp</result>
     </action>
 
 

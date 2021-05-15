@@ -2,7 +2,6 @@ package webserver.model;
 
 import java.rmi.Naming;
 import java.rmi.RemoteException;
-//import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 
@@ -35,6 +34,8 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
     }
     private String getRegistryFromIP(String ip, String registryName) { return "rmi://"+ip+":"+port+"/"+registryName; }
 
+    //  =========================================================================================================
+    
     public boolean registUser(User new_user) {
         while (true) {
             try {
@@ -60,7 +61,7 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
         }
     }
 
-    public ArrayList<String> getElectionsNames(String election_state) {
+    public ArrayList<String> getElectionsByState(String election_state) {
         while (true) {
             try { return rmiserver.getElectionNames(election_state); } 
             catch (Exception e) {
@@ -69,6 +70,35 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
             }
         }
     }
+    public Election getElectionByName(String election_name) {
+        while (true) {
+            try { 
+                for (Election election : rmiserver.getRunningElections()) {
+                    if (election.getTitle().compareTo(election_name)==0) return election;
+                }
+                return null;
+            } catch (Exception e) {
+                e.printStackTrace();
+                connectToRMI();
+            }
+        }
+    }
+    
+    public boolean updateElection(Election edited_election) {
+        while (true) {
+            try { 
+                String result= rmiserver.setUpdatedElection(edited_election, false);
+                if (result.split(":")[0].compareTo("200")==0) return true;
+                else return false; 
+            } catch (Exception e) {
+                e.printStackTrace();
+                connectToRMI();
+            }
+        }
+    }
+
+
+    //  =========================================================================================================
 
     @Override
     public boolean setNewServer(String new_server_ip) throws RemoteException { return false; }

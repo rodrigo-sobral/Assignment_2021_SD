@@ -10,11 +10,12 @@ public class RegistUser extends Action {
     private String name, password, address, phone_number;
     private String cc_number, cc_shelflife;
     private String college, department;
+	private Inputs inputs;
 
 	@Override
 	public String execute() throws RemoteException {
 		if (user_type!=null && name!=null && password!=null && address!=null && phone_number!=null && cc_number!=null && cc_shelflife!=null && college!=null && department!=null) {
-			if (name.isBlank() || password.isBlank() || address.isBlank() || phone_number.isBlank() || cc_number.isBlank() || cc_shelflife.isBlank() || college.isBlank() || department.isBlank()) 
+			if (inputs.checkString(name) && inputs.checkPassword(password) && inputs.checkString(address) && inputs.checkPhoneNumber(phone_number) && inputs.checkStringInteger(cc_number) && inputs.checkValidity(cc_shelflife) && inputs.checkString(college) && inputs.checkString(department)) 
 				return ERROR;
 			if (user_type.compareTo("Estudante")==0 || user_type.compareTo("Professor")==0 || user_type.compareTo("Funcionario")==0) {
                 User new_user = new User(user_type, name, password, address, phone_number, cc_number, cc_shelflife, college, department);

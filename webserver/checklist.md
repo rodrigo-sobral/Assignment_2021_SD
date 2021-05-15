@@ -1,7 +1,7 @@
 
-|Requisitos Funcionais  |Nota
+|Requisitos Funcionais  | 57
 |---------|---------
-|Registar pessoas (estudantes, docentes, ou funcionários) | 57
+|Registar pessoas (estudantes, docentes, ou funcionários) | 5
 |Login protegido com password (acesso restrito a ações e a páginas) | 5
 |Criar eleição (incl. integração com a meta 1) | 5
 |Criar listas de candidatos a uma eleição | 5
