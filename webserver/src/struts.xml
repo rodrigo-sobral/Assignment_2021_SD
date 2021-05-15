@@ -83,13 +83,15 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
 	<!--========================================================================================-->
 	<!--	USER ACTIONS	-->
 	<!--========================================================================================-->
-
-
     
     <action name="login" class="webserver.action.LoginAction" method="execute">
 		<result name="success">/Listar_MV.jsp</result>
 		<result name="login">/index.jsp</result>
     </action>
+    <!--
+    <action name = "votetablechoose" class = "webserver.action.ListVoteTable" method="execute">
+        <result>/Listar_MV.jsp</result>
+    </action>-->
     
   </package>
 </struts>

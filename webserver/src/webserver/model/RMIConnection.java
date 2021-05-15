@@ -57,6 +57,11 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
                 for (int i = 0; i < available_depar.size(); i++) {
                     name_vote_desk.add(available_depar.get(i).getName());
                 }
+                //printar a lista de mesas de voto q existem
+                System.out.println("PRINTAR A LISTA DE MESAS DE VOTO");
+                for (int i = 0; i < name_vote_desk.size(); i++) {
+                    System.out.println(name_vote_desk.get(i));
+                }
                 return name_vote_desk;
             } catch (Exception e) {
                 e.printStackTrace();

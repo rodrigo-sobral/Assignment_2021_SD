@@ -5,12 +5,22 @@
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 				<link rel="shortcut icon" href="../resources/images/uc_logo.png">
-				<link rel="stylesheet" href="styles/index.css">
+				<link rel="stylesheet" href="styles/regist_template.css">
 			</head>
-			
-			<body>				
-				
-				<a href=""></a>
-			</body>
+			<form>
+				<h1>Mesas de Voto Disponiveis</h1>
+				<br><br>
+				<div class="container">
+					<form action= "votetablechoose" method="post">
+						<s:textarea value="%{lista_mesas}" cols="50" rows="30" disabled="true"/>
+						<br>	
+						<input type="text" name="user_type" placeholder="(Insira a mesa de voto)">
+						<button type="submit">Submeter</button>
+                    </form>
+					
+
+				</div>
+		
+			</form>
 		</html>
 
