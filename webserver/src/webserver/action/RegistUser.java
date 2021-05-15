@@ -10,12 +10,11 @@ public class RegistUser extends Action {
     private String name, password, address, phone_number;
     private String cc_number, cc_shelflife;
     private String college, department;
-	private Inputs inputs;
 
 	@Override
 	public String execute() throws RemoteException {
 		if (user_type!=null && name!=null && password!=null && address!=null && phone_number!=null && cc_number!=null && cc_shelflife!=null && college!=null && department!=null) {
-			if (inputs.checkString(name) && inputs.checkPassword(password) && inputs.checkString(address) && inputs.checkPhoneNumber(phone_number) && inputs.checkStringInteger(cc_number) && inputs.checkValidity(cc_shelflife) && inputs.checkString(college) && inputs.checkString(department)) 
+			if (!checkString(name) || !checkPassword(password) || !checkString(address) || !checkPhoneNumber(phone_number) || !checkStringInteger(cc_number) || !checkValidity(cc_shelflife) || !checkString(college) || !checkString(department)) 
 				return ERROR;
 			if (user_type.compareTo("Estudante")==0 || user_type.compareTo("Professor")==0 || user_type.compareTo("Funcionario")==0) {
                 User new_user = new User(user_type, name, password, address, phone_number, cc_number, cc_shelflife, college, department);
@@ -53,4 +52,43 @@ public class RegistUser extends Action {
 		this.department = department;
 	}
 
+	
+	public boolean checkString(String s) {
+        if (s.isBlank()) return false;
+        if (!Character.isJavaIdentifierStart(s.charAt(0))) return false;
+        for (int i = 1; i < s.length(); i++) {
+            if (Character.isDigit(s.charAt(i))) return false;
+        } return true;
+    }
+    public boolean checkPassword(String s) {
+        if (s.isBlank()) return false;
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isSpaceChar(s.charAt(i))) return false;
+        } return true;
+    }
+    public boolean checkPhoneNumber(String s) {
+        if (s.isBlank() || s.length()!=9) return false;
+        if (Character.compare(s.charAt(0), '9')!=0 || (Character.compare(s.charAt(1), '1')!=0 && Character.compare(s.charAt(1), '2')!=0 && Character.compare(s.charAt(1), '3')!=0 && Character.compare(s.charAt(1), '6')!=0)) 
+            return false;
+        for (int i = 0; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) return false;
+        } return true;
+    }
+    public boolean checkStringInteger(String s) {
+        if (s.isBlank()) return false;
+        if (!Character.isJavaIdentifierStart(s.charAt(0)) && !Character.isDigit(s.charAt(0))) return false;
+        for (int i = 1; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) return false;
+        } return true;
+    }
+    public boolean checkValidity(String s) {
+        if (s.isBlank() || s.length()!=5) return false;
+        for (int i = 0; i < s.length(); i++) {
+            if (i==2 && Character.compare(s.charAt(2),'-')!=0) return false;
+            else if (i!=2 && !Character.isDigit(s.charAt(i))) return false;
+        } 
+        int aux0= Integer.parseInt(s.split("-")[0]), aux1= Integer.parseInt(s.split("-")[1]);
+        if (aux0>0 && aux0<=12 && aux1>=21) return true;
+        else return false;
+    }
 }

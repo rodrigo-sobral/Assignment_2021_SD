@@ -11,14 +11,20 @@
 			</head>
 			
 			<body>
-				<h1>Registar Candidatura</h1>
+				<h1>Consultar Eleicoes</h1>
 				<br><br>
 				<div class="container">
-					<form action="select" method="POST">
-						<label class="title"><b>Eleicoes Disponiveis</b></label><br>
-						<s:textarea value="%{ask_elections}" cols="93" rows="10" disabled="true"/>
-						<input type="text" name="title" placeholder="Titulo">
-						<button type="submit">Selecionar</button>
+					<form action="unstarted_elections_menu">
+						<button type="submit">Nao Comecadas</button>
+                    </form>
+					<form action="running_elections_menu">
+						<button type="submit">Comecadas</button>
+                    </form>
+					<form action="finished_elections_menu">
+						<button type="submit">Acabadas</button>
+                    </form>
+                    <form action="admin">
+                        <button>Cancelar</button>
                     </form>
 				</div>
 			</body>

@@ -20,7 +20,6 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
     }
 
 	private void connectToRMI() { 
-        System.out.println("vou criar uma conexao");
         try { this.rmiserver= (RMIServer_I) Naming.lookup(getRegistryFromIP(rmiserver_ip, rmiregistry1)); } 
         catch (Exception e1) {
             System.out.println("Primary is now down.");
@@ -96,22 +95,35 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
             }
         }
     }
-    public ArrayList<String> getElectionsByState(String election_state) {
+    public ArrayList<Election> getElectionsByState(String election_state) {
         while (true) {
-            try { return rmiserver.getElectionNames(election_state); } 
+            try { 
+                if (election_state.compareTo("unstarted")==0) return rmiserver.getUnstartedElections(); 
+                if (election_state.compareTo("running")==0) return rmiserver.getRunningElections(); 
+                return rmiserver.getFinishedElections(); 
+            } 
             catch (Exception e) {
                 e.printStackTrace();
                 connectToRMI();
             }
         }
     }
-    public Election getElectionByName(String election_name) {
+    public Election getElectionByName(String election_name, String election_state) {
         while (true) {
             try { 
-                for (Election election : rmiserver.getRunningElections()) {
-                    if (election.getTitle().compareTo(election_name)==0) return election;
+                if (election_state.compareTo("unstarted")==0) {
+                    for (Election election : rmiserver.getUnstartedElections()) {
+                        if (election.getTitle().compareTo(election_name)==0) return election;
+                    } return null;
                 }
-                return null;
+                if (election_state.compareTo("running")==0) {
+                    for (Election election : rmiserver.getRunningElections()) {
+                        if (election.getTitle().compareTo(election_name)==0) return election;
+                    } return null;
+                }
+                for (Election election : rmiserver.getFinishedElections()) {
+                    if (election.getTitle().compareTo(election_name)==0) return election;
+                } return null;
             } catch (Exception e) {
                 e.printStackTrace();
                 connectToRMI();
@@ -124,7 +136,7 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
             try { 
                 String result= rmiserver.setUpdatedElection(edited_election, false);
                 if (result.split(":")[0].compareTo("200")==0) return true;
-                else return false; 
+                else return false;
             } catch (Exception e) {
                 e.printStackTrace();
                 connectToRMI();

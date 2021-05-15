@@ -312,9 +312,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
          */
         synchronized public ArrayList<String> getElectionNames(String election_state) throws RemoteException { 
             ArrayList<String> names= new ArrayList<>();
-            if (election_state=="running") for (Election election : running_elections) names.add(election.getTitle());
-            else if (election_state=="finished") for (Election election : finished_elections) names.add(election.getTitle());
-            else if (election_state=="unstarted") for (Election election : unstarted_elections) names.add(election.getTitle());
+            if (election_state.compareTo("running")==0) for (Election election : running_elections) names.add(election.getTitle());
+            else if (election_state.compareTo("finished")==0) for (Election election : finished_elections) names.add(election.getTitle());
+            else if (election_state.compareTo("unstarted")==0) for (Election election : unstarted_elections) names.add(election.getTitle());
             return names;
         }
         

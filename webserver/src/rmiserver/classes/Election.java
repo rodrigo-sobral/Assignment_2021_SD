@@ -85,6 +85,21 @@ public class Election implements Serializable {
             return true;
         } catch (Exception e) { incrementNullVote(voter_cc, department_voted); return true; }
     }
+
+    public String toString(String state, boolean details) {
+        String standard= "Titulo: "+title+"\nDescricao: "+description+"\nInicio: "+getStartingDateString()+"-"+getStartingHourString()+"\nFim: "+getEndingDateString()+"-"+getEndingHourString();
+        if (state.compareTo("unstarted")==0) {
+            if (!details) return standard+"\n-----------------------------\n";
+            standard+="\nCandidatos:\n";
+            for (Candidature candidature : candidatures_to_election) standard+=candidature.getCandidature_name();
+        }
+        if (details) {
+            standard+= "\nTotal de Votos: "+total_votes+"\nVotos em Branco: "+blank_votes+"\nVotos Nulos: "+null_votes+"\nCandidatos:\n";
+            for (Candidature candidature : candidatures_to_election)
+                standard+=candidature.getCandidature_name()+"\tVotos: "+candidature.getCandidature_votes();
+        }
+        return standard+"\n-----------------------------\n";
+    }
 }
 
 
