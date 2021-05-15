@@ -47,6 +47,23 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
             }
         }
     }
+
+    public ArrayList<String> list_vote_table(){
+        while(true) {
+            try{
+                ArrayList<Department> available_depar = rmiserver.getDepartmentsWithOrNotVoteTable(true);
+                ArrayList<String> name_vote_desk = new ArrayList<>();
+                for (int i = 0; i < available_depar.size(); i++) {
+                    name_vote_desk.add(available_depar.get(i).getName());
+                }
+                return name_vote_desk;
+            } catch (Exception e) {
+                e.printStackTrace();
+                connectToRMI();
+            }
+        }
+        
+    }
     public boolean registElection(Election new_election) throws RemoteException {
         while (true) {
             try {
@@ -83,6 +100,7 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
         }
     }
 
+ 
     @Override
     public boolean setNewServer(String new_server_ip) throws RemoteException { return false; }
     @Override

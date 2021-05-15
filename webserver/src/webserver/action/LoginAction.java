@@ -17,7 +17,11 @@ public class LoginAction extends Action{
 			boolean result = rmiserver.login_user(username, password);
 			System.out.println("password: "+result);
 			
-			return SUCCESS;
+			if (result){
+				return SUCCESS;
+			}else{
+				return LOGIN;
+			}
 			//this.getHeyBean().setUsername(this.username);
 			//this.getHeyBean().setPassword(this.password);
 			//session.put("username", username);

@@ -15,9 +15,9 @@
 						<h2 class="active">eVoting</h2>
 						<!-- Login Form -->
 						<form action="login" method="post">
-							<input type="text" id="Login" class="fadeIn second" name="username" placeholder="Nome">
+							<input type="text" id="Login" class="fadeIn second" name="username" placeholder="Username">
 							<input type="text" id="password" class="fadeIn third" name="password" placeholder="Password">
-							<input type="submit" class="fadeIn fourth" id ="botao_submit" value="Login">    
+							<input type="submit" type="password" class="fadeIn fourth" id ="botao_submit" value="Login">    
                         </form>
                         <form action = "login_fb" method="post">
                             <input type="submit" id="botao_fb" value="Login com o facebook">
