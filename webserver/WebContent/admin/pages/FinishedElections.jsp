@@ -11,14 +11,14 @@
 			</head>
 			
 			<body>
-				<h1>Registar Candidatura</h1>
+				<h1>Consultar Eleicoes Passadas</h1>
 				<br><br>
 				<div class="container">
-					<form action="select" method="POST">
-						<label class="title"><b>Eleicoes Disponiveis</b></label><br>
-						<s:textarea value="%{ask_elections}" cols="93" rows="10" disabled="true"/>
-						<input type="text" name="title" placeholder="Titulo">
-						<button type="submit">Selecionar</button>
+					<form>
+						<textarea value="%{ask_elections}" cols="95" rows="50" disabled="true"/>
+                    </form>
+                    <form action="admin">
+                        <button>Cancelar</button>
                     </form>
 				</div>
 			</body>

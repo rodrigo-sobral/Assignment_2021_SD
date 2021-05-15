@@ -24,21 +24,18 @@
 						<button>Editar Eleicao</button>
 					</form>
 					<form action="button4">
-						<button>Consultar Eleicoes Atuais</button>
+						<button>Consultar Eleicoes</button>
 					</form>
 					<form action="button5">
-						<button>Consultar Eleicoes Passadas</button>
-					</form>
-					<form action="button6">
 						<button>Registar Candidaturas</button>
 					</form>
-					<form action="button7">
+					<form action="button6">
 						<button>Registar Mesa de Voto</button>
 					</form>
-					<form action="button8">
+					<form action="button7">
 						<button>Eliminar Mesa de Voto</button>
 					</form>
-					<form action="button9">
+					<form action="button8">
 						<button>Consultar Mesas de Voto</button>
 					</form>
 

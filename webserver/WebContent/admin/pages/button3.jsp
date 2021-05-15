@@ -15,7 +15,8 @@
 				<br><br>
 				<div class="container">
 					<form action="edit_election" method="POST">
-						<textarea value="%{unstarted_elections}" cols="50" rows="30" disabled="true"/>
+						<label class="title"><b>Eleicoes Disponiveis</b></label><br>
+						<s:textarea value="%{ask_elections}" cols="93" rows="10" disabled="true"/>
 						<input type="text" name="old_title" placeholder="Antigo Titulo">
 						<input type="text" name="new_title" placeholder="Novo Titulo">
 						<input type="text" name="new_description" placeholder="Nova Descricao">
