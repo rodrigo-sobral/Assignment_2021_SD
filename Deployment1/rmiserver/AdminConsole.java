@@ -23,8 +23,8 @@ public class AdminConsole extends RMIClient {
     public AdminConsole() throws RemoteException { super(); }
 
     public static void main(String[] args) throws RemoteException {
-        System.getProperties().put("java.security.policy","AdminConsole.policy");
-        if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
+        //System.getProperties().put("java.security.policy","AdminConsole.policy");
+        //if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
 
         Scanner keyboard= new Scanner(System.in);
 

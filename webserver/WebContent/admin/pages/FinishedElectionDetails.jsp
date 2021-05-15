@@ -11,18 +11,11 @@
 			</head>
 			
 			<body>
-				<h1>Editar Eleicao</h1>
+				<h1></h1>
 				<br><br>
 				<div class="container">
-					<form action="edit_election" method="POST">
-						<textarea value="%{unstarted_elections}" cols="50" rows="30" disabled="true"/>
-						<input type="text" name="old_title" placeholder="Antigo Titulo">
-						<input type="text" name="new_title" placeholder="Novo Titulo">
-						<input type="text" name="new_description" placeholder="Nova Descricao">
-						<input type="text" name="new_start_date" placeholder="Nova Data Inicio [dd/mm/aaaa]">
-						<input type="text" name="new_start_hour" placeholder="Nova Hora Inicio [hh:mm]">
-						<input type="text" name="new_end_date" placeholder="Nova Data Fim [dd/mm/aaaa]">
-						<input type="text" name="new_end_hour" placeholder="Nova Hora Fim [hh:mm]">
+					<form action="" method="POST">
+						
 						<button type="submit">Submeter</button>
                     </form>
                     <form action="admin">

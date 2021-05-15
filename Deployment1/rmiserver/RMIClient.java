@@ -1,4 +1,5 @@
 package rmiserver;
+
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -14,8 +15,8 @@ public class RMIClient extends UnicastRemoteObject implements RMIClient_I {
 
     public RMIClient() throws RemoteException { 
         super();
-        System.getProperties().put("java.security.policy","AdminConsole.policy");
-        if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
+        //System.getProperties().put("java.security.policy","AdminConsole.policy");
+        //if(System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager()); 
         try { LocateRegistry.createRegistry(port); } 
         catch (Exception e) { }
     }
