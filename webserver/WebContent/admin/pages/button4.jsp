@@ -18,7 +18,7 @@
 						<button type="submit">Nao Comecadas</button>
                     </form>
 					<form action="running_elections_menu">
-						<button type="submit">Atuais</button>
+						<button type="submit">Comecadas</button>
                     </form>
 					<form action="finished_elections_menu">
 						<button type="submit">Acabadas</button>

@@ -44,7 +44,7 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
         <result>/admin/pages/button3.jsp</result>
     </action>
 	<action name="button4">
-        <result>/admin/pages/ConsultElectionsMenu.jsp</result>
+        <result>/admin/pages/button4.jsp</result>
     </action>
 	<action name="button5" class="webserver.action.ConsultElections" method="getUnstartedElections">
         <result>/admin/pages/button5.jsp</result>
@@ -54,9 +54,6 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
     </action>
 	<action name="button7">
         <result>/admin/pages/button7.jsp</result>
-    </action>
-	<action name="button8">
-        <result>/admin/pages/button8.jsp</result>
     </action>
 
 	<!--SYSTEM ACTIONS-->
@@ -70,16 +67,19 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
     </action>
 	<action name="edit_election" class="webserver.action.EditElection" method="execute">
         <result name="success">/admin/adminmenu.jsp</result>
-        <result name="error"></result>
+        <result name="error">/admin/pages/button3.jsp</result>
     </action>
 	<action name="unstarted_elections_menu" class="webserver.action.ConsultElections" method="getDetailedUnstartedElections">
-        <result>/admin/pages/UnstartedElections.jsp</result>
+        <result name="success">/admin/pages/ListElections.jsp</result>
+        <result name="error">/admin/pages/button4.jsp</result>
     </action>
-	<action name="running_elections_menu">
-        <result>/admin/pages/button4.jsp</result>
+	<action name="running_elections_menu" class="webserver.action.ConsultElections" method="getDetailedRunningElections">
+        <result name="success">/admin/pages/ListElections.jsp</result>
+        <result name="error">/admin/pages/button4.jsp</result>
     </action>
 	<action name="finished_elections_menu" class="webserver.action.ConsultElections" method="getDetailedFinishedElections">
-        <result>/admin/pages/FinishedElections.jsp</result>
+        <result name="success">/admin/pages/ListElections.jsp</result>
+        <result name="error">/admin/pages/button4.jsp</result>
     </action>
 
 

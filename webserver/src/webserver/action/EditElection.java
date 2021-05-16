@@ -10,42 +10,37 @@ import rmiserver.classes.Election;
 
 public class EditElection extends Action {
     private static final long serialVersionUID = 4L;
-    private String old_title, new_title, new_description, new_start_date, new_start_hour, new_end_date, new_end_hour;    
+    private String selected_election, new_description, new_start_date, new_start_hour, new_end_date, new_end_hour;    
 
 	@Override
 	public String execute() throws RemoteException {
         boolean changed=false;
         Election edited_election=null;
-        if (old_title!=null && checkString(old_title)) {
-            edited_election= getRMIConnection().getElectionByName(old_title, "unstarted");
+        if (selected_election!=null && checkString(selected_election)) {
+            edited_election= getRMIConnection().getElectionByName(selected_election, "unstarted");
             if (edited_election==null) return ERROR;
         } else return ERROR;
-        if (new_title!=null && !new_title.isBlank()) {
-            if (!checkString(new_title)) return ERROR;
-            changed= true;
-            edited_election.setTitle(new_title);
-        }
         if (new_description!=null && !new_description.isBlank()) {
             edited_election.setDescription(new_description);
             changed= true;
         }
         if (new_start_date!=null && !new_start_date.isBlank()) {
             LocalDate temp_date1= checkDateFormat(new_start_date);
-            if (temp_date1!=null && LocalDate.now().compareTo(temp_date1)>0) {
+            if (temp_date1!=null && LocalDate.now().compareTo(temp_date1)<=0) {
                 edited_election.setStarting(LocalDateTime.of(temp_date1, edited_election.getStarting().toLocalTime()));
                 changed= true;
             } else return ERROR;
         }
         if (new_start_hour!=null && !new_start_hour.isBlank()) {
             LocalTime temp_hour1= checkHourFormat(new_start_hour);
-            if (temp_hour1!=null && (LocalDate.now().compareTo(edited_election.getStarting().toLocalDate())>0 || (LocalDate.now().compareTo(edited_election.getStarting().toLocalDate())==0 && LocalTime.now().compareTo(temp_hour1)>0) )) {
+            if (temp_hour1!=null && (LocalDate.now().compareTo(edited_election.getStarting().toLocalDate())<0 || (LocalDate.now().compareTo(edited_election.getStarting().toLocalDate())==0 && LocalTime.now().compareTo(temp_hour1)>0) )) {
                 edited_election.setStarting(LocalDateTime.of(edited_election.getStarting().toLocalDate(), temp_hour1));
                 changed= true;
             } else return ERROR;
         }
         if (new_end_date!=null && !new_end_date.isBlank()) {
             LocalDate temp_date2= checkDateFormat(new_end_date);
-            if (temp_date2!=null && LocalDate.now().compareTo(edited_election.getStarting().toLocalDate())>0) {
+            if (temp_date2!=null && temp_date2.compareTo(edited_election.getEnding().toLocalDate())>0) {
                 edited_election.setEnding(LocalDateTime.of(temp_date2, edited_election.getEnding().toLocalTime()));
                 changed= true;
             } else return ERROR;
@@ -63,13 +58,9 @@ public class EditElection extends Action {
 		return ERROR;
 	}
 
-    
-	public void setOld_title(String old_title) {
-		this.old_title = old_title;
-	}
-    public void setNew_title(String new_title) {
-		this.new_title = new_title;
-	}
+    public void setSelected_election(String selected_election) {
+        this.selected_election = selected_election;
+    }
 	public void setNew_description(String new_description) {
 		this.new_description = new_description;
 	}
