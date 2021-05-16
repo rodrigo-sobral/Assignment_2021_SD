@@ -11,12 +11,11 @@
 			</head>
 			
 			<body>
-				<h1></h1>
+				<h1>Consultar Eleicoes</h1>
 				<br><br>
 				<div class="container">
-					<form action="" method="POST">
-						
-						<button type="submit">Submeter</button>
+					<form>
+						<s:textarea value="%{ask_elections}" cols="93" rows="50" disabled="true"/>
                     </form>
                     <form action="admin">
                         <button>Cancelar</button>

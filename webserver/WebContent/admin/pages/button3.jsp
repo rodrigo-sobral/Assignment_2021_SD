@@ -17,8 +17,7 @@
 					<form action="edit_election" method="POST">
 						<label class="title"><b>Eleicoes Disponiveis</b></label><br>
 						<s:textarea value="%{ask_elections}" cols="93" rows="10" disabled="true"/>
-						<input type="text" name="old_title" placeholder="Antigo Titulo">
-						<input type="text" name="new_title" placeholder="Novo Titulo">
+						<input type="text" name="selected_election" placeholder="Titulo da Eleicao Pretendida">
 						<input type="text" name="new_description" placeholder="Nova Descricao">
 						<input type="text" name="new_start_date" placeholder="Nova Data Inicio [dd/mm/aaaa]">
 						<input type="text" name="new_start_hour" placeholder="Nova Hora Inicio [hh:mm]">

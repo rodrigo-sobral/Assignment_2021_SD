@@ -336,7 +336,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         }
 
         synchronized public String setUpdatedElection(Election updated_election, boolean is_candidature) throws RemoteException { 
-            for (Election election : unstarted_elections)
+            for (Election election : unstarted_elections) {
                 if (election.getTitle().compareTo(updated_election.getTitle())==0) {
                     unstarted_elections.set(unstarted_elections.indexOf(election), updated_election);
                     this.file_manage.saveElectionsFile(unstarted_elections, "unstarted");
@@ -344,7 +344,7 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
                     if (is_candidature) { System.out.println("Nova Candidatura Submetida pela Consola de Administrador"); return "200: Candidatura Submetida com Sucesso"; }
                     else { System.out.println("Eleicao "+election.getTitle()+" alterada pela Consola de Administrador"); return "200: Eleicao Editada com Sucesso"; }
                 }
-            return "400: Essa Eleicao nao foi encontrada";
+            } return "400: Essa Eleicao nao foi encontrada";
         }
         synchronized public String setUpdatedDepartment(Department updated_department, boolean new_vote_table) throws RemoteException { 
             for (College college : colleges) {

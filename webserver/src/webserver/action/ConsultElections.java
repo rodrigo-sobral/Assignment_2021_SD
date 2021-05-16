@@ -32,6 +32,23 @@ public class ConsultElections extends Action {
         } else return ERROR;
         return SUCCESS;
     }
+    
+    public String getRunninglections() throws RemoteException {
+        ArrayList<Election> available_elections= getRMIConnection().getElectionsByState("running");
+        ask_elections= "";
+        if (!available_elections.isEmpty()) {
+            for (Election election : available_elections) ask_elections += election.toString("running", false);
+        } else return ERROR;
+        return SUCCESS;
+    }
+    public String getDetailedRunninglections() throws RemoteException {
+        ArrayList<Election> available_elections= getRMIConnection().getElectionsByState("running");
+        ask_elections= "";
+        if (!available_elections.isEmpty()) {
+            for (Election election : available_elections) ask_elections += election.toString("running", true);
+        } else return ERROR;
+        return SUCCESS;
+    }
 
     public String getFinishedElections() throws RemoteException {
         ArrayList<Election> available_elections= getRMIConnection().getElectionsByState("finished");
