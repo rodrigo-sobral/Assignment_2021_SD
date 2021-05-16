@@ -27,7 +27,9 @@ public class LoginAction extends Action{
 					System.out.println(mesas.get(i));
 					lista_mesas+=mesas.get(i)+"\n";
 				}
-		
+				if (mesas.size()==0){
+					lista_mesas+="Nenhuma Mesa de Voto Disponivel\n";
+				}
 				return SUCCESS;
 
 			}else{
