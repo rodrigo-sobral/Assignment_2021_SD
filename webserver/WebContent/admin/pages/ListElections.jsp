@@ -7,7 +7,7 @@
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 				<title>Menu Admin</title>
 				<link rel="shortcut icon" href="resources/images/uc_logo.png">
-				<link rel="stylesheet" href="styles/regist_template.css">
+				<link rel="stylesheet" href="styles/menus_template.css">
 			</head>
 			
 			<body>
@@ -17,7 +17,7 @@
 					<form>
 						<s:textarea value="%{ask_elections}" cols="93" rows="50" disabled="true"/>
                     </form>
-                    <form action="admin">
+                    <form action="admin_menu">
                         <button>Cancelar</button>
                     </form>
 				</div>

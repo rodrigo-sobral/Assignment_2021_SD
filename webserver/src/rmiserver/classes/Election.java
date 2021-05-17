@@ -91,16 +91,23 @@ public class Election implements Serializable {
         if (state.compareTo("unstarted")==0) {
             if (!details) return standard+"\n-----------------------------\n";
             standard+="\nCandidatos:\n";
-            for (Candidature candidature : candidatures_to_election) standard+=candidature.getCandidature_name();
+            for (Candidature candidature : candidatures_to_election) {
+                standard+=candidature.getCandidature_name()+"-"+candidature.getCandidates().size();
+                for (User candidate : candidature.getCandidates()) standard+="\n"+candidate.getName();
+            }
+            return standard+"\n-----------------------------\n";
         }
         if (details) {
             standard+= "\nTotal de Votos: "+total_votes+"\nVotos em Branco: "+blank_votes+"\nVotos Nulos: "+null_votes+"\nCandidatos:\n";
-            for (Candidature candidature : candidatures_to_election)
-                standard+=candidature.getCandidature_name()+"\tVotos: "+candidature.getCandidature_votes();
+            for (Candidature candidature : candidatures_to_election) {
+               standard+=candidature.getCandidature_name()+"-"+candidature.getCandidates().size()+"\tVotos: "+candidature.getCandidature_votes();
+               for (User candidate : candidature.getCandidates()) standard+="\n"+candidate.getName();
+            }
+            if (!getVoters().isEmpty()) {
+                standard+="\nVotantes: "+getVoters().size();
+                for (Vote vote : getVoters()) standard+="\n"+vote.getVoter_cc()+"\t"+vote.getVoter_depart();
+            }
         }
         return standard+"\n-----------------------------\n";
     }
 }
-
-
-

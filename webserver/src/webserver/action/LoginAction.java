@@ -1,58 +1,67 @@
 package webserver.action;
-import java.util.ArrayList;
+
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 
-import javassist.expr.NewArray;
-import webserver.model.RMIConnection;
+import rmiserver.Department;
 
-public class LoginAction extends Action{
-	private static final long serialVersionUID = 4L;
-	private String username = null, password = null;
-	private String lista_mesas ="";
+public class LoginAction extends Action {
+	public String username, password, ask_vote_tables, cc_number, selected_vote_table;
 
 	@Override
-	public String execute() throws RemoteException{
-		ArrayList<String> mesas = new ArrayList<>();
-		// any username is accepted without confirmation (should check using RMI)
-		if(this.username != null && !this.username.equals("") && !this.password.equals("")) {
-			System.out.println("username "+this.username+" password "+this.password);
-			RMIConnection rmiserver = this.getRMIConnection();
-			System.out.println("saiu yoo");
-			boolean result = rmiserver.login_user(username, password);
-			System.out.println("password: "+result);
-			
-			if (result){
-				mesas = this.getRMIConnection().list_vote_table(); 
-				for (int i = 0; i < mesas.size(); i++) {
-					System.out.println(mesas.get(i));
-					lista_mesas+=mesas.get(i)+"\n";
-				}
-				if (mesas.size()==0){
-					lista_mesas+="Nenhuma Mesa de Voto Disponivel\n";
-				}
-				return SUCCESS;
-
-			}else{
+	public String execute() throws RemoteException {
+		if(username!=null && password!=null && !username.isBlank() && !username.isBlank()) {
+			if (getRMIConnection().userLogin(username, password)) {
+				ask_vote_tables="";
+				ArrayList<Department> available_vote_tables= getRMIConnection().getDepartmentsWithOrNotVoteTable(true);
+				for (Department department: available_vote_tables) 
+					ask_vote_tables+= department.toString();
+				if (ask_vote_tables.isEmpty()) ask_vote_tables+= "*Nenhuma Mesa de Voto Disponivel*";
 				return LOGIN;
-			}
-		}else{
-			return LOGIN;
-		}
-			
+			} return ERROR;
+		} return ERROR;
 	}
-	
+
+	public String authenticateUser() throws RemoteException {
+		System.out.println(username+" "+password+" "+cc_number);
+		if (cc_number!=null && checkStringInteger(cc_number) ) {
+			if (getRMIConnection().authenticateUser(cc_number, username, password)) return LOGIN;
+			return ERROR;
+		} return ERROR;
+	}
+	public String checkVoteTable() throws RemoteException {
+		if (selected_vote_table!=null) {
+			for (Department department : getRMIConnection().getDepartmentsWithOrNotVoteTable(true)) {
+				if (department.getName().compareTo(selected_vote_table)==0) return SUCCESS;
+			} return ERROR;
+		} return ERROR;
+	}
+
+	public boolean checkStringInteger(String s) {
+        if (s.isBlank()) return false;
+        if (!Character.isJavaIdentifierStart(s.charAt(0)) && !Character.isDigit(s.charAt(0))) return false;
+        for (int i = 1; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) return false;
+        } return true;
+    }
+
 	public void setUsername(String username) {
 		this.username = username;
 	}
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
-	public String getLista_mesas() {
-		return lista_mesas;
+	public void setAsk_vote_tables(String ask_vote_tables) {
+        this.ask_vote_tables = ask_vote_tables;
+	}
+	public String getCc_number() {
+		return cc_number;
+	}
+	public void setCc_number(String cc_number) {
+		this.cc_number = cc_number;
+	}
+	public void setSelected_vote_table(String selected_vote_table) {
+		this.selected_vote_table = selected_vote_table;
 	}
 
-	public void setLista_mesas(String lista_mesas) {
-		this.lista_mesas = lista_mesas;
-	}
 }

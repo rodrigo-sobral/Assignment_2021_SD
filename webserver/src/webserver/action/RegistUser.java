@@ -5,7 +5,6 @@ import java.rmi.RemoteException;
 import rmiserver.classes.User;
 
 public class RegistUser extends Action {
-	private static final long serialVersionUID = 4L;
 	private String user_type;    //  Professor, Estudante ou Funcionario
     private String name, password, address, phone_number;
     private String cc_number, cc_shelflife;

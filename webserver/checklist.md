@@ -5,12 +5,12 @@ Requisitos Funcionais  | 57 | :x:
 Registar pessoas (estudantes, docentes, ou funcionários) | 5 | :heavy_check_mark:
 Login protegido com password (acesso restrito a ações e a páginas) | 5  | :heavy_check_mark:
 Criar eleição (incl. integração com a meta 1) | 5 | :heavy_check_mark:
-Criar listas de candidatos a uma eleição | 5 | :x:
+Criar listas de candidatos a uma eleição | 5 | :heavy_check_mark:
 Listar eleições e consultar detalhes de cada uma delas | 5 | :heavy_check_mark:
-Adicionar mesas de voto a uma eleição (incl. integração com a meta 1) | 5 | :x:
+Adicionar mesas de voto a uma eleição (incl. integração com a meta 1) | 5 | :heavy_check_mark:
 Alterar propriedades de uma eleição | 5 | :heavy_check_mark:
 Votar (incl. integração com a meta 1) | 7  | :x:
-Saber em que local votou cada eleitor | 5 | :x:
+Saber em que local votou cada eleitor | 5 | :heavy_check_mark:
 Eleição termina corretamente na data, hora e minuto marcados | 5 | :heavy_check_mark:
 Consultar resultados detalhados de eleições passadas | 5 | :heavy_check_mark:
 -- | -- | --
@@ -32,14 +32,14 @@ Integração de APIs REST no projecto | 2 | :x:
 Testes de software (tabela: descrição e pass/fail de cada teste) | 2 | :x:
 -- | -- | --
 Extra | 5 | --
-Uso de AJAX | 3 | :x:
+Uso de AJAX | 3 | :heavy_check_mark:
 Utilização em smartphone ou tablet | 2 | :x:
 Uso de HTTPS | 2 | :x:
-Outros (a propor pelos alunos) | -- | :x:
+Outros (a propor pelos alunos) | -- | :heavy_check_mark:
 -- | -- | --
 Pontos Obrigatórios | -- | --
-Pontualidade | -10 | --
-O projeto corre distribuído por várias máquinas | -5 | --
-Código HTML e Java estão separados | -5 | --
-A aplicação não apresenta erros/exceções/avarias | -5 | --
-Código legível e bem comentado | -5 | --
+Pontualidade | -10 | :heavy_check_mark:
+O projeto corre distribuído por várias máquinas | -5 | :heavy_check_mark:
+Código HTML e Java estão separados | -5 | :heavy_check_mark:
+A aplicação não apresenta erros/exceções/avarias | -5 | :heavy_check_mark:
+Código legível e bem comentado | -5 | :heavy_check_mark:

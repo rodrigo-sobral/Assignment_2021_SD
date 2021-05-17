@@ -52,4 +52,11 @@ public class Department implements Serializable {
     public void turnOnVoteTable() { if (this.vote_table) this.activated_vote_table=true; }
     public void turnOffVoteTable() { if (this.vote_table) this.activated_vote_table=false; }
 
+    @Override
+    public String toString() {
+        String standard= "Faculdade: "+college+"\nDepartamento: "+name+"\nTerminais de Voto: "+vote_terminals;
+        if (activated_vote_table) standard+="\nAtiva";
+        else standard+="\nInativa";
+        return standard+"\n-----------------------------\n";
+    }
 }

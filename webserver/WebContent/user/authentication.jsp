@@ -8,18 +8,20 @@
 			<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 			<title>Autenticacao</title>
 			<link rel="shortcut icon" href="resources/images/uc_logo.png">
-			<link rel="stylesheet" href="styles/user_auth.css">
+			<link rel="stylesheet" href="styles/index.css">
 		</head>
 		
 		<body>				
 			<div class="wrapper fadeInDown">
 				<div id="formContent">
 					<h2 class="active">eVoting</h2>
-					<!-- Tabs Titles -->
-					<form action="autenti" method="post">
-						<input type="text" id="CC" class="fadeIn second" name="cc" placeholder="Numero Cartao Cidadao">
+					<form action="vote_menu" method="post">
+						<input type="text" id="CC" class="fadeIn second" name="cc_number" placeholder="Numero Cartao Cidadao">
 						<input type="submit" class="fadeIn fourth" value="Autenticar">
 					</form>
+					<form action="user_menu">
+						<input type="submit" class="fadeIn fourth" value="Voltar">
+                    </form>
 				</div>
 			</div>
 		</body>

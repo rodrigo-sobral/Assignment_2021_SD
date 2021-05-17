@@ -402,6 +402,18 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         //  ===========================================================================================================
 
         synchronized public boolean authorizeUser(String cc_number, Election voting_election) throws RemoteException {
+            if (voting_election==null) {
+                for (College college : colleges) {
+                    for (Department department : college.getDepartments()) {
+                        for (User student : department.getStudents())
+                            if (student.getCc_number().compareTo(cc_number)==0) return true;
+                        for (User teacher : department.getTeachers())
+                            if (teacher.getCc_number().compareTo(cc_number)==0) return true;
+                        for (User staff : department.getStaff())
+                            if (staff.getCc_number().compareTo(cc_number)==0) return true;
+                    }
+                } return false;
+            }
             for (Vote voter : voting_election.getVoters())
                 if (voter.getVoter_cc().compareTo(cc_number)==0) return false;
             for (College college : colleges) {

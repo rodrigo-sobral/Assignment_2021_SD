@@ -7,14 +7,10 @@ import rmiserver.classes.Election;
 
 
 public class ConsultElections extends Action {
-    private static final long serialVersionUID = 4L;
-
     private String ask_elections= "";
 
 	@Override
-	public String execute() throws RemoteException {
-        return SUCCESS;
-	}
+	public String execute() throws RemoteException { return SUCCESS; }
 
     public String getUnstartedElections() throws RemoteException {
         ArrayList<Election> available_elections= getRMIConnection().getElectionsByState("unstarted");
