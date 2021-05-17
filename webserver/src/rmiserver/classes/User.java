@@ -50,7 +50,7 @@ public class User implements Serializable {
     
     @Override
     public String toString() {
-        return "Faculdade: "+this.getCollege()+     "\tDepartamento: "+this.getDepartment()+"\t"    +this.user_type+   "\tNome: "+this.name;
+        return "Faculdade: "+college+"\nDepartamento: "+department+"\nNome: "+name+"\nMorada: "+address+"\nFuncao: "+user_type+"\n-----------------------------\n";
     }
-         
+
 }

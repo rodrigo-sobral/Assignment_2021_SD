@@ -2,12 +2,11 @@
 	<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
 		<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 		<html>
-
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 				<title>Menu Admin</title>
 				<link rel="shortcut icon" href="resources/images/uc_logo.png">
-				<link rel="stylesheet" href="styles/regist_template.css">
+				<link rel="stylesheet" href="styles/menus_template.css">
 			</head>
 			
 			<body>
@@ -25,7 +24,7 @@
 						<input type="text" name="new_end_hour" placeholder="Nova Hora Fim [hh:mm]">
 						<button type="submit">Submeter</button>
                     </form>
-                    <form action="admin">
+                    <form action="admin_menu">
                         <button>Cancelar</button>
                     </form>
 				</div>

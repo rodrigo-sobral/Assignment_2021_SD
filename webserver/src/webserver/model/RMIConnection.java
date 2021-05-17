@@ -35,6 +35,16 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
 
     //  =========================================================================================================
     
+    public boolean userLogin(String username,String password){
+        while(true){
+            try { return rmiserver.authenticateUser(username, password); } 
+            catch (Exception e) {
+                e.printStackTrace();
+                connectToRMI();
+            }
+        }
+    }
+
     public boolean registUser(User new_user) {
         while (true) {
             try {
@@ -48,27 +58,6 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
         }
     }
 
-    public ArrayList<String> list_vote_table(){
-        while(true) {
-            try{
-                ArrayList<Department> available_depar = rmiserver.getDepartmentsWithOrNotVoteTable(true);
-                ArrayList<String> name_vote_desk = new ArrayList<>();
-                for (int i = 0; i < available_depar.size(); i++) {
-                    name_vote_desk.add(available_depar.get(i).getName());
-                }
-                //printar a lista de mesas de voto q existem
-                System.out.println("PRINTAR A LISTA DE MESAS DE VOTO");
-                for (int i = 0; i < name_vote_desk.size(); i++) {
-                    System.out.println(name_vote_desk.get(i));
-                }
-                return name_vote_desk;
-            } catch (Exception e) {
-                e.printStackTrace();
-                connectToRMI();
-            }
-        }
-        
-    }
     public boolean registElection(Election new_election) throws RemoteException {
         while (true) {
             try {
@@ -82,16 +71,20 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
         }
     }
 
-    public boolean login_user(String username,String password){
-        boolean result;
-        while(true){
-            try {
-                result = rmiserver.authenticateUser(username, password);
-                System.out.println(result);
-                return result;
-                    
+    public ArrayList<User> getUsers() {
+        while (true) {
+            try {                 
+                ArrayList<User> users= new ArrayList<>();
+                for (College college : rmiserver.getColleges()) {
+                    for (Department department : college.getDepartments()) {
+                        users.addAll(department.getStudents());
+                        users.addAll(department.getTeachers());
+                        users.addAll(department.getStaff());
+                    }
+                } return users;
             } catch (Exception e) {
-                this.connectToRMI();
+                e.printStackTrace();
+                connectToRMI();
             }
         }
     }
@@ -131,10 +124,10 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
         }
     }
     
-    public boolean updateElection(Election edited_election) {
+    public boolean updateElection(Election edited_election, boolean candidature) {
         while (true) {
             try { 
-                String result= rmiserver.setUpdatedElection(edited_election, false);
+                String result= rmiserver.setUpdatedElection(edited_election, candidature);
                 if (result.split(":")[0].compareTo("200")==0) return true;
                 else return false;
             } catch (Exception e) {
@@ -144,6 +137,46 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
         }
     }
 
+    public ArrayList<Department> getDepartmentsWithOrNotVoteTable(boolean with) {
+        while(true) {
+            try{ return rmiserver.getDepartmentsWithOrNotVoteTable(with); }
+            catch (Exception e) {
+                e.printStackTrace();
+                connectToRMI();
+            }
+        }
+    }
+    public Department getUniqueDepartment(String department_name) {
+        while(true) {
+            try{ return rmiserver.getUniqueDepartment(department_name); }
+            catch (Exception e) {
+                e.printStackTrace();
+                connectToRMI();
+            }
+        }
+    }
+    public boolean updateDepartment(Department updated_department, boolean new_vote_table) {
+        while (true) {
+            try { 
+                String result= rmiserver.setUpdatedDepartment(updated_department, new_vote_table);
+                if (result.split(":")[0].compareTo("200")==0) return true;
+                else return false;
+            } catch (Exception e) {
+                e.printStackTrace();
+                connectToRMI();
+            }
+        }
+    }
+
+    public boolean authenticateUser(String cc_number, String username, String password) {
+        while(true) {
+            try{ return rmiserver.authorizeUser(cc_number, null); }
+            catch (Exception e) {
+                e.printStackTrace();
+                connectToRMI();
+            }
+        }
+    }
 
     //  =========================================================================================================
 

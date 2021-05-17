@@ -9,7 +9,6 @@ import java.time.format.DateTimeFormatter;
 import rmiserver.classes.Election;
 
 public class EditElection extends Action {
-    private static final long serialVersionUID = 4L;
     private String selected_election, new_description, new_start_date, new_start_hour, new_end_date, new_end_hour;    
 
 	@Override
@@ -53,7 +52,7 @@ public class EditElection extends Action {
             } else return ERROR;
         }
         if (!changed) return ERROR;
-		boolean result= getRMIConnection().updateElection(edited_election);
+		boolean result= getRMIConnection().updateElection(edited_election, false);
 		if (result) return SUCCESS;
 		return ERROR;
 	}

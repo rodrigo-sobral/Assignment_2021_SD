@@ -9,7 +9,6 @@ import java.time.format.DateTimeFormatter;
 import rmiserver.classes.Election;
 
 public class RegistElection extends Action {
-    private static final long serialVersionUID = 4L;
 	private String election_state;    //  Professor, Estudante ou Funcionario
     private String title, description, start_date, start_hour, end_date, end_hour;
 

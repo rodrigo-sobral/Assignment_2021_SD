@@ -4,23 +4,22 @@
 		<html>
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-				<link rel="shortcut icon" href="../resources/images/uc_logo.png">
+				<title>Menu Utilizador</title>
+				<link rel="shortcut icon" href="resources/images/uc_logo.png">
 				<link rel="stylesheet" href="styles/index.css">
 			</head>
 			
 			<body>				
 				<div class="wrapper fadeInDown">
 					<div id="formContent">
-						<!-- Tabs Titles -->
 						<h2 class="active">eVoting</h2>
-						<!-- Login Form -->
-						<form action="login" method="post">
+						<form action="user_login" method="post">
 							<input type="text" id="Login" class="fadeIn second" name="username" placeholder="Username">
-							<input type="text" id="password" class="fadeIn third" name="password" placeholder="Password">
-							<input type="submit" type="password" class="fadeIn fourth" id ="botao_submit" value="Login">    
+							<input type="password" id="password" class="fadeIn third" name="password" placeholder="Password">
+							<input type="submit" class="fadeIn fourth" id ="botao_submit" value="Login">    
                         </form>
-                        <form action = "login_fb" method="post">
-                            <input type="submit" id="botao_fb" value="Login com o facebook">
+                        <form action = "fb_login" method="post">
+                            <input type="submit" id="botao_fb" value=" Login com o facebook">
                         </form>
 					</div>
 				</div>

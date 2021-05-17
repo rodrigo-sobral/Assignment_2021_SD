@@ -33,6 +33,9 @@
 						<button>Registar Mesa de Voto</button>
 					</form>
 					<form action="button7">
+						<button>Eliminar Mesas de Voto</button>
+					</form>
+					<form action="button8">
 						<button>Consultar Mesas de Voto</button>
 					</form>
 				</div>
