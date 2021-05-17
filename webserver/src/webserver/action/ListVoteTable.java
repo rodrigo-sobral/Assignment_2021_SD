@@ -4,25 +4,27 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class ListVoteTable extends Action{
-	private String lista_mesas ="";
+    private String mesa_vote;
 
 	@Override
 	public String execute() throws RemoteException{
         System.out.println("entrouaqui");
 		// any username is accepted without confirmation (should check using RMI)
         ArrayList<String> mesas = this.getRMIConnection().list_vote_table(); 
-        for (int i = 0; i < mesas.size(); i++) {
-            System.out.println(mesas.get(i));
-            lista_mesas+=mesas.get(i)+"\n";
-        }
-
-        return SUCCESS;
+        mesas = this.getRMIConnection().list_vote_table(); 
+		for (int i = 0; i < mesas.size(); i++) {
+            if (mesa_vote.compareTo(mesas.get(i))==0){
+                return SUCCESS;
+            }
+		}
+        return ERROR;
     }
 	
-	public String getLista_mesas() {
-        return lista_mesas;
+	public String getMesa_vote() {
+        return mesa_vote;
     }
-    public void setLista_mesas(String lista_mesas) {
-        this.lista_mesas = lista_mesas;
+
+    public void setMesa_vote(String mesa_vote) {
+        this.mesa_vote = mesa_vote;
     }
 }
