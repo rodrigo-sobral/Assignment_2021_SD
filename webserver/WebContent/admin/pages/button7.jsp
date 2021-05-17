@@ -15,7 +15,7 @@
 				<div class="container">
 					<form action="delete_vote_table" method="POST">
 						<label class="title"><b>Mesas de Voto Disponiveis</b></label><br>
-						<s:textarea value="%{ask_vote_tables}" cols="93" rows="10" disabled="true"/>
+						<s:textarea value="%{session.ask_vote_tables}" cols="93" rows="10" disabled="true"/>
 						<input type="text" name="selected_vote_table" placeholder="Mesa de Voto">
 						<button type="submit">Selecionar</button>
                     </form>

@@ -41,7 +41,7 @@ public class Election implements Serializable {
     public ArrayList<String> getDepartment_restrictions() { return department_restrictions; }
     
     /**
-     * @param election_state must be: Estudante, Professor, Funcionario or Geral
+     * @param election_state must be: Estudante, Professor, Funcionario
      * @return true if election_state is correct, false otherwise
      */
     public boolean setElectionState(String election_state) { 
@@ -68,8 +68,7 @@ public class Election implements Serializable {
         this.total_votes++; 
         voters.add(new Vote(voter_cc, department_voted)); 
     }
-    public void incrementValidVote(int candidature_index, String voter_cc, String department_voted) { 
-        Candidature candidature = candidatures_to_election.get(candidature_index);
+    public void incrementValidVote(Candidature candidature, String voter_cc, String department_voted) { 
         candidature.incrementCandidatureVotes(); 
         voters.add(new Vote(voter_cc, department_voted));
         this.total_votes++;
@@ -78,21 +77,24 @@ public class Election implements Serializable {
     public boolean registVote(String voter_choice, String voter_cc, String department_voted) {
         if (voter_choice.isBlank()) { incrementBlankVote(voter_cc, department_voted); return true; }
         for (Vote vote : voters) if (vote.getVoter_cc().compareTo(voter_cc)==0) return false;
-        try { 
-            int candidature_index= Integer.parseInt(voter_choice)-1; 
-            if (candidature_index>0 && candidature_index<=candidatures_to_election.size()) incrementValidVote(candidature_index, voter_cc, department_voted);
-            else incrementNullVote(voter_cc, department_voted); 
-            return true;
-        } catch (Exception e) { incrementNullVote(voter_cc, department_voted); return true; }
+        for (Candidature candidature : candidatures_to_election) {
+            System.out.println(candidature.getCandidature_name()+" "+voter_choice);
+            if (candidature.getCandidature_name().compareTo(voter_choice)==0) {
+                incrementValidVote(candidature, voter_cc, department_voted);
+                return true;
+            }
+        } 
+        incrementNullVote(voter_cc, department_voted); 
+        return true;
     }
 
     public String toString(String state, boolean details) {
-        String standard= "Titulo: "+title+"\nDescricao: "+description+"\nInicio: "+getStartingDateString()+"-"+getStartingHourString()+"\nFim: "+getEndingDateString()+"-"+getEndingHourString();
+        String standard= "Titulo: "+title+"\nTipo: "+election_state+"\nDescricao: "+description+"\nInicio: "+getStartingDateString()+"-"+getStartingHourString()+"\nFim: "+getEndingDateString()+"-"+getEndingHourString();
         if (state.compareTo("unstarted")==0) {
             if (!details) return standard+"\n-----------------------------\n";
-            standard+="\nCandidatos:\n";
+            standard+="\nCandidatos:";
             for (Candidature candidature : candidatures_to_election) {
-                standard+=candidature.getCandidature_name()+"-"+candidature.getCandidates().size();
+                standard+="\n"+candidature.getCandidature_name()+" - "+candidature.getCandidates().size()+" Membros";
                 for (User candidate : candidature.getCandidates()) standard+="\n"+candidate.getName();
             }
             return standard+"\n-----------------------------\n";
@@ -100,7 +102,7 @@ public class Election implements Serializable {
         if (details) {
             standard+= "\nTotal de Votos: "+total_votes+"\nVotos em Branco: "+blank_votes+"\nVotos Nulos: "+null_votes+"\nCandidatos:\n";
             for (Candidature candidature : candidatures_to_election) {
-               standard+=candidature.getCandidature_name()+"-"+candidature.getCandidates().size()+"\tVotos: "+candidature.getCandidature_votes();
+               standard+="\n"+candidature.getCandidature_name()+" - "+candidature.getCandidates().size()+" Membros"+" - Votos: "+candidature.getCandidature_votes();
                for (User candidate : candidature.getCandidates()) standard+="\n"+candidate.getName();
             }
             if (!getVoters().isEmpty()) {

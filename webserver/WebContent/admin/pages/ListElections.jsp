@@ -15,7 +15,7 @@
 				<br><br>
 				<div class="container">
 					<form>
-						<s:textarea value="%{ask_elections}" cols="93" rows="50" disabled="true"/>
+						<s:textarea value="%{session.ask_elections}" cols="93" rows="50" disabled="true"/>
                     </form>
                     <form action="admin_menu">
                         <button>Cancelar</button>

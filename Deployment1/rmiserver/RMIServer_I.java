@@ -50,7 +50,8 @@ public interface RMIServer_I extends Remote {
 	public void setRunning_elections(ArrayList<Election> running_elections) throws RemoteException;
 	public void setFinished_elections(ArrayList<Election> finished_elections) throws RemoteException;
 
-
+	public String receiveVote(Election updated_election) throws RemoteException;
+	
 	//	AUTHENTICATIONS
 	public boolean authorizeUser(String cc_number, Election voting_election) throws RemoteException;
 	public boolean authenticateUser(String username, String password) throws RemoteException;

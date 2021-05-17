@@ -1,7 +1,7 @@
 package rmiserver;
+
 import java.io.Serializable;
 import java.util.ArrayList;
-
 
 public class College implements Serializable {
     private static final long serialVersionUID = 1L;

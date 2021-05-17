@@ -15,7 +15,7 @@
 				<div class="container">
 					<form>
 						<label class="title"><b>Mesas de Voto Criadas</b></label><br>
-						<s:textarea value="%{ask_vote_tables}" cols="93" rows="30" disabled="true"/>
+						<s:textarea value="%{session.ask_vote_tables}" cols="93" rows="30" disabled="true"/>
                     </form>
                     <form action="admin_menu">
                         <button>Cancelar</button>

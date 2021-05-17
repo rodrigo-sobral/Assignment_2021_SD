@@ -18,9 +18,13 @@ public class RegistCandidature extends Action {
             ArrayList<User> all_users= getRMIConnection().getUsers();
             Election selected_election= getRMIConnection().getElectionByName(election, "unstarted");
             Candidature new_candidature= new Candidature();
+            if (selected_election==null) return ERROR;
             
             new_candidature.setCandidature_name(title);
-            for (Integer integer : candidates_ids) new_candidature.getCandidates().add(all_users.get(integer));
+            for (Integer integer : candidates_ids) {
+                if (all_users.get(integer).getUser_type().compareTo(selected_election.getElectionState())!=0) return ERROR;
+                new_candidature.getCandidates().add(all_users.get(integer));
+            }
             
             selected_election.getCandidatures_to_election().add(new_candidature);
             if (getRMIConnection().updateElection(selected_election, true)) return SUCCESS;
@@ -38,6 +42,8 @@ public class RegistCandidature extends Action {
         for (int i = 0; i<all_users.size(); i++) ask_users += "ID: "+(i+1)+"\n"+all_users.get(i).toString();
         
         if (ask_users.isEmpty() || ask_elections.isEmpty()) return ERROR;
+        saveData("ask_users", ask_users);
+        saveData("ask_elections", ask_elections);
         return SUCCESS;
     }
 

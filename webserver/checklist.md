@@ -1,7 +1,7 @@
 
 Requisitos | Pontos | Estado
 ---|:---:|:---:
-Requisitos Funcionais  | 57 | :x:
+Requisitos Funcionais  | 57 | :heavy_check_mark:
 Registar pessoas (estudantes, docentes, ou funcionários) | 5 | :heavy_check_mark:
 Login protegido com password (acesso restrito a ações e a páginas) | 5  | :heavy_check_mark:
 Criar eleição (incl. integração com a meta 1) | 5 | :heavy_check_mark:
@@ -9,7 +9,7 @@ Criar listas de candidatos a uma eleição | 5 | :heavy_check_mark:
 Listar eleições e consultar detalhes de cada uma delas | 5 | :heavy_check_mark:
 Adicionar mesas de voto a uma eleição (incl. integração com a meta 1) | 5 | :heavy_check_mark:
 Alterar propriedades de uma eleição | 5 | :heavy_check_mark:
-Votar (incl. integração com a meta 1) | 7  | :x:
+Votar (incl. integração com a meta 1) | 7  | :heavy_check_mark:
 Saber em que local votou cada eleitor | 5 | :heavy_check_mark:
 Eleição termina corretamente na data, hora e minuto marcados | 5 | :heavy_check_mark:
 Consultar resultados detalhados de eleições passadas | 5 | :heavy_check_mark:
