@@ -397,23 +397,23 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
             return available_elections;
         }
 
+        synchronized public String receiveVote(Election updated_election) throws RemoteException {
+            for (Election election : running_elections) {
+                if (election.getTitle().compareTo(updated_election.getTitle())==0) {
+                    running_elections.set(running_elections.indexOf(election), updated_election);
+                    this.file_manage.saveElectionsFile(running_elections, "running");
+                    if (this.getPinger()!=null) this.getPinger().setRunning_elections(running_elections);
+                    System.out.println("Voto submetido na Eleicao "+updated_election.getTitle()); 
+                    return "200: Voto Submetido com Sucesso";
+                }
+            } return "400: ";
+        }
+
         //  ===========================================================================================================
         //  COMUNICATIONS WITH MULTICAST SERVERS
         //  ===========================================================================================================
 
         synchronized public boolean authorizeUser(String cc_number, Election voting_election) throws RemoteException {
-            if (voting_election==null) {
-                for (College college : colleges) {
-                    for (Department department : college.getDepartments()) {
-                        for (User student : department.getStudents())
-                            if (student.getCc_number().compareTo(cc_number)==0) return true;
-                        for (User teacher : department.getTeachers())
-                            if (teacher.getCc_number().compareTo(cc_number)==0) return true;
-                        for (User staff : department.getStaff())
-                            if (staff.getCc_number().compareTo(cc_number)==0) return true;
-                    }
-                } return false;
-            }
             for (Vote voter : voting_election.getVoters())
                 if (voter.getVoter_cc().compareTo(cc_number)==0) return false;
             for (College college : colleges) {

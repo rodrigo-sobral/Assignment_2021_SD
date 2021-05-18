@@ -21,16 +21,18 @@ public class RegistVoteTable extends Action {
         for (Department department: getRMIConnection().getDepartmentsWithOrNotVoteTable(true)) 
             ask_vote_tables+= department.toString();
 		if (ask_vote_tables.isEmpty()) return ERROR;
+        saveData("ask_vote_tables", ask_vote_tables);
         return SUCCESS;
     }
     public String getDepartmentsWithNoVoteTable() throws RemoteException {
         ask_vote_tables="";
         for (Department department: getRMIConnection().getDepartmentsWithOrNotVoteTable(false)) 
-            ask_vote_tables+= department.toString();
+        ask_vote_tables+= department.toString();
 		if (ask_vote_tables.isEmpty()) return ERROR;
+        saveData("ask_vote_tables", ask_vote_tables);
         return SUCCESS;
     }
-
+    
     public String deleteVoteTable() throws RemoteException {
         if (selected_vote_table!=null && checkString(selected_vote_table)) {
             Department selected_department= getRMIConnection().getUniqueDepartment(selected_vote_table);

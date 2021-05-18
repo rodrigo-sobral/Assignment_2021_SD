@@ -18,6 +18,7 @@ public class ConsultElections extends Action {
         if (!available_elections.isEmpty()) {
             for (Election election : available_elections) ask_elections += election.toString("unstarted", false);
         } else return ERROR;
+        saveData("ask_elections", ask_elections);
         return SUCCESS;
     }
     public String getDetailedUnstartedElections() throws RemoteException {
@@ -26,32 +27,36 @@ public class ConsultElections extends Action {
         if (!available_elections.isEmpty()) {
             for (Election election : available_elections) ask_elections += election.toString("unstarted", true);
         } else return ERROR;
+        saveData("ask_elections", ask_elections);
         return SUCCESS;
     }
     
-    public String getRunninglections() throws RemoteException {
+    public String getRunningElections() throws RemoteException {
         ArrayList<Election> available_elections= getRMIConnection().getElectionsByState("running");
         ask_elections= "";
         if (!available_elections.isEmpty()) {
             for (Election election : available_elections) ask_elections += election.toString("running", false);
         } else return ERROR;
+        saveData("ask_elections", ask_elections);
         return SUCCESS;
     }
-    public String getDetailedRunninglections() throws RemoteException {
+    public String getDetailedRunningElections() throws RemoteException {
         ArrayList<Election> available_elections= getRMIConnection().getElectionsByState("running");
         ask_elections= "";
         if (!available_elections.isEmpty()) {
             for (Election election : available_elections) ask_elections += election.toString("running", true);
         } else return ERROR;
+        saveData("ask_elections", ask_elections);
         return SUCCESS;
     }
-
+    
     public String getFinishedElections() throws RemoteException {
         ArrayList<Election> available_elections= getRMIConnection().getElectionsByState("finished");
         ask_elections= "";
         if (!available_elections.isEmpty()) {
             for (Election election : available_elections) ask_elections += election.toString("finished", false);
         } else return ERROR;
+        saveData("ask_elections", ask_elections);
         return SUCCESS;
     }
     public String getDetailedFinishedElections() throws RemoteException {
@@ -60,6 +65,7 @@ public class ConsultElections extends Action {
         if (!available_elections.isEmpty()) {
             for (Election election : available_elections) ask_elections += election.toString("finished", true);
         } else return ERROR;
+        saveData("ask_elections", ask_elections);
         return SUCCESS;
     }
 

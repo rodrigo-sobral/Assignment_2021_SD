@@ -34,23 +34,13 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
     private String getRegistryFromIP(String ip, String registryName) { return "rmi://"+ip+":"+port+"/"+registryName; }
 
     //  =========================================================================================================
-    
-    public boolean userLogin(String username,String password){
-        while(true){
-            try { return rmiserver.authenticateUser(username, password); } 
-            catch (Exception e) {
-                e.printStackTrace();
-                connectToRMI();
-            }
-        }
-    }
 
     public boolean registUser(User new_user) {
         while (true) {
             try {
                 String result = rmiserver.registUser(new_user.getCollege(), new_user.getDepartment(), new_user);
                 if (result.split(":")[0].compareTo("200")==0) return true;
-                else return false;        
+                return false;        
             } catch (Exception e) {
                 e.printStackTrace();
                 connectToRMI();
@@ -63,7 +53,7 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
             try {
                 String result = rmiserver.registElection(new_election);
                 if (result.split(":")[0].compareTo("200")==0) return true;
-                else return false;        
+                return false;        
             } catch (Exception e) {
                 e.printStackTrace();
                 connectToRMI();
@@ -101,6 +91,15 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
             }
         }
     }
+    public ArrayList<Election> getElectionToVoteTable(String department) {
+        while (true) {
+            try { return rmiserver.getElectionToVoteTable(department); } 
+            catch (Exception e) {
+                e.printStackTrace();
+                connectToRMI();
+            }
+        }
+    }
     public Election getElectionByName(String election_name, String election_state) {
         while (true) {
             try { 
@@ -129,7 +128,7 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
             try { 
                 String result= rmiserver.setUpdatedElection(edited_election, candidature);
                 if (result.split(":")[0].compareTo("200")==0) return true;
-                else return false;
+                return false;
             } catch (Exception e) {
                 e.printStackTrace();
                 connectToRMI();
@@ -160,18 +159,20 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
             try { 
                 String result= rmiserver.setUpdatedDepartment(updated_department, new_vote_table);
                 if (result.split(":")[0].compareTo("200")==0) return true;
-                else return false;
+                return false;
             } catch (Exception e) {
                 e.printStackTrace();
                 connectToRMI();
             }
         }
     }
-
-    public boolean authenticateUser(String cc_number, String username, String password) {
-        while(true) {
-            try{ return rmiserver.authorizeUser(cc_number, null); }
-            catch (Exception e) {
+    public boolean sendVote(Election updated_election) {
+        while (true) {
+            try { 
+                String result= rmiserver.receiveVote(updated_election);
+                if (result.split(":")[0].compareTo("200")==0) return true;
+                return false;
+            } catch (Exception e) {
                 e.printStackTrace();
                 connectToRMI();
             }

@@ -14,9 +14,9 @@
 				<div class="container"> 
 					<form action="regist_candidature" method="POST">
 						<label class="title"><b>Eleicoes Disponiveis</b></label><br>
-						<s:textarea value="%{ask_elections}" cols="93" rows="10" disabled="true"/><br><br>
+						<s:textarea value="%{session.ask_elections}" cols="93" rows="10" disabled="true"/><br><br>
 						<label class="title"><b>Candidatos Disponiveis</b></label><br>
-						<s:textarea value="%{ask_users}" cols="93" rows="10" disabled="true"/><br>
+						<s:textarea value="%{session.ask_users}" cols="93" rows="10" disabled="true"/><br>
 						<input type="text" name="title" placeholder="Titulo">
 						<input type="text" name="election" placeholder="Eleicao">
 						<input type="text" name="candidates" placeholder="ID dos Candidatos (ID1, ID2, ID3, ...)">

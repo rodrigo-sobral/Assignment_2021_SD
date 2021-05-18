@@ -16,4 +16,11 @@ public class Candidature implements Serializable {
 
     public void setCandidature_name(String candidature_name) { this.candidature_name = candidature_name;}
     public void incrementCandidatureVotes() { this.candidature_votes++; }
+
+    @Override
+    public String toString() {
+        String standard= "\n"+candidature_name+" - "+candidates.size()+" Membros"+" - Votos: "+candidature_votes;
+        for (User candidate : getCandidates()) standard+="\n"+candidate.getName();
+        return standard;
+    }
 }

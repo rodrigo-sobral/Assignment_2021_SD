@@ -32,7 +32,7 @@ public class EditElection extends Action {
         }
         if (new_start_hour!=null && !new_start_hour.isBlank()) {
             LocalTime temp_hour1= checkHourFormat(new_start_hour);
-            if (temp_hour1!=null && (LocalDate.now().compareTo(edited_election.getStarting().toLocalDate())<0 || (LocalDate.now().compareTo(edited_election.getStarting().toLocalDate())==0 && LocalTime.now().compareTo(temp_hour1)>0) )) {
+            if (temp_hour1!=null && (LocalDate.now().compareTo(edited_election.getStarting().toLocalDate())<0 || (LocalDate.now().compareTo(edited_election.getStarting().toLocalDate())==0 && LocalTime.now().compareTo(temp_hour1)<0) )) {
                 edited_election.setStarting(LocalDateTime.of(edited_election.getStarting().toLocalDate(), temp_hour1));
                 changed= true;
             } else return ERROR;

@@ -15,8 +15,9 @@
 				<div class="container">
 					<form action="vote" method="POST">
 						<label class="title"><b>Candidaturas Disponiveis</b></label><br>
-						<s:textarea value="%{ask_candidatures}" cols="93" rows="10" disabled="true"/>
-						<button type="submit">Submeter</button>
+						<s:textarea value="%{session.ask_candidatures}" cols="93" rows="10" disabled="true"/>
+						<input type="text" name="voted_candidate" placeholder="Candidato">
+						<button type="submit">Submeter Voto</button>
                     </form>
                     <form action="user_menu">
                         <button>Cancelar</button>

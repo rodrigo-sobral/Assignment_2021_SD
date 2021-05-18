@@ -114,17 +114,21 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
 	<!--	USER ACTIONS	-->
 	<!--========================================================================================-->
     
-    <action name="user_login" class="webserver.action.LoginAction" method="execute">
+    <action name="user_login" class="webserver.action.UserActions" method="execute">
 		<result name="login">/user/usermenu.jsp</result>
 		<result name="error">/index.jsp</result>
     </action>
-    <action name="select_vote_table" class="webserver.action.LoginAction" method="checkVoteTable">
-		<result name="success">/user/authentication.jsp</result>
+    <action name="select_vote_table" class="webserver.action.UserActions" method="checkVoteTable">
+		<result name="success">/user/election_auth.jsp</result>
 		<result name="error">/user/usermenu.jsp</result>
     </action>
-    <action name="user_auth" class="webserver.action.LoginAction" method="authenticateUser">
+    <action name="user_auth" class="webserver.action.UserActions" method="authenticateUser">
 		<result name="login">/user/vote.jsp</result>
-		<result name="error">/user/authentication.jsp</result>
+		<result name="error">/user/election_auth.jsp</result>
+    </action>
+    <action name="vote" class="webserver.action.UserActions" method="vote">
+		<result name="success">/user/usermenu.jsp</result>
+		<result name="error">/user/vote.jsp</result>
     </action>
 
     <action name="user_logout">
