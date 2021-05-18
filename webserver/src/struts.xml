@@ -133,5 +133,21 @@ and should reside on the classpath of the webapp (generally /WEB-INF/classes). -
     <action name="user_menu">
 		<result>/user/usermenu.jsp</result>
     </action>
+    <!--
+    <action name = "click_asso" class = "webserver.action.AssociateFbAction" method ="execute">
+        <result name="success">index.jsp</result>
+    </action>
+    
+    <action name = "click_asso" class = "webserver.action.AssociateFbAction" method ="execute">
+        <result name="SUCESS">user_menu.jsp</result>
+    </action>
+-->
+    <action name = "click_asso" class = "webserver.action.AssociateFbAction" method ="execute">
+        <result name="success" type="redirect" >${autho_url}</result>
+    </action>
+
+    <action name ="associaFb" class = "webserver.action.AssociateFbAction" method = "associar_face">
+        <result name ="sucess">/user/usermenu.jsp</result>
+    </action>
   </package>
 </struts>

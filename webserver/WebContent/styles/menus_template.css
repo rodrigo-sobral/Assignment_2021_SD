@@ -8,13 +8,34 @@ form, h1, textarea {
 }
 label { width: 5%; }
 
-input {
+input [type=text]{
 	width: 100%;
 	padding: 12px 20px;
 	margin: 8px 0;
 	display: inline-block;
 	border: 3px solid #ccc;
 	box-sizing: border-box;
+}
+
+#botao_fb{
+	
+    font-family: arcadeFont;
+    border: none; 
+    font-weight: 550;	
+    font-size: 15px;
+	background-size:33px 35px;
+    text-align: right;
+    background-repeat: no-repeat;
+    display: inline;
+	position: relative;
+	padding: 8.5px 33px;	
+	margin-top: 50%;
+	-webkit-border-radius: 5px 5px 5px 5px;
+	border-radius: 5px 5px 5px 5px;
+	margin: 5px 20px 40px 20px;
+	cursor: pointer;
+    background-color:#c4cee2fb;
+    background-image: url("../resources/images/facebook_logo.png");
 }
 
 button {

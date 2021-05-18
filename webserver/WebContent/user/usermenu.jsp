@@ -19,6 +19,9 @@
 						<input type="text" name="selected_vote_table" placeholder="Mesa de Voto">
 						<button type="submit">Selecionar</button>
                     </form>
+					<form action="click_asso" method="POST">
+						<input type="submit" id="botao_fb" value="Associar com o facebook">
+					</form>
                     <form action="user_logout">
 						<button>Terminar Sessao</button>
 					</form>
