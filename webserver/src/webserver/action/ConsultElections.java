@@ -2,9 +2,7 @@ package webserver.action;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-
 import rmiserver.classes.Election;
-
 
 public class ConsultElections extends Action {
     private String ask_elections= "";
@@ -19,6 +17,7 @@ public class ConsultElections extends Action {
             for (Election election : available_elections) ask_elections += election.toString("unstarted", false);
         } else return ERROR;
         saveData("ask_elections", ask_elections);
+        saveData("ask_elections_type", "unstarted");
         return SUCCESS;
     }
     public String getDetailedUnstartedElections() throws RemoteException {
@@ -28,6 +27,7 @@ public class ConsultElections extends Action {
             for (Election election : available_elections) ask_elections += election.toString("unstarted", true);
         } else return ERROR;
         saveData("ask_elections", ask_elections);
+        saveData("ask_elections_type", "unstarted");
         return SUCCESS;
     }
     
@@ -38,6 +38,7 @@ public class ConsultElections extends Action {
             for (Election election : available_elections) ask_elections += election.toString("running", false);
         } else return ERROR;
         saveData("ask_elections", ask_elections);
+        saveData("ask_elections_type", "running");
         return SUCCESS;
     }
     public String getDetailedRunningElections() throws RemoteException {
@@ -47,6 +48,7 @@ public class ConsultElections extends Action {
             for (Election election : available_elections) ask_elections += election.toString("running", true);
         } else return ERROR;
         saveData("ask_elections", ask_elections);
+        saveData("ask_elections_type", "running");
         return SUCCESS;
     }
     
@@ -57,6 +59,7 @@ public class ConsultElections extends Action {
             for (Election election : available_elections) ask_elections += election.toString("finished", false);
         } else return ERROR;
         saveData("ask_elections", ask_elections);
+        saveData("ask_elections_type", "finished");
         return SUCCESS;
     }
     public String getDetailedFinishedElections() throws RemoteException {
@@ -66,6 +69,7 @@ public class ConsultElections extends Action {
             for (Election election : available_elections) ask_elections += election.toString("finished", true);
         } else return ERROR;
         saveData("ask_elections", ask_elections);
+        saveData("ask_elections_type", "finished");
         return SUCCESS;
     }
 

@@ -4,43 +4,45 @@
 		<html>
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-				<title>Menu Utilizador</title>
+				<title>Menu Admin</title>
 				<link rel="shortcut icon" href="resources/images/uc_logo.png">
 				<link rel="stylesheet" href="styles/menus_template.css">
 				<script type="text/javascript">
 					var websocket = null;
 					window.onload = function() { connect('ws://' + window.location.host + '/webserver/ws'); }
-			
+					
 					function connect(host) {
 						if ('WebSocket' in window) websocket = new WebSocket(host);
 						else if ('MozWebSocket' in window) websocket = new MozWebSocket(host);
 						else { writeToHistory('Get a real browser which supports WebSocket.'); return; }
-			
+						
 						websocket.onopen = onOpen;
 						websocket.onclose = onClose;
 						websocket.onmessage = onMessage;
 						websocket.onerror = onError;
 					}
-			
-					function onOpen(event) { websocket.send("${session.logged_cc}"); }
+					
+					function onOpen(event) { websocket.send("admin"); websocket.send("${ask_elections_type}"); }
 					function onClose(event) { }
-					function onMessage(message) { }
-					function onError(event) { console.log('WebSocket error.'); }			
+					function onMessage(message) { 
+						if (!message.data.startsWith("Administradores Ativos") && !message.data.includes("Terminais de Voto:")) {
+							writeToHistory(message.data); 
+						}
+					}
+					function onError(event) { console.log('WebSocket error (' + event.data + ').'); }
+
+					function writeToHistory(text) {  if (document.getElementById('text_panel')!=null) document.getElementById('text_panel').innerHTML= text; }
 				</script>
 			</head>
 			
 			<body>
-				<h1>Autenticacao & Eleicao</h1>
+				<h1>Consultar Eleicoes</h1>
 				<br><br>
 				<div class="container">
-					<form action="user_auth" method="POST">
-						<label class="title"><b>Eleicoes Disponiveis</b></label><br>
-						<s:textarea value="%{session.ask_elections}" cols="93" rows="10" disabled="true"/>
-						<input type="text" name="selected_election" placeholder="Titulo da Eleicao Pretendida">
-						<input type="text" name="cc_number" placeholder="Numero Cartao de Cidadao">
-						<button type="submit">Submeter</button>
+					<form>
+						<s:textarea id="text_panel" value="%{session.ask_elections}" cols="93" rows="50" disabled="true"/>
                     </form>
-                    <form action="user_menu">
+                    <form action="admin_menu">
                         <button>Cancelar</button>
                     </form>
 				</div>

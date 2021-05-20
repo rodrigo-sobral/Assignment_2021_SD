@@ -39,7 +39,7 @@ public class EditElection extends Action {
         }
         if (new_end_date!=null && !new_end_date.isBlank()) {
             LocalDate temp_date2= checkDateFormat(new_end_date);
-            if (temp_date2!=null && temp_date2.compareTo(edited_election.getEnding().toLocalDate())>0) {
+            if (temp_date2!=null && temp_date2.compareTo(edited_election.getStarting().toLocalDate())>0) {
                 edited_election.setEnding(LocalDateTime.of(temp_date2, edited_election.getEnding().toLocalTime()));
                 changed= true;
             } else return ERROR;

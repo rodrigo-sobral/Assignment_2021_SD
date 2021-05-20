@@ -17,7 +17,7 @@ Consultar resultados detalhados de eleições passadas | 5 | :heavy_check_mark:
 WebSockets | 15 | --
 Página de uma eleição mostra eleitores em tempo real | 5 | :x:
 Páginas de administração mostram o estado das mesas de voto (da meta 1) | 5 | :x:
-Listar utilizadores online | 5 | :x:
+Listar utilizadores online | 5 | :heavy_check_mark:
 -- | -- | --
 REST | 20 | --
 Associar conta ao Facebook | 5 | :x:

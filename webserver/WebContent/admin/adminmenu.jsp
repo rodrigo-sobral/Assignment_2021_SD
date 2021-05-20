@@ -8,6 +8,45 @@
 				<title>Menu Admin</title>
 				<link rel="shortcut icon" href="resources/images/uc_logo.png">
 				<link rel="stylesheet" href="styles/menus_template.css">
+				
+				<script type="text/javascript">
+					var websocket = null;
+					window.onload = function() { connect('ws://' + window.location.host + '/webserver/ws'); }
+					
+					function connect(host) {
+						if ('WebSocket' in window) websocket = new WebSocket(host);
+						else if ('MozWebSocket' in window) websocket = new MozWebSocket(host);
+						else { writeToHistory('Get a real browser which supports WebSocket.'); return; }
+						
+						websocket.onopen = onOpen;
+						websocket.onclose = onClose;
+						websocket.onmessage = onMessage;
+						websocket.onerror = onError;
+					}
+					
+					function onOpen(event) { 
+						websocket.send("${ask_elections_type}"); 
+						websocket.send("vote_tables"); 
+						websocket.send("admin"); 
+					}
+					function onClose(event) { }
+					function onMessage(message) { 
+						if (message.data.startsWith("Administradores Ativos")) {
+							writeToHistory(message.data); 
+						}
+					}
+					function onError(event) { console.log('WebSocket error (' + event.data + ').'); }
+					
+					function writeToHistory(text) {
+						let historyUsers = document.getElementById('logged_users');
+                        while (historyUsers.firstChild) historyUsers.removeChild(historyUsers.firstChild);
+                        let line = document.createElement('p');
+                        line.style.wordWrap = 'break-word';
+                        line.innerHTML = text;
+                        historyUsers.appendChild(line);
+                        historyUsers.scrollTop = historyUsers.scrollHeight;
+					}
+				</script>
 			</head>
 
 			<body>
@@ -38,6 +77,9 @@
 					<form action="button8">
 						<button>Consultar Mesas de Voto</button>
 					</form>
+					<br><br>
+					<div style="white-space: pre-line" id="logged_users"></div>
 				</div>
+				<noscript>JavaScript must be enabled for WebSockets to work.</noscript>	
 			</body>
 		</html>
