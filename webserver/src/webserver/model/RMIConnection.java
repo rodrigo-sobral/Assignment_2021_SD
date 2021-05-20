@@ -5,6 +5,8 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 
+import javax.swing.text.StyledEditorKit.BoldAction;
+
 import rmiserver.*;
 import rmiserver.classes.*;
 
@@ -172,6 +174,21 @@ public class RMIConnection extends UnicastRemoteObject implements RMIClient_I {
                 String result= rmiserver.receiveVote(updated_election);
                 if (result.split(":")[0].compareTo("200")==0) return true;
                 return false;
+            } catch (Exception e) {
+                e.printStackTrace();
+                connectToRMI();
+            }
+        }
+    }
+
+    public boolean updateUser(User user) {
+        
+        while (true) {
+            try { 
+                boolean result= rmiserver.setUpdatedUser(user);
+                System.out.println(result);
+                return result;
+
             } catch (Exception e) {
                 e.printStackTrace();
                 connectToRMI();

@@ -10,6 +10,10 @@ import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.model.OAuthRequest;
 import org.apache.struts2.interceptor.SessionAware;*/
 
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Random;
+import rmiserver.classes.User;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
@@ -17,9 +21,11 @@ import com.github.scribejava.core.model.Token;
 import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.model.Verifier;
 import com.github.scribejava.core.oauth.OAuthService;
-import uc.sd.apis.*;
-import java.util.Map;
-import java.util.Random;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import uc.sd.apis.FacebookApi2;
+
+
 public class AssociateFbAction extends Action {
     
     private static final String NETWORK_NAME = "Facebook";
@@ -28,17 +34,17 @@ public class AssociateFbAction extends Action {
     private static final String PROTECTED_RESOURCE_URL = "https://graph.facebook.com/me";
     private String code,state;
 	@Override
-	public String execute() throws Exception{
+	public String execute() throws RemoteException{
         final String secretState = "secret" + new Random().nextInt(999_999);
 		// Replace these with your own api key and secret
-        String apiKey = "1528703067521344";
-        String apiSecret = "78b0377bee0088d8d8e5d4d8621cd1cd";
+        String apiKey = "2894802620848226";
+        String apiSecret = "fcbe57b400b0a254657053e308521c9e";
         
         OAuthService service = new ServiceBuilder()
                                       .provider(FacebookApi2.class)
                                       .apiKey(apiKey)
                                       .apiSecret(apiSecret)
-                                      .callback("http://localhost:8080/webserver/associaFb") // Do not change this.
+                                      .callback("https://aa3fb465277a.ngrok.io/webserver/associaFb") // Do not change this.
                                       .state(secretState)
                                       .build();
     
@@ -53,17 +59,17 @@ public class AssociateFbAction extends Action {
         System.out.println(autho_url);
         System.out.println("And paste the authorization code here");
         System.out.print(">>");
-        session.put("service", service);
-        session.put("autho_url", autho_url);
+        saveService(service);
+        saveData("autho_url", autho_url);
         System.out.println("code"+code);
         return SUCCESS;
          
 	}
 
-    public String associar_face(){
+    public String associar_face() throws RemoteException{
         Token EMPTY_TOKEN= null;
         System.out.println("Trading the Request Token for an Access Token...");
-        OAuthService service = (OAuthService) session.get("service");
+        OAuthService service = getService();
         Verifier verifier = new Verifier(code);
         Token accessToken = service.getAccessToken(EMPTY_TOKEN, verifier);
         System.out.println("Got the Access Token!");
@@ -77,9 +83,25 @@ public class AssociateFbAction extends Action {
         Response response = request.send();
         System.out.println("Got it! Lets see what we found...");
         System.out.println();
-        System.out.println(response.getCode());
-        System.out.println(response.getBody());
+        System.out.println("ola "+response.getCode());
+        System.out.println("adeus"+response.getBody());
+        String body = response.getBody();
 
+        JSONObject obj = (JSONObject)JSONValue.parse(body); 
+        System.out.println("Valor do id: " + obj.get("id").toString());
+        System.out.println("Valor do nome: " + obj.get("name").toString());
+        //savefacedata(obj.get("name").toString(), obj.get("id").toString());
+        System.out.println("tam"+getRMIConnection().getUsers().size());
+        for(User user:getRMIConnection().getUsers()){
+            if (user.getCc_number().compareTo(getLoggedUser().getCc_number())==0){
+                user.setNome_id(obj.get("name").toString());
+                user.setId_fb(obj.get("id").toString());
+                if (getRMIConnection().updateUser(user)== true){
+                    return ERROR;
+                }
+                saveLoggedUser(user);
+            }
+        }
         return SUCCESS;
     }
 

@@ -6,7 +6,7 @@ public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String user_type;    //  Professor, Estudante ou Funcionario
-    private String name, password, address, phone_number;
+    private String name, password, address, phone_number,nome_id,id_fb;
     private String cc_number, cc_shelflife;
     private String college, department;
 
@@ -21,6 +21,8 @@ public class User implements Serializable {
         if (cc_shelflife!=null) setCc_shelflife(cc_shelflife);
         if (college!=null) setCollege(college);
         if (department!=null) setDepartment(department);
+        nome_id="";
+        id_fb ="";
     }
     
     public String getUser_type() { return user_type; }
@@ -32,7 +34,9 @@ public class User implements Serializable {
     public String getCc_shelflife() { return cc_shelflife; }
     public String getCollege() { return college; }
     public String getDepartment() { return department; }
-    
+    public String getNome_id() {return nome_id;}
+    public String getId_fb() {return id_fb;}
+
     public boolean setUser_type(String user_type) { 
         if (user_type.compareTo("Funcionario")==0 || user_type.compareTo("Estudante")==0 || user_type.compareTo("Professor")==0) {
             this.user_type = user_type; 
@@ -47,7 +51,10 @@ public class User implements Serializable {
     public void setCc_shelflife(String cc_shelflife) { this.cc_shelflife = cc_shelflife; }
     public void setCollege(String college) { this.college = college; }
     public void setDepartment(String department) { this.department = department; }
-    
+    public void setId_fb(String id_fb) {this.id_fb = id_fb;}
+    public void setNome_id(String nome_id) {this.nome_id = nome_id;}
+
+
     @Override
     public String toString() {
         return "Faculdade: "+college+"\nDepartamento: "+department+"\nNome: "+name+"\nMorada: "+address+"\nFuncao: "+user_type+"\n-----------------------------\n";

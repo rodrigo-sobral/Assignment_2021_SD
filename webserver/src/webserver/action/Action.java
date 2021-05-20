@@ -1,5 +1,6 @@
 package webserver.action;
 
+import com.github.scribejava.core.oauth.OAuthService;
 import com.opensymphony.xwork2.ActionSupport;
 import org.apache.struts2.interceptor.SessionAware;
 
@@ -27,10 +28,15 @@ public class Action extends ActionSupport implements SessionAware {
 
     public void saveLoggedUser(User user) { session.put("LoggedUser", user); }
     public User getLoggedUser() { return (User) session.get("LoggedUser"); }
-
     public void saveElection(Election election) { session.put("VotedElection", election); }
     public Election getSavedElection() { return (Election) session.get("VotedElection"); }
-
+    
+    public void saveService(OAuthService service) { session.put("service", service); }
+    
+    public OAuthService getService(){return (OAuthService) session.get("service");}
+    
     @Override
     public void setSession(Map<String, Object> session) { this.session = session; }
+    public Map<String, Object> getSession() { return session; }
 }
+

@@ -17,6 +17,8 @@ public class UserActions extends Action {
 		if(username!=null && password!=null && !username.isBlank() && !username.isBlank()) {
 			for (User user : getRMIConnection().getUsers()) {
 				if (user.getName().compareTo(username)==0 && user.getPassword().compareTo(password)==0){
+					System.out.println(user.getNome_id());
+					System.out.println(user.getId_fb());
 					ask_vote_tables="";
 					ArrayList<Department> available_vote_tables= getRMIConnection().getDepartmentsWithOrNotVoteTable(true);
 					for (Department department: available_vote_tables) 

@@ -6,7 +6,7 @@
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 				<title>Menu Utilizador</title>
 				<link rel="shortcut icon" href="resources/images/uc_logo.png">
-				<link rel="stylesheet" href="styles/menus_template.css">
+				<link rel="stylesheet" href="menus_template.css">
 			</head>
 			
 			<body>
@@ -19,6 +19,9 @@
 						<input type="text" name="voted_candidate" placeholder="Candidato">
 						<button type="submit">Submeter Voto</button>
                     </form>
+					<form action = "partilhar_post">
+						<input type="submit" id ="botao_fb" value="Partilhar Post">
+					</form>
                     <form action="user_menu">
                         <button>Cancelar</button>
                     </form>
