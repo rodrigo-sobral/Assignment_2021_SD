@@ -39,6 +39,9 @@
 						<input type="text" name="voted_candidate" placeholder="Candidato">
 						<button type="submit">Submeter Voto</button>
                     </form>
+					<form action = "partilhar_post">
+						<input type="submit" id ="botao_fb" value="Partilhar Post">
+					</form>
                     <form action="user_menu">
                         <button>Cancelar</button>
                     </form>

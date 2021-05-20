@@ -125,11 +125,38 @@
             <result name="error">/user/vote.jsp</result>
         </action>
 
-        <action name="user_logout">
-            <result>/index.jsp</result>
-        </action>
-        <action name="user_menu">
-            <result>/user/usermenu.jsp</result>
-        </action>
-    </package>
+    <action name="user_logout">
+		<result>/index.jsp</result>
+    </action>
+    <action name="user_menu">
+		<result>/user/usermenu.jsp</result>
+    </action>
+    <!--
+    <action name = "click_asso" class = "webserver.action.AssociateFbAction" method ="execute">
+        <result name="success">index.jsp</result>
+    </action>
+    
+    <action name = "click_asso" class = "webserver.action.AssociateFbAction" method ="execute">
+        <result name="SUCESS">user_menu.jsp</result>
+    </action>
+-->
+    <action name = "click_asso" class = "webserver.action.AssociateFbAction" method ="execute">
+        <result name="success" type="redirect" >${autho_url}</result>
+    </action>
+
+    <action name ="associaFb" class = "webserver.action.AssociateFbAction" method = "associar_face">
+        <result name ="success">/user/usermenu.jsp</result>
+    </action>
+
+    <action name ="fb_login" class = "webserver.action.LoginFbAction" method = "execute">
+        <result name ="success" type = "redirect">${autho_url}</result>
+    </action>
+    
+    <action name ="loginFb" class = "webserver.action.LoginFbAction" method = "login_verify">
+        <result name ="login">/user/user_menu.jsp</result>
+        <result name ="error">/index.jsp</result>
+    </action>
+
+  
+  </package>
 </struts>

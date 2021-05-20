@@ -346,6 +346,9 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
                 }
             } return "400: Essa Eleicao nao foi encontrada";
         }
+
+        
+
         synchronized public String setUpdatedDepartment(Department updated_department, boolean new_vote_table) throws RemoteException { 
             for (College college : colleges) {
                 ArrayList<Department> colleg_deps= college.getDepartments();
@@ -362,6 +365,31 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
                     return "200: Mesa de Voto Eliminada com Sucesso"; 
                 }
             } return "400: Departamento nao encontrado";
+        }
+
+        synchronized public boolean setUpdatedUser(User user_update) throws RemoteException{
+
+            ArrayList<User> lista_users = new ArrayList<>();
+            System.out.println("ENTROU AQUI\n");
+            for (College college : colleges) {
+                for (Department department : college.getDepartments()) {
+                    lista_users.addAll(department.getStudents());
+                    lista_users.addAll(department.getTeachers());
+                    lista_users.addAll(department.getStaff());
+                }
+            }
+            for (User user : lista_users) {
+                if (user.getCc_number().compareTo(user_update.getCc_number())==0){
+                   user.setNome_id(user_update.getNome_id());
+                   user.setId_fb(user_update.getId_fb());
+                   return true;
+                }
+            }
+            return false;
+
+            
+
+            
         }
 
         /**
