@@ -1,19 +1,21 @@
 body { background-color: #282d3f; }
-label, button, form, h1, input, option { font-family: arcadeFont; }
-label, button, h1, option { color: white; }
-form, h1, textarea {
+label, button, form, h1, p, input, option { font-family: arcadeFont; }
+label, button, h1, p, option { color: white; }
+form, h1, p {
 	text-align:center;
 	width:50%;
 	margin:0 auto;
 }
 label { width: 5%; }
+textarea { text-align:center; width: 90%; margin:0 auto;}
 
 input {
 	width: 100%;
-	padding: 12px 20px;
+	padding: 14px 20px;
 	margin: 8px 0;
 	display: inline-block;
 	border: 3px solid #ccc;
+	border-radius: 7px;   
 	box-sizing: border-box;
 }
 

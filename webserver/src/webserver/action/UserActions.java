@@ -23,6 +23,7 @@ public class UserActions extends Action {
 						if (department.getActivatedVoteTable()) ask_vote_tables+= department.toString();
 					if (ask_vote_tables.isEmpty()) ask_vote_tables+= "*Nenhuma Mesa de Voto Disponivel*";
     				saveData("ask_vote_tables", ask_vote_tables);
+    				saveData("logged_cc", user.getCc_number());
 					saveLoggedUser(user);
 					return LOGIN;
 				}
