@@ -19,7 +19,7 @@
 							<input type="submit" class="fadeIn fourth" id ="botao_submit" value="Login">    
                         </form>
                         <form action = "fb_login" method="post">
-                            <input type="submit" id="botao_fb" value=" Login com o facebook">
+                            <input type="submit" id="facebook_button" class="fadeIn third" value="Login com Facebook">
                         </form>
 					</div>
 				</div>

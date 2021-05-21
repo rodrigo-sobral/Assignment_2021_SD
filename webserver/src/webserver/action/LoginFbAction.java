@@ -3,7 +3,7 @@ import rmiserver.classes.User;
 
 import java.rmi.RemoteException;
 import java.util.Random;
-import rmiserver.classes.User;
+
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
@@ -21,7 +21,7 @@ public class LoginFbAction extends Action{
     private static final Token EMPTY_TOKEN = null;
     public String autho_url;
     private static final String PROTECTED_RESOURCE_URL = "https://graph.facebook.com/me";
-    private String code,state;
+    private String code;
 	@Override
 	public String execute() throws RemoteException{
         final String secretState = "secret" + new Random().nextInt(999_999);

@@ -9,7 +9,7 @@ form, h1, p {
 label { width: 5%; }
 textarea { text-align:center; width: 90%; margin:0 auto;}
 
-input [type=text]{
+input {
 	width: 100%;
 	padding: 14px 20px;
 	margin: 8px 0;
@@ -17,31 +17,6 @@ input [type=text]{
 	border: 3px solid #ccc;
 	border-radius: 7px;   
 	box-sizing: border-box;
-}
-
-
-.fb-share-button{
-	margin-left:50%;
-}
-#botao_fb{
-	
-    font-family: arcadeFont;
-    border: none; 
-    font-weight: 550;	
-    font-size: 15px;
-	background-size:33px 35px;
-    text-align: right;
-    background-repeat: no-repeat;
-    display: inline;
-	position: relative;
-	padding: 8.5px 33px;	
-	margin-top: 50%;
-	-webkit-border-radius: 5px 5px 5px 5px;
-	border-radius: 5px 5px 5px 5px;
-	margin: 5px 20px 40px 20px;
-	cursor: pointer;
-    background-color:#c4cee2fb;
-    background-image: url("../resources/images/facebook_logo.png");
 }
 
 button {
@@ -53,13 +28,16 @@ button {
 	border: 3px solid white;
 	border-radius: 7px;   
 }
-
 button:hover { opacity: 0.8; }
 
-.cancelbtn {
-	width: auto;
-	padding: 10px 18px;
-	background-color: #03ad80;
+
+.facebook_button {
+	background: #627aac url("../resources/images/facebook_small.png") no-repeat;
+	border: none;
+	background-size: 52px 52px;
+	padding-right: 7px;
+	padding-left: 29px;
+	line-height: 22px;
 }
 
 textarea {
@@ -70,7 +48,6 @@ textarea {
 	border-radius: 7px;   
 }
 
-@media screen and (max-width: 300px) { .cancelbtn { width: 100%; } }
 @font-face {
 	font-family: arcadeFont;
 	src: url("../resources/fonts/Quantico-Regular.ttf");

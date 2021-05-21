@@ -124,6 +124,10 @@
             <result name="success">/user/usermenu.jsp</result>
             <result name="error">/user/vote.jsp</result>
         </action>
+        <action name="share_election" class="webserver.action.ConsultElections" method="getDetailedFinishedElections">
+            <result name="success">/user/share_election.jsp</result>
+            <result name="error">/user/usermenu.jsp</result>
+        </action>
 
     <action name="user_logout">
 		<result>/index.jsp</result>

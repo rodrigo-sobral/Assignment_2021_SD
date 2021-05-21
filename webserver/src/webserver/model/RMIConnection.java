@@ -5,8 +5,6 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 
-import javax.swing.text.StyledEditorKit.BoldAction;
-
 import rmiserver.*;
 import rmiserver.classes.*;
 
