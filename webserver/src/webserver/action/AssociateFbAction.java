@@ -13,7 +13,6 @@ import com.github.scribejava.core.oauth.OAuthService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-
 import uc.sd.apis.FacebookApi2;
 
 
@@ -23,7 +22,7 @@ public class AssociateFbAction extends Action {
     private static final Token EMPTY_TOKEN = null;
     public String autho_url;
     private static final String PROTECTED_RESOURCE_URL = "https://graph.facebook.com/me";
-    private String code,state;
+    private String code;
 	@Override
 	public String execute() throws RemoteException{
         final String secretState = "secret" + new Random().nextInt(999_999);

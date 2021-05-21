@@ -30,17 +30,6 @@ public class ConsultElections extends Action {
         saveData("ask_elections_type", "unstarted");
         return SUCCESS;
     }
-    
-    public String getRunningElections() throws RemoteException {
-        ArrayList<Election> available_elections= getRMIConnection().getElectionsByState("running");
-        ask_elections= "";
-        if (!available_elections.isEmpty()) {
-            for (Election election : available_elections) ask_elections += election.toString("running", false);
-        } else return ERROR;
-        saveData("ask_elections", ask_elections);
-        saveData("ask_elections_type", "running");
-        return SUCCESS;
-    }
     public String getDetailedRunningElections() throws RemoteException {
         ArrayList<Election> available_elections= getRMIConnection().getElectionsByState("running");
         ask_elections= "";
@@ -49,17 +38,6 @@ public class ConsultElections extends Action {
         } else return ERROR;
         saveData("ask_elections", ask_elections);
         saveData("ask_elections_type", "running");
-        return SUCCESS;
-    }
-    
-    public String getFinishedElections() throws RemoteException {
-        ArrayList<Election> available_elections= getRMIConnection().getElectionsByState("finished");
-        ask_elections= "";
-        if (!available_elections.isEmpty()) {
-            for (Election election : available_elections) ask_elections += election.toString("finished", false);
-        } else return ERROR;
-        saveData("ask_elections", ask_elections);
-        saveData("ask_elections_type", "finished");
         return SUCCESS;
     }
     public String getDetailedFinishedElections() throws RemoteException {
