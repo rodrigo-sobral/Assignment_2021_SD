@@ -25,7 +25,8 @@
 					}
 					
 					function onOpen(event) { 
-						websocket.send("${ask_elections_type}"); 
+						console.log("${ask_elections_type}");
+						if ("${ask_elections_type}") websocket.send("${ask_elections_type}"); 
 						websocket.send("vote_tables"); 
 						websocket.send("admin"); 
 					}
