@@ -386,9 +386,6 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
                 }
             }
             return false;
-
-            
-
             
         }
 

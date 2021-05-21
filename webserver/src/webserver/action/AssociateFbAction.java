@@ -1,17 +1,6 @@
 package webserver.action;
-/*
-import com.github.scribejava.core.builder.ServiceBuilder;
-import com.github.scribejava.core.model.Token;
-import com.github.scribejava.core.oauth.OAuthService;
-import com.github.scribejava.core.oauth.OAuth20Service;
-import com.github.scribejava.core.model.OAuth2AccessToken;
-import com.github.scribejava.core.model.Response;
-import com.github.scribejava.core.model.Verb;
-import com.github.scribejava.core.model.OAuthRequest;
-import org.apache.struts2.interceptor.SessionAware;*/
 
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.Random;
 import rmiserver.classes.User;
 import com.github.scribejava.core.builder.ServiceBuilder;
@@ -23,6 +12,8 @@ import com.github.scribejava.core.model.Verifier;
 import com.github.scribejava.core.oauth.OAuthService;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+
+
 import uc.sd.apis.FacebookApi2;
 
 
@@ -44,7 +35,7 @@ public class AssociateFbAction extends Action {
                                       .provider(FacebookApi2.class)
                                       .apiKey(apiKey)
                                       .apiSecret(apiSecret)
-                                      .callback("https://aa3fb465277a.ngrok.io/webserver/associaFb") // Do not change this.
+                                      .callback("http://localhost:8080/webserver/associaFb") // Do not change this.
                                       .state(secretState)
                                       .build();
     
@@ -97,12 +88,14 @@ public class AssociateFbAction extends Action {
                 user.setNome_id(obj.get("name").toString());
                 user.setId_fb(obj.get("id").toString());
                 if (getRMIConnection().updateUser(user)== true){
-                    return ERROR;
+                    System.out.println("ASSOCIADO AO FACEBOOK COM SUCESSO");
+                    return SUCCESS;
                 }
                 saveLoggedUser(user);
             }
         }
-        return SUCCESS;
+        System.out.println("ERRO A ASSOCIAR COM O FACEBBOK");
+        return ERROR;
     }
 
     public String getAutho_url() {

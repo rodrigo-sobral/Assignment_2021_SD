@@ -4,7 +4,7 @@
 		<html>
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-				<title>Menu Utilizador</title>
+				<title>eVoting</title>
 				<link rel="shortcut icon" href="resources/images/uc_logo.png">
 				<link rel="stylesheet" href="styles/index.css">
 			</head>

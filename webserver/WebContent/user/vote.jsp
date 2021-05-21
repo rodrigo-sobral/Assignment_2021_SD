@@ -4,12 +4,16 @@
 		<html>
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-				<title>Menu Utilizador</title>
+				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+				<meta property="og:url"           content="https://f23709356624.ngrok.io/webserver" />
+				<meta property="og:type"          content="website" />
+				<meta property="og:image"         content="https://www.your-domain.com/path/image.jpg" />
+				<title>eVoting</title>
 				<link rel="shortcut icon" href="resources/images/uc_logo.png">
 				<link rel="stylesheet" href="styles/menus_template.css">
 				<script type="text/javascript">
 					var websocket = null;
-					window.onload = function() { connect('ws://' + window.location.host + '/webserver/ws'); }
+					window.onload = function() { connect('wss://' + window.location.host + '/webserver/ws'); }
 			
 					function connect(host) {
 						if ('WebSocket' in window) websocket = new WebSocket(host);
@@ -25,10 +29,17 @@
 					function onOpen(event) { websocket.send("${session.logged_cc}"); }
 					function onClose(event) { }
 					function onMessage(message) { }
-					function onError(event) { console.log('WebSocket error.'); }			
+					function onError(event) { console.log('WebSocket error.'); }
+					
+					(function(d, s, id) {
+						var js, fjs = d.getElementsByTagName(s)[0];
+						if (d.getElementById(id)) return;
+						js = d.createElement(s); js.id = id;
+						js.src = "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.0";
+						fjs.parentNode.insertBefore(js, fjs);
+					}(document, 'script', 'facebook-jssdk'));
 				</script>
 			</head>
-			
 			<body>
 				<h1>Votar</h1>
 				<br><br>
@@ -39,10 +50,10 @@
 						<input type="text" name="voted_candidate" placeholder="Candidato">
 						<button type="submit">Submeter Voto</button>
                     </form>
-					<form action = "partilhar_post">
-						<input type="submit" id ="botao_fb" value="Partilhar Post">
-					</form>
-                    <form action="user_menu">
+					<br><br>
+					<div class="fb-share-button" data-href="https://f23709356624.ngrok.io/webserver" data-layout="button_count"></div>
+                    <br><br>
+					<form action="user_menu">
                         <button>Cancelar</button>
                     </form>
 				</div>
