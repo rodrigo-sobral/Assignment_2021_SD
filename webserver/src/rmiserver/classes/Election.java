@@ -92,7 +92,7 @@ public class Election implements Serializable {
         String standard= "Titulo: "+title+"\nTipo: "+election_state+"\nDescricao: "+description+"\nInicio: "+getStartingDateString()+"-"+getStartingHourString()+"\nFim: "+getEndingDateString()+"-"+getEndingHourString();
         if (state.compareTo("unstarted")==0) {
             if (!details) return standard+"\n-----------------------------\n";
-            standard+="\nCandidatos:";
+            standard+="\nCandidatos: "+candidatures_to_election.size();
             for (Candidature candidature : candidatures_to_election) {
                 standard+="\n"+candidature.getCandidature_name()+" - "+candidature.getCandidates().size()+" Membros";
                 for (User candidate : candidature.getCandidates()) standard+="\n"+candidate.getName();
@@ -100,7 +100,7 @@ public class Election implements Serializable {
             return standard+"\n-----------------------------\n";
         }
         if (details) {
-            standard+= "\nTotal de Votos: "+total_votes+"\nVotos em Branco: "+blank_votes+"\nVotos Nulos: "+null_votes+"\nCandidatos:\n";
+            standard+= "\nTotal de Votos: "+total_votes+"\nVotos em Branco: "+blank_votes+"\nVotos Nulos: "+null_votes+"\nCandidatos: "+candidatures_to_election.size()+"\n";
             for (Candidature candidature : candidatures_to_election) {
                standard+="\n"+candidature.getCandidature_name()+" - "+candidature.getCandidates().size()+" Membros"+" - Votos: "+candidature.getCandidature_votes();
                for (User candidate : candidature.getCandidates()) standard+="\n"+candidate.getName();
