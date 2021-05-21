@@ -1,5 +1,5 @@
 package webserver.action;
-
+import rmiserver.classes.User;
 
 import java.rmi.RemoteException;
 import java.util.Random;
@@ -33,7 +33,7 @@ public class LoginFbAction extends Action{
                                       .provider(FacebookApi2.class)
                                       .apiKey(apiKey)
                                       .apiSecret(apiSecret)
-                                      .callback("https://aa3fb465277a.ngrok.io/webserver/loginFb") // Do not change this.
+                                      .callback("http://localhost:8080/webserver/loginFb") // Do not change this.
                                       .state(secretState)
                                       .build();
     
@@ -56,6 +56,7 @@ public class LoginFbAction extends Action{
 	}
 
     public String login_verify() throws RemoteException{
+         
         Token EMPTY_TOKEN= null;
         System.out.println("Trading the Request Token for an Access Token...");
         OAuthService service = (OAuthService) getSession().get("service");
@@ -83,12 +84,15 @@ public class LoginFbAction extends Action{
         //savefacedata(obj.get("name").toString(), obj.get("id").toString());
         System.out.println("tam"+getRMIConnection().getUsers().size());
         for(User user:getRMIConnection().getUsers()){
-            if(user.getId_fb().compareTo(obj.get("id").toString())==0){
+            System.out.println("numero "+user.getId_fb());
+            if(user.getId_fb()!=null && user.getId_fb().compareTo(obj.get("id").toString())==0){
                 //encontro o user e esta associado com a conta fb
                 saveLoggedUser(user);
+                System.out.println("LOGIN COM SUCESSO");
                 return LOGIN;
             }
         }
+        System.out.println("LOGIN SEM SUCESSO NECESSITA ASSOCIAR CONTA");
         return ERROR;
     }
 

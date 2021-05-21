@@ -146,6 +146,7 @@
 
     <action name ="associaFb" class = "webserver.action.AssociateFbAction" method = "associar_face">
         <result name ="success">/user/usermenu.jsp</result>
+        <result name ="error">/user/usermenu.jsp</result>
     </action>
 
     <action name ="fb_login" class = "webserver.action.LoginFbAction" method = "execute">
@@ -153,10 +154,9 @@
     </action>
     
     <action name ="loginFb" class = "webserver.action.LoginFbAction" method = "login_verify">
-        <result name ="login">/user/user_menu.jsp</result>
+        <result name ="login">/user/usermenu.jsp</result>
         <result name ="error">/index.jsp</result>
     </action>
-
-  
+    
   </package>
 </struts>

@@ -5,13 +5,13 @@
 
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-				<title>Menu Admin</title>
+				<title>eVoting</title>
 				<link rel="shortcut icon" href="resources/images/uc_logo.png">
 				<link rel="stylesheet" href="styles/menus_template.css">
 				
 				<script type="text/javascript">
 					var websocket = null;
-					window.onload = function() { connect('ws://' + window.location.host + '/webserver/ws'); }
+					window.onload = function() { connect('wss://' + window.location.host + '/webserver/ws'); }
 					
 					function connect(host) {
 						if ('WebSocket' in window) websocket = new WebSocket(host);
