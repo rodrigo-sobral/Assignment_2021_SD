@@ -6,7 +6,7 @@ public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String user_type;    //  Professor, Estudante ou Funcionario
-    private String name, password, address, phone_number,nome_id,id_fb;
+    private String name, password, address, phone_number,nome_id,id_fb,acess_token;
     private String cc_number, cc_shelflife;
     private String college, department;
 
@@ -23,6 +23,7 @@ public class User implements Serializable {
         if (department!=null) setDepartment(department);
         nome_id="";
         id_fb ="";
+        acess_token="";
     }
     
     public String getUser_type() { return user_type; }
@@ -36,7 +37,7 @@ public class User implements Serializable {
     public String getDepartment() { return department; }
     public String getNome_id() {return nome_id;}
     public String getId_fb() {return id_fb;}
-
+    public String getAcess_token() {return acess_token;}
     public boolean setUser_type(String user_type) { 
         if (user_type.compareTo("Funcionario")==0 || user_type.compareTo("Estudante")==0 || user_type.compareTo("Professor")==0) {
             this.user_type = user_type; 
@@ -53,11 +54,11 @@ public class User implements Serializable {
     public void setDepartment(String department) { this.department = department; }
     public void setId_fb(String id_fb) {this.id_fb = id_fb;}
     public void setNome_id(String nome_id) {this.nome_id = nome_id;}
-
+    public void setAcess_token(String acess_token) {this.acess_token = acess_token;}
 
     @Override
     public String toString() {
-        return "Faculdade: "+college+"\nDepartamento: "+department+"\nNome: "+name+"\nMorada: "+address+"\nFuncao: "+user_type+"\nNOME_ID "+nome_id+"\nFB_ID "+id_fb+" -----------------------------\n";
+        return "Faculdade: "+college+"\nDepartamento: "+department+"\nNome: "+name+"\nMorada: "+address+"\nFuncao: "+user_type+"\nNOME_ID "+nome_id+"\nFB_ID "+id_fb+"\nAcessToken"+acess_token+" -----------------------------\n";
     }
 
 }

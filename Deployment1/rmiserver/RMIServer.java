@@ -370,7 +370,6 @@ public class RMIServer extends UnicastRemoteObject implements RMIServer_I, Runna
         synchronized public boolean setUpdatedUser(User user_update) throws RemoteException{
 
             ArrayList<User> lista_users = new ArrayList<>();
-            System.out.println("ENTROU AQUI\n");
             for (College college : colleges) {
                 for (Department department : college.getDepartments()) {
                     lista_users.addAll(department.getStudents());
