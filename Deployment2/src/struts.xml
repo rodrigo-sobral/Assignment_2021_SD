@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+    <constant name="struts.devMode" value="true" />
+    <constant name="struts.ui.theme" value="simple" />
+    <constant name="struts.action.excludePattern" value="/ws"/>
+
+    <package name="webserver" extends="struts-default">
+	
+        <default-action-ref name="index" />
+        <global-results> <result name="error">/error.jsp</result> </global-results>
+
+        <global-exception-mappings> <exception-mapping exception="java.lang.Exception" result="error" /> </global-exception-mappings>
+
+        <!--========================================================================================-->
+
+        <!-- MAIN PAGES -->
+        <action name="index"> <result>/index.jsp</result> 			</action>
+        <action name="admin_menu"> <result>/admin/adminmenu.jsp</result> </action>
+        
+        <!--========================================================================================-->
+        <!--	ADMIN ACTIONS	-->
+        <!--========================================================================================-->
+
+        <!--BUTTON ACTIONS-->
+        <action name="button1">
+            <result>/admin/pages/button1.jsp</result>
+        </action>
+        <action name="button2">
+            <result>/admin/pages/button2.jsp</result>
+        </action>
+        <action name="button3" class="webserver.action.ConsultElections" method="getUnstartedElections">
+            <result name="error">/admin/adminmenu.jsp</result>
+            <result>/admin/pages/button3.jsp</result>
+        </action>
+        <action name="button4">
+            <result>/admin/pages/button4.jsp</result>
+        </action>
+        <action name="button5" class="webserver.action.RegistCandidature" method="getElectionsUsers">
+            <result name="error">/admin/adminmenu.jsp</result>
+            <result name="success">/admin/pages/button5.jsp</result>
+        </action>
+        <action name="button6" class="webserver.action.RegistVoteTable" method="getDepartmentsWithNoVoteTable">
+            <result name="error">/admin/adminmenu.jsp</result>
+            <result>/admin/pages/button6.jsp</result>
+        </action>
+        <action name="button7" class="webserver.action.RegistVoteTable" method="getDepartmentsWithVoteTable">
+            <result name="error">/admin/adminmenu.jsp</result>
+            <result>/admin/pages/button7.jsp</result>
+        </action>
+        <action name="button8" class="webserver.action.RegistVoteTable" method="getDepartmentsWithVoteTable">
+            <result name="success">/admin/pages/button8.jsp</result>
+            <result name="error">/admin/adminmenu.jsp</result>
+        </action>
+
+        <!--SYSTEM ACTIONS-->
+        <!--button1-->
+        <action name="regist_user" class="webserver.action.RegistUser" method="execute">
+            <result name="success">/admin/adminmenu.jsp</result>
+            <result name="error">/admin/pages/button1.jsp</result>
+        </action>
+        <!--button2-->
+        <action name="regist_election" class="webserver.action.RegistElection" method="execute">
+            <result name="success">/admin/adminmenu.jsp</result>
+            <result name="error">/admin/pages/button2.jsp</result>
+        </action>
+        <!--button3-->
+        <action name="edit_election" class="webserver.action.EditElection" method="execute">
+            <result name="success">/admin/adminmenu.jsp</result>
+            <result name="error">/admin/pages/button3.jsp</result>
+        </action>
+        <!--button4-->
+        <action name="unstarted_elections_menu" class="webserver.action.ConsultElections" method="getDetailedUnstartedElections">
+            <result name="success">/admin/pages/ConsultElections.jsp</result>
+            <result name="error">/admin/pages/button4.jsp</result>
+        </action>
+        <!--button4-->
+        <action name="running_elections_menu" class="webserver.action.ConsultElections" method="getDetailedRunningElections">
+            <result name="success">/admin/pages/ConsultElections.jsp</result>
+            <result name="error">/admin/pages/button4.jsp</result>
+        </action>
+        <!--button4-->
+        <action name="finished_elections_menu" class="webserver.action.ConsultElections" method="getDetailedFinishedElections">
+            <result name="success">/admin/pages/ConsultElections.jsp</result>
+            <result name="error">/admin/pages/button4.jsp</result>
+        </action>
+        <!--button5-->
+        <action name="regist_candidature" class="webserver.action.RegistCandidature" method="execute">
+            <result name="success">/admin/adminmenu.jsp</result>
+            <result name="error">/admin/pages/button5.jsp</result>
+        </action>
+        <!--button6-->
+        <action name="regist_vote_table" class="webserver.action.RegistVoteTable" method="execute">
+            <result name="success">/admin/adminmenu.jsp</result>
+            <result name="error">/admin/pages/button6.jsp</result>
+        </action>
+        <!--button7-->
+        <action name="delete_vote_table" class="webserver.action.RegistVoteTable" method="deleteVoteTable">
+            <result name="success">/admin/adminmenu.jsp</result>
+            <result name="error">/admin/pages/button7.jsp</result>
+        </action>
+
+        <!--========================================================================================-->
+        <!--	USER ACTIONS	-->
+        <!--========================================================================================-->
+        
+        <action name="user_login" class="webserver.action.UserActions" method="execute">
+            <result name="login">/user/usermenu.jsp</result>
+            <result name="error">/index.jsp</result>
+        </action>
+        <action name="select_vote_table" class="webserver.action.UserActions" method="checkVoteTable">
+            <result name="success">/user/election_auth.jsp</result>
+            <result name="error">/user/usermenu.jsp</result>
+        </action>
+        <action name="user_auth" class="webserver.action.UserActions" method="authenticateUser">
+            <result name="login">/user/vote.jsp</result>
+            <result name="error">/user/election_auth.jsp</result>
+        </action>
+        <action name="vote" class="webserver.action.UserActions" method="vote">
+            <result name="success">/user/usermenu.jsp</result>
+            <result name="error">/user/vote.jsp</result>
+        </action>
+        <action name="share_election" class="webserver.action.ConsultElections" method="getDetailedFinishedElections">
+            <result name="success">/user/share_election.jsp</result>
+            <result name="error">/user/usermenu.jsp</result>
+        </action>
+
+    <action name="user_logout">
+		<result>/index.jsp</result>
+    </action>
+    <action name="user_menu">
+		<result>/user/usermenu.jsp</result>
+    </action>
+    <!--
+    <action name = "click_asso" class = "webserver.action.AssociateFbAction" method ="execute">
+        <result name="success">index.jsp</result>
+    </action>
+    
+    <action name = "click_asso" class = "webserver.action.AssociateFbAction" method ="execute">
+        <result name="SUCESS">user_menu.jsp</result>
+    </action>
+-->
+    <action name = "click_asso" class = "webserver.action.AssociateFbAction" method ="execute">
+        <result name="success" type="redirect" >${autho_url}</result>
+    </action>
+
+    <action name ="associaFb" class = "webserver.action.AssociateFbAction" method = "associar_face">
+        <result name ="success">/user/usermenu.jsp</result>
+        <result name ="error">/user/usermenu.jsp</result>
+    </action>
+
+    <action name ="fb_login" class = "webserver.action.LoginFbAction" method = "execute">
+        <result name ="success" type = "redirect">${autho_url}</result>
+    </action>
+    
+    <action name ="loginFb" class = "webserver.action.LoginFbAction" method = "login_verify">
+        <result name ="login">/user/usermenu.jsp</result>
+        <result name ="error">/index.jsp</result>
+    </action>
+    
+  </package>
+</struts>

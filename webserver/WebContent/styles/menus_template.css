@@ -39,6 +39,7 @@ button:hover { opacity: 0.8; }
 	padding-left: 29px;
 	line-height: 22px;
 }
+.fb-share-button { margin-left: 45%; }
 
 textarea {
 	padding: 12px 20px;
