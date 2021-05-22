@@ -22,9 +22,13 @@
 						websocket.onerror = onError;
 					}
 			
-					function onOpen(event) { websocket.send("running"); websocket.send("${session.logged_cc}"); }
+					function onOpen(event) { websocket.send("running"); websocket.send("${session.logged_cc}"); websocket.send("vote_tables"); }
 					function onClose(event) { }
-					function onMessage(message) { }
+					function onMessage(message) { 
+						if (!message.data.startsWith("Administradores Ativos") && !message.data.includes("Candidatos:")) {
+							writeToHistory(message.data); 
+						}
+					}
 					function onError(event) { console.log('WebSocket error.'); }			
 				</script>
 			</head>

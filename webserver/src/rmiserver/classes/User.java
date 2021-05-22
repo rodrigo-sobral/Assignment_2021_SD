@@ -58,7 +58,7 @@ public class User implements Serializable {
 
     @Override
     public String toString() {
-        return "Faculdade: "+college+"\nDepartamento: "+department+"\nNome: "+name+"\nMorada: "+address+"\nFuncao: "+user_type+"\nNOME_ID "+nome_id+"\nFB_ID "+id_fb+"\nAcessToken"+acess_token+" -----------------------------\n";
+        return "Faculdade: "+college+"\nDepartamento: "+department+"\nNome: "+name+"\nMorada: "+address+"\nFuncao: "+user_type+"\n-----------------------------\n";
     }
 
 }
