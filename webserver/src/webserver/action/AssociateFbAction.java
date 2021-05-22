@@ -65,7 +65,6 @@ public class AssociateFbAction extends Action {
             if (user.getCc_number().compareTo(getLoggedUser().getCc_number())==0){
                 user.setNome_id(obj.get("name").toString());
                 user.setId_fb(obj.get("id").toString());
-                user.setAcess_token((String) accessToken);
                 if (getRMIConnection().updateUser(user)== true){
                     System.out.println("ASSOCIADO AO FACEBOOK COM SUCESSO");
                     JOptionPane.showMessageDialog(null,"ASSOCIADO AO FACEBOOK COM SUCESSO","Alert",JOptionPane.WARNING_MESSAGE);
