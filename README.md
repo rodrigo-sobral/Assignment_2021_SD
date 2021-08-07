@@ -1,6 +1,28 @@
-# Assignment_2021_SD
+# Distributed Systems Assignment
 
-## Getting Started
+___
+
+## Used Technologies :computer:
+
+1. ***JDK* (v11.0.10.9)**
+2. ***Tom Cat*** 
+3. ***JSP***
+4. ***Struts2***
+5. ***HTML & CSS***
+6. ***Ngrok***
+7. ***Facebook API***
+8. ***Visual Studio Code***
+
+
+## About :clipboard:
+
+In this assignment we had to build a elections' system where administrators can create and manage candidates, electors and votes, in real time.
+
+By other side, we had also to build a system that allows electors to create an account using a common login authentication (email+password) or their Facebook accounts.
+
+After selecting a candidate, an elector can share a link to the voting page of the candidate on his Facebook feed.
+
+## Running it :running:
 
 :warning: **VERY IMPORTANTE NOTE:** 
     
@@ -31,9 +53,19 @@
     
     - And that's it, you might have you entire system working fine now. 
 
+___
 
+## **Contributors** :sparkles:
 
-## Contributors
+<html><i><b> Licenciatura em Engenharia Informática - Universidade de Coimbra<br>
+COMPILADORES - 2020/2021 <br>
+Coimbra, 26 de maio de 2021
+</b></i></html>
 
-Filipa Capela - 2018297335
-Rodrigo Sobral - 2018298209
+:mortar_board: ***[Filipa Rodrigues Santos Capela](https://github.com/FilipaCapela)* - :mortar_board: *[Rodrigo Fernando Henriques Sobral](https://github.com/RodrigoSobral2000)***
+
+___
+
+## License :link:
+Have a look at the [license file](LICENSE) for details
+___
